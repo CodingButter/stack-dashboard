@@ -23,6 +23,6 @@ register(plexPoller);
 register(seerrPoller);
 register(tdarrPoller);
 register(qbittorrentPoller);
-register(makeAgentPoller("nas-agent", "nas"));
+register(makeAgentPoller("agent", "nas"));
 
 export {};
