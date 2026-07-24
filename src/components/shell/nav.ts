@@ -27,6 +27,6 @@ export const navItems: NavItem[] = [
   { title: "Machines", href: "/machines", icon: Server },
   { title: "Logs", href: "/logs", icon: ScrollText },
   { title: "Alerts", href: "/alerts", icon: Bell },
-  { title: "Settings", href: "/settings", icon: Settings },
+  { title: "Users", href: "/settings/users", icon: Settings },
   { title: "Design gallery", href: "/design", icon: Palette },
 ];

@@ -3,7 +3,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Menu, PanelLeftClose, PanelLeftOpen, Search, TerminalSquare } from "lucide-react";
+import { Bell, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Search, TerminalSquare } from "lucide-react";
+
+import { logout } from "@/app/login/actions";
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -91,11 +93,16 @@ export function AppShell({
           <div className="flex-1 overflow-y-auto py-2">
             <NavLinks collapsed={collapsed} />
           </div>
-          <div className="border-t border-sidebar-border p-2">
+          <div
+            className={cn(
+              "flex items-center gap-1 border-t border-sidebar-border p-2",
+              collapsed && "flex-col",
+            )}
+          >
             <Button
               variant="ghost"
               size="icon-sm"
-              className="w-full"
+              className="flex-1"
               onClick={() => setCollapsed((c) => !c)}
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
@@ -105,6 +112,17 @@ export function AppShell({
                 <PanelLeftClose className="size-4" />
               )}
             </Button>
+            <form action={logout} className={cn(collapsed ? "w-full" : "flex-1")}>
+              <Button
+                type="submit"
+                variant="ghost"
+                size="icon-sm"
+                className="w-full text-muted-foreground"
+                aria-label="Sign out"
+              >
+                <LogOut className="size-4" />
+              </Button>
+            </form>
           </div>
         </aside>
 
@@ -132,6 +150,17 @@ export function AppShell({
                 </SheetHeader>
                 <div className="py-2">
                   <NavLinks onNavigate={() => setDrawerOpen(false)} />
+                  <form action={logout} className="mt-2 border-t border-sidebar-border px-2 pt-2">
+                    <Button
+                      type="submit"
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start gap-2.5 text-muted-foreground"
+                    >
+                      <LogOut className="size-4" />
+                      Sign out
+                    </Button>
+                  </form>
                 </div>
               </SheetContent>
             </Sheet>

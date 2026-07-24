@@ -8,8 +8,11 @@ import { PanelCard } from "@/components/widgets/panel-card";
 import { SparkLine } from "@/components/widgets/spark-line";
 import { StatusPill } from "@/components/widgets/status-pill";
 import { TrackerStrip, type TrackerCell } from "@/components/widgets/tracker-strip";
+import { requireSession } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Design gallery" };
+
+export const dynamic = "force-dynamic";
 
 function sampleTracker(seed: number): TrackerCell[] {
   return Array.from({ length: 48 }, (_, i) => {
@@ -36,7 +39,8 @@ const services = [
   { name: "Seerr", status: "unknown" as const },
 ];
 
-export default function DesignPage() {
+export default async function DesignPage() {
+  await requireSession();
   return (
     <AppShell title="Design gallery" alertCount={3}>
       <div className="mx-auto max-w-6xl space-y-6">
