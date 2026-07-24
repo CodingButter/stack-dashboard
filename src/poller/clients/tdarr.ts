@@ -25,6 +25,8 @@ export interface TdarrNode {
   workerCount: number;
   workers: TdarrWorker[];
   queue: { transcode: number; healthcheck: number };
+  /** Configured worker ceilings — the NAS node must stay at 1 GPU / 0 CPU. */
+  limits: { transcodeCpu: number; transcodeGpu: number };
 }
 
 export interface TdarrStats {
@@ -52,6 +54,7 @@ export function parseTdarrNodes(raw: unknown): TdarrNode[] {
       status: String(w.status ?? ""),
     }));
     const ql = (n.queueLengths ?? {}) as Record<string, number>;
+    const wl = (n.workerLimits ?? {}) as Record<string, number>;
     nodes.push({
       nodeName: String(n.nodeName),
       paused: Boolean(n.nodePaused ?? false),
@@ -60,6 +63,10 @@ export function parseTdarrNodes(raw: unknown): TdarrNode[] {
       queue: {
         transcode: Number(ql.transcodecpu ?? 0) + Number(ql.transcodegpu ?? 0),
         healthcheck: Number(ql.healthcheckcpu ?? 0) + Number(ql.healthcheckgpu ?? 0),
+      },
+      limits: {
+        transcodeCpu: Number(wl.transcodecpu ?? 0),
+        transcodeGpu: Number(wl.transcodegpu ?? 0),
       },
     });
   }

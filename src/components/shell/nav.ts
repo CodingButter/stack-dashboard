@@ -5,6 +5,7 @@ import {
   Download,
   HardDrive,
   LayoutDashboard,
+  ListChecks,
   Palette,
   Plug,
   ScrollText,
@@ -22,8 +23,9 @@ export interface NavItem {
 export const navItems: NavItem[] = [
   { title: "Overview", href: "/", icon: LayoutDashboard },
   { title: "Storage", href: "/storage", icon: HardDrive },
-  { title: "Plex", href: "/plex", icon: Clapperboard },
+  { title: "Streams", href: "/streams", icon: Clapperboard },
   { title: "Downloads", href: "/downloads", icon: Download },
+  { title: "Arr", href: "/arr", icon: ListChecks },
   { title: "Tdarr", href: "/tdarr", icon: Activity },
   { title: "Machines", href: "/machines", icon: Server },
   { title: "Logs", href: "/logs", icon: ScrollText },

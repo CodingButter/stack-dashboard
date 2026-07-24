@@ -36,6 +36,38 @@ export async function latestStatuses(): Promise<StatusRow[]> {
 }
 
 /**
+ * Last `cells` poll outcomes per service, oldest → newest — feeds the
+ * uptime TrackerStrips on panel headers.
+ */
+export async function statusHistory(
+  services: string[],
+  cells = 40,
+): Promise<Record<string, StatusRow[]>> {
+  if (services.length === 0) return {};
+  const rows = await db.execute(sql`
+    select service, ok, latency_ms, error, polled_at from (
+      select service, ok, latency_ms, error, polled_at,
+             row_number() over (partition by service order by polled_at desc) as rn
+      from service_status
+      where service in (${sql.join(services.map((s) => sql`${s}`), sql`, `)})
+    ) t
+    where rn <= ${cells}
+    order by polled_at asc
+  `);
+  const out: Record<string, StatusRow[]> = {};
+  for (const r of rows as unknown as Array<Record<string, unknown>>) {
+    (out[String(r.service)] ??= []).push({
+      service: String(r.service),
+      ok: Boolean(r.ok),
+      latencyMs: r.latency_ms === null ? null : Number(r.latency_ms),
+      error: r.error === null ? null : String(r.error),
+      polledAt: new Date(r.polled_at as string),
+    });
+  }
+  return out;
+}
+
+/**
  * Recent series for a set of (box, metric) pairs in one round trip.
  * Returns points ascending, keyed `metric` (single box) or `box:metric`.
  */
