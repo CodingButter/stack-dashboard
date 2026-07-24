@@ -1,0 +1,1248 @@
+{
+  "I6P-xR9x4": {
+    "_id": "I6P-xR9x4",
+    "nodeName": "ZenBeastNode",
+    "remoteAddress": "172.18.0.1",
+    "config": {
+      "nodeName": "ZenBeastNode",
+      "serverURL": "http://nas:8266",
+      "serverIP": "nas",
+      "serverPort": "8266",
+      "handbrakePath": "",
+      "ffmpegPath": "",
+      "mkvpropeditPath": "",
+      "pathTranslators": [
+        {
+          "server": "",
+          "node": ""
+        }
+      ],
+      "nodeType": "mapped",
+      "unmappedNodeCache": "/home/codingbutter/unmappedNodeCache",
+      "logLevel": "INFO",
+      "priority": -1,
+      "platform_arch_isdocker": "linux_x64_docker_false",
+      "processPid": 928468,
+      "cronPluginUpdate": "",
+      "apiKey": "REDACTED_TDARR_KEY",
+      "maxLogSizeMB": 10,
+      "pollInterval": 2000,
+      "startPaused": false,
+      "nodeID": "I6P-xR9x4",
+      "seededWorkerLimits": {},
+      "nodeRegisteredCount": 11
+    },
+    "workerLimits": {
+      "healthcheckcpu": 0,
+      "healthcheckgpu": 0,
+      "transcodecpu": 0,
+      "transcodegpu": 1
+    },
+    "schedule": [
+      {
+        "_id": "00-01",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "01-02",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "02-03",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "03-04",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "04-05",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "05-06",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "06-07",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "07-08",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "08-09",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "09-10",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "10-11",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "11-12",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "12-13",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "13-14",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "14-15",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "15-16",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "16-17",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "17-18",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "18-19",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "19-20",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "20-21",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "21-22",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "22-23",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "23-00",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      }
+    ],
+    "gpuSelect": "nvenc",
+    "nodeTags": "mapped",
+    "allowGpuDoCpu": false,
+    "maxGpuWorkers": 100,
+    "nodePaused": false,
+    "deleteCacheAnyStageError": true,
+    "processPriority": "normal",
+    "thoroughHealthCheckCpuExtraInputArgs": "",
+    "thoroughHealthCheckGpuExtraInputArgs": "",
+    "thoroughHealthCheckCpuExtraArgs": "",
+    "thoroughHealthCheckGpuExtraArgs": "",
+    "librariesToNotProcess": {},
+    "scheduleEnabled": false,
+    "workers": {
+      "easy-erin": {
+        "_id": "easy-erin",
+        "workerType": "transcodegpu",
+        "created": true,
+        "idle": false,
+        "isFlowWorker": true,
+        "bypassWorkerLimits": false,
+        "workDir": "/tv/.tdarr_cache/tdarr-workDir2-EXAMPLE",
+        "sourcefileSizeInGbytes": 2.817735180258751,
+        "originalfileSizeInGbytes": 2.817735180258751,
+        "preset": "-y -i /tv/Example Series 0 (2020)/Season 1/Example.Series.0.S01E01.1080p.WEB-DL.mkv -map 0:0 -c:0 hevc_qsv -profile:v main -global_quality 22",
+        "file": "/tv/Example Series 0 (2020)/Season 1/Example.Series.0.S01E01.1080p.WEB-DL.mkv",
+        "percentage": 24.19,
+        "fps": 91,
+        "ETA": "2:12:31",
+        "status": "Execute",
+        "statusTs": 1784863603195,
+        "job": {
+          "version": "2.84.01",
+          "footprintId": "d7xmZgNBs",
+          "jobId": "T6Up2zG6p",
+          "start": 1784863301234,
+          "type": "transcode",
+          "fileId": "d7xmZgNBs()2.84.01()transcode()T6Up2zG6p()1784863301234.txt"
+        },
+        "startTime": 1784863318833,
+        "lastPluginDetails": {},
+        "workerLog": "",
+        "CLIType": "/home/codingbutter/tdarr-node/assets/app/ffmpeg/linux_x64/ffmpeg",
+        "outputFileSizeInGbytes": 0.296875,
+        "estSize": 1.286286828422877
+      }
+    },
+    "processes": {
+      "928468": {
+        "ppid": 928460,
+        "pid": 928468,
+        "execPath": "/home/codingbutter/tdarr-node/runtime/Tdarr_Node_Runtime",
+        "filename": "/home/codingbutter/tdarr-node/srcug/node/main.js",
+        "lastUpdateTime": 1784863604216,
+        "memory": {
+          "rss": 112078848,
+          "heapTotal": 29548544,
+          "heapUsed": 21001176,
+          "external": 3906572,
+          "arrayBuffers": 200230
+        }
+      },
+      "950679": {
+        "ppid": 928468,
+        "pid": 950679,
+        "execPath": "/home/codingbutter/tdarr-node/runtime/Tdarr_Node_Runtime",
+        "filename": "/home/codingbutter/tdarr-node/srcug/node/workers/worker1/index.js",
+        "lastUpdateTime": 1784863577297,
+        "memory": {
+          "rss": 109867008,
+          "heapTotal": 38428672,
+          "heapUsed": 23376896,
+          "external": 4275172,
+          "arrayBuffers": 563186
+        }
+      },
+      "970837": {
+        "ppid": 950679,
+        "pid": 970837,
+        "execPath": "/home/codingbutter/tdarr-node/runtime/Tdarr_Node_Runtime",
+        "filename": "/home/codingbutter/tdarr-node/srcug/commonModules/fileScanner/mediaInfo.js",
+        "lastUpdateTime": 1784861641742,
+        "memory": {
+          "rss": 154763264,
+          "heapTotal": 12521472,
+          "heapUsed": 8095920,
+          "external": 49104869,
+          "arrayBuffers": 30241309
+        }
+      }
+    },
+    "resStats": {
+      "process": {
+        "uptime": 86701,
+        "heapUsedMB": "19.7",
+        "heapTotalMB": "28.2"
+      },
+      "os": {
+        "cpuPerc": "0.65",
+        "memUsedGB": "5.9",
+        "memTotalGB": "15.3"
+      }
+    },
+    "priority": -1,
+    "queueLengths": {
+      "healthcheckcpu": 0,
+      "healthcheckgpu": 0,
+      "transcodecpu": 20,
+      "transcodegpu": 20
+    },
+    "nodeEngine": "nodejs",
+    "protocolVersion": "socket.io-node-v1"
+  },
+  "PWDNhC6qH": {
+    "_id": "PWDNhC6qH",
+    "nodeName": "DevBeastNode",
+    "remoteAddress": "172.18.0.1",
+    "config": {
+      "nodeName": "DevBeastNode",
+      "serverURL": "http://nas:8266",
+      "serverIP": "nas",
+      "serverPort": "8266",
+      "handbrakePath": "",
+      "ffmpegPath": "/usr/bin/ffmpeg",
+      "mkvpropeditPath": "",
+      "pathTranslators": [
+        {
+          "server": "",
+          "node": ""
+        }
+      ],
+      "nodeType": "mapped",
+      "unmappedNodeCache": "/home/codingbutter/unmappedNodeCache",
+      "logLevel": "INFO",
+      "priority": 0,
+      "platform_arch_isdocker": "linux_x64_docker_false",
+      "processPid": 120415,
+      "cronPluginUpdate": "",
+      "apiKey": "REDACTED_TDARR_KEY",
+      "maxLogSizeMB": 10,
+      "pollInterval": 2000,
+      "startPaused": false,
+      "nodeID": "PWDNhC6qH",
+      "seededWorkerLimits": {},
+      "nodeRegisteredCount": 11
+    },
+    "workerLimits": {
+      "healthcheckcpu": 0,
+      "healthcheckgpu": 0,
+      "transcodecpu": 0,
+      "transcodegpu": 1
+    },
+    "schedule": [
+      {
+        "_id": "00-01",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "01-02",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "02-03",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "03-04",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "04-05",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "05-06",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "06-07",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "07-08",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "08-09",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "09-10",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "10-11",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "11-12",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "12-13",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "13-14",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "14-15",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "15-16",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "16-17",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "17-18",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "18-19",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "19-20",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "20-21",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "21-22",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "22-23",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "23-00",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      }
+    ],
+    "gpuSelect": "-",
+    "nodeTags": "mapped",
+    "allowGpuDoCpu": false,
+    "maxGpuWorkers": 100,
+    "nodePaused": false,
+    "deleteCacheAnyStageError": true,
+    "processPriority": "normal",
+    "thoroughHealthCheckCpuExtraInputArgs": "",
+    "thoroughHealthCheckGpuExtraInputArgs": "",
+    "thoroughHealthCheckCpuExtraArgs": "",
+    "thoroughHealthCheckGpuExtraArgs": "",
+    "librariesToNotProcess": {},
+    "scheduleEnabled": false,
+    "workers": {
+      "raw-rabbit": {
+        "_id": "raw-rabbit",
+        "workerType": "transcodegpu",
+        "created": true,
+        "idle": false,
+        "isFlowWorker": true,
+        "bypassWorkerLimits": false,
+        "workDir": "/tv/.tdarr_cache/tdarr-workDir2-EXAMPLE",
+        "sourcefileSizeInGbytes": 2.807241671718657,
+        "originalfileSizeInGbytes": 2.807241671718657,
+        "preset": "-y -i /tv/Example Series 1 (2020)/Season 1/Example.Series.1.S01E02.1080p.WEB-DL.mkv -map 0:0 -c:0 hevc_qsv -profile:v main -global_quality 22",
+        "file": "/tv/Example Series 1 (2020)/Season 1/Example.Series.1.S01E02.1080p.WEB-DL.mkv",
+        "percentage": 14.31,
+        "fps": 85,
+        "ETA": "0:23:04",
+        "status": "Execute",
+        "statusTs": 1784863603378,
+        "job": {
+          "version": "2.84.01",
+          "footprintId": "pjKHw6PWYZ",
+          "jobId": "kPtkdH_CJ",
+          "start": 1784863407511,
+          "type": "transcode",
+          "fileId": "pjKHw6PWYZ()2.84.01()transcode()kPtkdH_CJ()1784863407511.txt"
+        },
+        "startTime": 1784863435736,
+        "lastPluginDetails": {},
+        "workerLog": "",
+        "CLIType": "/usr/bin/ffmpeg",
+        "outputFileSizeInGbytes": 0.182861328125,
+        "estSize": 1.2923062058303887
+      }
+    },
+    "processes": {
+      "120415": {
+        "ppid": 120405,
+        "pid": 120415,
+        "execPath": "/home/codingbutter/tdarr-node/runtime/Tdarr_Node_Runtime",
+        "filename": "/home/codingbutter/tdarr-node/srcug/node/main.js",
+        "lastUpdateTime": 1784863603580,
+        "memory": {
+          "rss": 118280192,
+          "heapTotal": 29601792,
+          "heapUsed": 26544824,
+          "external": 3819110,
+          "arrayBuffers": 112768
+        }
+      },
+      "120857": {
+        "ppid": 120415,
+        "pid": 120857,
+        "execPath": "/home/codingbutter/tdarr-node/runtime/Tdarr_Node_Runtime",
+        "filename": "/home/codingbutter/tdarr-node/srcug/node/workers/worker1/index.js",
+        "lastUpdateTime": 1784863550144,
+        "memory": {
+          "rss": 146243584,
+          "heapTotal": 30199808,
+          "heapUsed": 22205504,
+          "external": 4218631,
+          "arrayBuffers": 506645
+        }
+      }
+    },
+    "resStats": {
+      "process": {
+        "uptime": 92911,
+        "heapUsedMB": "25.3",
+        "heapTotalMB": "28.2"
+      },
+      "os": {
+        "cpuPerc": "2.38",
+        "memUsedGB": "1.9",
+        "memTotalGB": "15.2"
+      }
+    },
+    "priority": 0,
+    "queueLengths": {
+      "healthcheckcpu": 0,
+      "healthcheckgpu": 0,
+      "transcodecpu": 20,
+      "transcodegpu": 20
+    },
+    "nodeEngine": "nodejs",
+    "protocolVersion": "socket.io-node-v1"
+  },
+  "0hbx8h-hS": {
+    "_id": "0hbx8h-hS",
+    "nodeName": "BigBeastNode",
+    "remoteAddress": "172.18.0.1",
+    "config": {
+      "nodeName": "BigBeastNode",
+      "serverURL": "http://nas:8266",
+      "serverIP": "nas",
+      "serverPort": "8266",
+      "handbrakePath": "",
+      "ffmpegPath": "",
+      "mkvpropeditPath": "",
+      "pathTranslators": [
+        {
+          "server": "",
+          "node": ""
+        }
+      ],
+      "nodeType": "mapped",
+      "unmappedNodeCache": "/home/codingbutter/unmappedNodeCache",
+      "logLevel": "INFO",
+      "priority": -1,
+      "platform_arch_isdocker": "linux_x64_docker_false",
+      "processPid": 248713,
+      "cronPluginUpdate": "",
+      "apiKey": "REDACTED_TDARR_KEY",
+      "maxLogSizeMB": 10,
+      "pollInterval": 2000,
+      "startPaused": false,
+      "nodeID": "0hbx8h-hS",
+      "seededWorkerLimits": {},
+      "nodeRegisteredCount": 2
+    },
+    "workerLimits": {
+      "healthcheckcpu": 0,
+      "healthcheckgpu": 0,
+      "transcodecpu": 0,
+      "transcodegpu": 1
+    },
+    "schedule": [
+      {
+        "_id": "00-01",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "01-02",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "02-03",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "03-04",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "04-05",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "05-06",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "06-07",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "07-08",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "08-09",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "09-10",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "10-11",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "11-12",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "12-13",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "13-14",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "14-15",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "15-16",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "16-17",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "17-18",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "18-19",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "19-20",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "20-21",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "21-22",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "22-23",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "23-00",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      }
+    ],
+    "gpuSelect": "nvenc",
+    "nodeTags": "mapped",
+    "allowGpuDoCpu": false,
+    "maxGpuWorkers": 100,
+    "nodePaused": false,
+    "deleteCacheAnyStageError": false,
+    "processPriority": "normal",
+    "thoroughHealthCheckCpuExtraInputArgs": "",
+    "thoroughHealthCheckGpuExtraInputArgs": "",
+    "thoroughHealthCheckCpuExtraArgs": "",
+    "thoroughHealthCheckGpuExtraArgs": "",
+    "librariesToNotProcess": {},
+    "scheduleEnabled": false,
+    "workers": {
+      "bowed-boto": {
+        "_id": "bowed-boto",
+        "workerType": "transcodegpu",
+        "created": true,
+        "idle": false,
+        "isFlowWorker": true,
+        "bypassWorkerLimits": false,
+        "workDir": "/tv/.tdarr_cache/tdarr-workDir2-EXAMPLE",
+        "sourcefileSizeInGbytes": 2.8338036285713315,
+        "originalfileSizeInGbytes": 2.8338036285713315,
+        "preset": "-y -i /tv/Example Series 2 (2020)/Season 1/Example.Series.2.S01E03.1080p.WEB-DL.mkv -map 0:0 -c:0 hevc_qsv -profile:v main -global_quality 22",
+        "file": "/tv/Example Series 2 (2020)/Season 1/Example.Series.2.S01E03.1080p.WEB-DL.mkv",
+        "percentage": 80.85,
+        "fps": 44,
+        "ETA": "0:01:24",
+        "status": "Execute",
+        "statusTs": 1784863602913,
+        "job": {
+          "version": "2.84.01",
+          "footprintId": "PAF1K-koM",
+          "jobId": "GcBgaUTMkF",
+          "start": 1784862117489,
+          "type": "transcode",
+          "fileId": "PAF1K-koM()2.84.01()transcode()GcBgaUTMkF()1784862117489.txt"
+        },
+        "startTime": 1784862228031,
+        "lastPluginDetails": {},
+        "workerLog": "",
+        "CLIType": "/home/codingbutter/tdarr-node/assets/app/ffmpeg/linux_x64/ffmpeg",
+        "outputFileSizeInGbytes": 1.533447265625,
+        "estSize": 1.9046668309837287
+      }
+    },
+    "processes": {
+      "248713": {
+        "ppid": 248703,
+        "pid": 248713,
+        "execPath": "/home/codingbutter/tdarr-node/runtime/Tdarr_Node_Runtime",
+        "filename": "/home/codingbutter/tdarr-node/srcug/node/main.js",
+        "lastUpdateTime": 1784863604050,
+        "memory": {
+          "rss": 107626496,
+          "heapTotal": 28839936,
+          "heapUsed": 23250728,
+          "external": 4116695,
+          "arrayBuffers": 257860
+        }
+      },
+      "250302": {
+        "ppid": 248713,
+        "pid": 250302,
+        "execPath": "/home/codingbutter/tdarr-node/runtime/Tdarr_Node_Runtime",
+        "filename": "/home/codingbutter/tdarr-node/srcug/node/workers/worker1/index.js",
+        "lastUpdateTime": 1784863534113,
+        "memory": {
+          "rss": 129294336,
+          "heapTotal": 26710016,
+          "heapUsed": 22532864,
+          "external": 4653390,
+          "arrayBuffers": 941404
+        }
+      }
+    },
+    "resStats": {
+      "process": {
+        "uptime": 37567,
+        "heapUsedMB": "22.8",
+        "heapTotalMB": "27.5"
+      },
+      "os": {
+        "cpuPerc": "5.01",
+        "memUsedGB": "20.9",
+        "memTotalGB": "62.5"
+      }
+    },
+    "priority": -1,
+    "queueLengths": {
+      "healthcheckcpu": 0,
+      "healthcheckgpu": 0,
+      "transcodecpu": 20,
+      "transcodegpu": 20
+    },
+    "nodeEngine": "nodejs",
+    "protocolVersion": "socket.io-node-v1"
+  },
+  "kl8q-jIez": {
+    "_id": "kl8q-jIez",
+    "nodeName": "NasTNode",
+    "remoteAddress": "127.0.0.1",
+    "config": {
+      "nodeID": "kl8q-jIez",
+      "nodeName": "NasTNode",
+      "serverURL": "http://0.0.0.0:8266",
+      "serverIP": "0.0.0.0",
+      "serverPort": "8266",
+      "handbrakePath": "",
+      "ffmpegPath": "",
+      "mkvpropeditPath": "",
+      "pathTranslators": [
+        {
+          "server": "",
+          "node": ""
+        }
+      ],
+      "nodeType": "mapped",
+      "unmappedNodeCache": "/app/unmappedNodeCache",
+      "logLevel": "INFO",
+      "priority": -1,
+      "platform_arch_isdocker": "linux_x64_docker_true",
+      "processPid": 640,
+      "cronPluginUpdate": "",
+      "apiKey": "REDACTED_TDARR_KEY",
+      "maxLogSizeMB": 10,
+      "pollInterval": 2000,
+      "startPaused": false,
+      "seededWorkerLimits": {},
+      "nodeRegisteredCount": 1
+    },
+    "workerLimits": {
+      "healthcheckcpu": 0,
+      "healthcheckgpu": 1,
+      "transcodecpu": 0,
+      "transcodegpu": 1
+    },
+    "schedule": [
+      {
+        "_id": "00-01",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "01-02",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "02-03",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "03-04",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "04-05",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "05-06",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "06-07",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "07-08",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "08-09",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "09-10",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "10-11",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "11-12",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "12-13",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "13-14",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "14-15",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "15-16",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "16-17",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "17-18",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "18-19",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "19-20",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "20-21",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "21-22",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "22-23",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      },
+      {
+        "_id": "23-00",
+        "healthcheckcpu": 0,
+        "healthcheckgpu": 0,
+        "transcodecpu": 0,
+        "transcodegpu": 1
+      }
+    ],
+    "gpuSelect": "qsv",
+    "nodeTags": "mapped",
+    "allowGpuDoCpu": false,
+    "maxGpuWorkers": 100,
+    "nodePaused": false,
+    "deleteCacheAnyStageError": true,
+    "processPriority": "normal",
+    "thoroughHealthCheckCpuExtraInputArgs": "",
+    "thoroughHealthCheckGpuExtraInputArgs": "",
+    "thoroughHealthCheckCpuExtraArgs": "",
+    "thoroughHealthCheckGpuExtraArgs": "",
+    "librariesToNotProcess": {},
+    "scheduleEnabled": false,
+    "workers": {
+      "kindly-kid": {
+        "_id": "kindly-kid",
+        "workerType": "transcodegpu",
+        "created": true,
+        "idle": false,
+        "isFlowWorker": true,
+        "bypassWorkerLimits": false,
+        "workDir": "/tv/.tdarr_cache/tdarr-workDir2-EXAMPLE",
+        "sourcefileSizeInGbytes": 2.8203855492174625,
+        "originalfileSizeInGbytes": 2.8203855492174625,
+        "preset": "-y -i /tv/Example Series 3 (2020)/Season 1/Example.Series.3.S01E04.1080p.WEB-DL.mkv -map 0:0 -c:0 hevc_qsv -profile:v main -global_quality 22",
+        "file": "/tv/Example Series 3 (2020)/Season 1/Example.Series.3.S01E04.1080p.WEB-DL.mkv",
+        "percentage": 80.54,
+        "fps": 57,
+        "ETA": "0:04:47",
+        "status": "Execute",
+        "statusTs": 1784863605434,
+        "job": {
+          "version": "2.84.01",
+          "footprintId": "OSQda1BMD",
+          "jobId": "Zw1hRdRjv",
+          "start": 1784862495705,
+          "type": "transcode",
+          "fileId": "OSQda1BMD()2.84.01()transcode()Zw1hRdRjv()1784862495705.txt"
+        },
+        "startTime": 1784862503419,
+        "lastPluginDetails": {},
+        "workerLog": "",
+        "CLIType": "tdarr-ffmpeg",
+        "outputFileSizeInGbytes": 0.618408203125,
+        "estSize": 0.7678274188291532
+      }
+    },
+    "processes": {
+      "640": {
+        "ppid": 291,
+        "pid": 640,
+        "execPath": "/app/Tdarr_Node/runtime/Tdarr_Node_Runtime",
+        "filename": "/app/Tdarr_Node/srcug/node/main.js",
+        "lastUpdateTime": 1784863604894,
+        "memory": {
+          "rss": 72384512,
+          "heapTotal": 28676096,
+          "heapUsed": 20155216,
+          "external": 3770412,
+          "arrayBuffers": 76189
+        }
+      },
+      "1398": {
+        "ppid": 640,
+        "pid": 1398,
+        "execPath": "/app/Tdarr_Node/runtime/Tdarr_Node_Runtime",
+        "filename": "/app/Tdarr_Node/srcug/node/workers/worker1/index.js",
+        "lastUpdateTime": 1784863605330,
+        "memory": {
+          "rss": 115175424,
+          "heapTotal": 26689536,
+          "heapUsed": 23382568,
+          "external": 5227268,
+          "arrayBuffers": 1515282
+        }
+      }
+    },
+    "resStats": {
+      "process": {
+        "uptime": 37339,
+        "heapUsedMB": "19.4",
+        "heapTotalMB": "27.3"
+      },
+      "os": {
+        "cpuPerc": "70.39",
+        "memUsedGB": "8.1",
+        "memTotalGB": "31.1"
+      }
+    },
+    "priority": 0,
+    "queueLengths": {
+      "healthcheckcpu": 0,
+      "healthcheckgpu": 0,
+      "transcodecpu": 20,
+      "transcodegpu": 20
+    },
+    "nodeEngine": "nodejs",
+    "protocolVersion": "socket.io-node-v1"
+  }
+}
