@@ -6,6 +6,7 @@ import {
   HardDrive,
   LayoutDashboard,
   Palette,
+  Plug,
   ScrollText,
   Server,
   Settings,
@@ -28,5 +29,6 @@ export const navItems: NavItem[] = [
   { title: "Logs", href: "/logs", icon: ScrollText },
   { title: "Alerts", href: "/alerts", icon: Bell },
   { title: "Users", href: "/settings/users", icon: Settings },
+  { title: "Services", href: "/settings/services", icon: Plug },
   { title: "Design gallery", href: "/design", icon: Palette },
 ];
