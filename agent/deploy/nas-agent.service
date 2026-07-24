@@ -1,0 +1,35 @@
+[Unit]
+Description=NAS command-center poll-only stats agent
+Documentation=https://github.com/CodingButter/stack-dashboard
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /usr/local/bin/nas-agent/nas_agent.py
+Restart=on-failure
+RestartSec=5
+
+# Agent configuration (see nas_agent.py env contract).
+Environment=AGENT_TOKEN_FILE=/etc/nas-agent/token
+# "tailscale" resolves the current tailnet IPv4 at startup — Tailscale
+# reassigns addresses over time, so a literal IP goes stale and crash-loops.
+Environment=AGENT_BIND=tailscale
+Environment=AGENT_PORT=9101
+Environment=AGENT_GPU=intel
+Environment=AGENT_ROLE=nas
+Environment=AGENT_VOLUMES=/volume1,/volume2
+
+# Resource ceilings — the NAS is I/O-bound; the agent must never matter.
+MemoryMax=128M
+CPUQuota=20%
+
+# Hardening: the agent needs root for journal + docker socket, but nothing else.
+NoNewPrivileges=true
+ProtectHome=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

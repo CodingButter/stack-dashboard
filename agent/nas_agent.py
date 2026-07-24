@@ -15,7 +15,8 @@ Endpoints (all require Authorization: Bearer <token>):
 
 Environment:
   AGENT_TOKEN_FILE  path to bearer token file (default /etc/nas-agent/token)
-  AGENT_BIND        bind address (default 127.0.0.1 — set to tailnet IP in unit)
+  AGENT_BIND        bind address (default 127.0.0.1); "tailscale" resolves the
+                    current tailnet IPv4 at startup (survives TS re-assignment)
   AGENT_PORT        port (default 9101)
   AGENT_GPU         intel | nvidia | none (default none)
   AGENT_ROLE        nas | gpu-node (gpu-node disables docker/actions/logs
@@ -561,13 +562,48 @@ class Handler(BaseHTTPRequestHandler):
                               "text": controlib.demux_docker_logs(body)})
 
 
+def resolve_bind(spec):
+    """Resolve the bind address.
+
+    Tailscale reassigns tailnet IPs over a machine's lifetime, so binding a
+    literal address bakes in a value that goes stale and crash-loops the unit
+    with EADDRNOTAVAIL. When spec is "tailscale" or "tailscale0", read the
+    current IPv4 tailnet address off the interface at startup instead.
+    """
+    if spec in ("tailscale", "tailscale0"):
+        try:
+            out = subprocess.run(
+                ["tailscale", "ip", "-4"],
+                capture_output=True, text=True, timeout=5,
+            )
+            addr = out.stdout.strip().splitlines()[0].strip()
+            if addr:
+                return addr
+        except Exception:
+            pass
+        # Fallback: parse the tailscale0 interface directly.
+        try:
+            out = subprocess.run(
+                ["ip", "-4", "-o", "addr", "show", "dev", "tailscale0"],
+                capture_output=True, text=True, timeout=5,
+            )
+            for tok in out.stdout.split():
+                if "/" in tok and tok.split("/")[0].startswith("100."):
+                    return tok.split("/")[0]
+        except Exception:
+            pass
+        raise RuntimeError("AGENT_BIND=%s but no tailscale0 IPv4 found" % spec)
+    return spec
+
+
 def main():
     global TOKEN
     TOKEN = load_token()
+    bind = resolve_bind(BIND)
     SAMPLER.snapshot()  # prime the delta baseline
-    srv = ThreadingHTTPServer((BIND, PORT), Handler)
+    srv = ThreadingHTTPServer((bind, PORT), Handler)
     log("nas-agent %s listening on %s:%d (gpu=%s role=%s)"
-        % (AGENT_VERSION, BIND, PORT, GPU_MODE, ROLE))
+        % (AGENT_VERSION, bind, PORT, GPU_MODE, ROLE))
     try:
         srv.serve_forever()
     except KeyboardInterrupt:
