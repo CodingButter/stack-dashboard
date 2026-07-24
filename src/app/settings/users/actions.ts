@@ -22,8 +22,8 @@ export async function createUser(
   const password = String(formData.get("password") ?? "");
   const role = String(formData.get("role") ?? "viewer");
 
-  if (!/^[a-z0-9_-]{2,32}$/i.test(username)) {
-    return { error: "Username must be 2-32 chars: letters, digits, - or _." };
+  if (!/^[a-z0-9_-]{2,32}$/.test(username)) {
+    return { error: "Username must be 2-32 lowercase chars: letters, digits, - or _." };
   }
   if (password.length < 8) {
     return { error: "Password must be at least 8 characters." };
