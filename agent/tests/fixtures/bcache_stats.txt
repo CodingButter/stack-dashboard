@@ -1,0 +1,2 @@
+cache_hits 629704
+cache_misses 449537
