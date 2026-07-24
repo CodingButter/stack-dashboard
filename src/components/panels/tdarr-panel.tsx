@@ -7,6 +7,7 @@ import { StatusPill } from "@/components/widgets/status-pill";
 import type { TdarrPanel as TdarrData } from "@/lib/panels/schemas";
 import { usePanelData } from "./use-panel-data";
 import { UptimeRow } from "./uptime-row";
+import { ActionButton } from '@/components/actions/action-button';
 
 const LABELS = { tdarr: "Tdarr server" };
 
@@ -66,9 +67,20 @@ export function TdarrPanel() {
                   label={n.paused ? "paused" : "active"}
                   className="border-0 bg-transparent px-0"
                 />
-                <span className="text-[11px] text-muted-foreground">
-                  limits: {n.limits.transcodeGpu} GPU · {n.limits.transcodeCpu} CPU
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-muted-foreground">
+                    limits: {n.limits.transcodeGpu} GPU · {n.limits.transcodeCpu} CPU
+                  </span>
+                  <ActionButton
+                    actionId={n.paused ? "tdarr.resume-node" : "tdarr.pause-node"}
+                    params={{ nodeName: n.nodeName }}
+                    target={n.nodeName}
+                    size="sm"
+                    className="h-7 px-2 text-xs"
+                  >
+                    {n.paused ? "Resume" : "Pause"}
+                  </ActionButton>
+                </div>
               </div>
               {n.limitViolation ? (
                 <p className="mb-2 rounded-md border border-status-down/40 bg-status-down/10 px-2 py-1.5 text-[11px] font-semibold text-status-down">

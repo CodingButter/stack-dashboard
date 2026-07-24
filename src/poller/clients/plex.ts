@@ -10,6 +10,7 @@ import type { PollOutcome } from "../persist";
 import { httpFetch } from "./http";
 
 export interface PlexSessionDetail {
+  sessionId: string;
   title: string;
   user: string;
   player: string;
@@ -30,7 +31,7 @@ export interface PlexSessions {
 interface PlexSessionEntry {
   Media?: Array<{ Part?: Array<{ decision?: string }> }>;
   TranscodeSession?: unknown;
-  Session?: { bandwidth?: number };
+  Session?: { id?: string; bandwidth?: number };
   bitrate?: number;
   title?: string;
   grandparentTitle?: string;
@@ -68,6 +69,7 @@ export function parsePlexSessions(raw: unknown): PlexSessions {
     totalBitrateKbps += bandwidth;
     const duration = Number(e.duration ?? 0);
     sessions.push({
+      sessionId: String(e.Session?.id ?? ""),
       title: sessionTitle(e),
       user: String(e.User?.title ?? "unknown"),
       player: String(e.Player?.product ?? e.Player?.title ?? ""),

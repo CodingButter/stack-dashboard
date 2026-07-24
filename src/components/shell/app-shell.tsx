@@ -15,6 +15,7 @@ import { navItems } from "@/components/shell/nav";
 import { cn } from "@/lib/utils";
 import { ToastProvider } from '@/components/actions/toaster';
 import { ActionRunnerProvider } from '@/components/actions/action-runner';
+import { ActionCatalogProvider } from '@/components/actions/action-button';
 
 function NavLinks({
   collapsed,
@@ -73,6 +74,7 @@ export function AppShell({
     <TooltipProvider delayDuration={200}>
       <ToastProvider>
       <ActionRunnerProvider>
+      <ActionCatalogProvider>
       <div className="flex min-h-svh w-full">
         {/* Desktop sidebar */}
         <aside
@@ -213,6 +215,7 @@ export function AppShell({
         </div>
       </div>
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
+      </ActionCatalogProvider>
       </ActionRunnerProvider>
       </ToastProvider>
     </TooltipProvider>

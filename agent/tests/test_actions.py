@@ -98,6 +98,22 @@ class TestActionValidation(unittest.TestCase):
         self.assertEqual(plan["kind"], "fixed")
         self.assertIn("--dry-run", plan["argv"])
 
+    def test_nas_reboot_requires_confirm(self):
+        status, err, plan = controlib.plan_action(
+            "nas_reboot", None, None, KNOWN)
+        self.assertEqual(status, 428)
+        self.assertIsNone(plan)
+        self.assertIn("nas_reboot:nas", err["expected"])
+
+    def test_nas_reboot_confirmed_is_delayed_systemctl(self):
+        status, _, plan = controlib.plan_action(
+            "nas_reboot", None, "nas_reboot:nas", KNOWN)
+        self.assertEqual(status, 200)
+        self.assertEqual(plan["kind"], "fixed")
+        self.assertIn("reboot", plan["argv"])
+        # response must escape before the box goes down
+        self.assertIn("--on-active=5", plan["argv"])
+
 
 class TestJournalValidation(unittest.TestCase):
     def test_cursor_rejects_leading_dash(self):
