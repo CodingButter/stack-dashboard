@@ -1,4 +1,5 @@
 import {
+  bigserial,
   boolean,
   doublePrecision,
   index,
@@ -110,6 +111,54 @@ export const pollState = pgTable("poll_state", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const logSource = pgEnum("log_source", [
+  "journal",
+  "docker",
+  "auth",
+  "kernel",
+  "app",
+]);
+
+/**
+ * Off-box log store (Segment 06). One row per line, cursor-pulled from the
+ * agent's journal/docker endpoints. Retention: 14 days AND a 5 GB size cap.
+ */
+export const logLines = pgTable(
+  "log_lines",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    box: text("box").notNull(),
+    source: logSource("source").notNull(),
+    // systemd unit or container name; "sshd" for auth, "kernel" for kernel.
+    unit: text("unit").notNull(),
+    // syslog priority 0 (emerg) .. 7 (debug)
+    severity: integer("severity").notNull(),
+    ts: timestamp("ts", { withTimezone: true }).notNull(),
+    message: text("message").notNull(),
+    meta: jsonb("meta"),
+  },
+  (t) => [
+    index("log_lines_box_source_ts_idx").on(t.box, t.source, t.ts),
+    index("log_lines_unit_ts_idx").on(t.unit, t.ts),
+  ],
+);
+
+/**
+ * Pull position per (box, source, unit). Journal-family sources persist the
+ * opaque journald cursor; docker sources persist a unix-seconds watermark.
+ * Updated in the same transaction as the batch insert — restart-safe.
+ */
+export const logCursors = pgTable("log_cursors", {
+  // `${box}:${source}:${unit}`
+  id: text("id").primaryKey(),
+  box: text("box").notNull(),
+  source: logSource("source").notNull(),
+  unit: text("unit").notNull(),
+  cursor: text("cursor"),
+  sinceUnix: integer("since_unix"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export type User = typeof users.$inferSelect;
 export type Session = typeof sessions.$inferSelect;
 export type AuditEntry = typeof auditLog.$inferSelect;
@@ -118,3 +167,5 @@ export type Snapshot = typeof snapshots.$inferSelect;
 export type Metric = typeof metrics.$inferSelect;
 export type Setting = typeof settings.$inferSelect;
 export type PollState = typeof pollState.$inferSelect;
+export type LogLine = typeof logLines.$inferSelect;
+export type LogCursor = typeof logCursors.$inferSelect;

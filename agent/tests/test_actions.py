@@ -134,6 +134,15 @@ class TestJournalValidation(unittest.TestCase):
         self.assertIn("--after-cursor", argv)
         self.assertEqual(argv[argv.index("--after-cursor") + 1], "s=1;i=2")
 
+    def test_kernel_journal_argv_is_fixed_shape(self):
+        argv = controlib.kernel_journal_argv("s=1;i=2", 50)
+        self.assertEqual(argv[:2], ["journalctl", "-k"])
+        self.assertIn("--after-cursor", argv)
+        self.assertEqual(argv[argv.index("--after-cursor") + 1], "s=1;i=2")
+        # no cursor -> no --after-cursor flag at all
+        self.assertNotIn("--after-cursor",
+                         controlib.kernel_journal_argv(None, 50))
+
     def test_clamp_lines(self):
         self.assertEqual(controlib.clamp_lines("50"), 50)
         self.assertEqual(controlib.clamp_lines("999999"), controlib.MAX_LINES)

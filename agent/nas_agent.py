@@ -469,6 +469,8 @@ class Handler(BaseHTTPRequestHandler):
                 self._handle_docker_logs()
             elif path == "/logs/auth":
                 self._handle_auth_log()
+            elif path == "/logs/kernel":
+                self._handle_kernel_log()
             else:
                 self._send_json(404, {"error": "not found"})
         except Exception as e:  # never let a handler kill the thread silently
@@ -533,6 +535,19 @@ class Handler(BaseHTTPRequestHandler):
             return
         lines = controlib.clamp_lines(q.get("lines"))
         raw = run_cmd(controlib.auth_journal_argv(cursor, lines), timeout=20)
+        if raw is None:
+            self._send_json(502, {"error": "journalctl failed"})
+            return
+        self._send_json(200, controlib.parse_journal_json(raw, cursor))
+
+    def _handle_kernel_log(self):
+        q = self._query()
+        cursor = q.get("cursor")
+        if cursor is not None and not controlib.valid_cursor(cursor):
+            self._send_json(400, {"error": "invalid cursor"})
+            return
+        lines = controlib.clamp_lines(q.get("lines"))
+        raw = run_cmd(controlib.kernel_journal_argv(cursor, lines), timeout=20)
         if raw is None:
             self._send_json(502, {"error": "journalctl failed"})
             return
