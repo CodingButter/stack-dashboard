@@ -13,6 +13,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { CommandPalette } from "@/components/shell/command-palette";
 import { navItems } from "@/components/shell/nav";
 import { cn } from "@/lib/utils";
+import { ToastProvider } from '@/components/actions/toaster';
+import { ActionRunnerProvider } from '@/components/actions/action-runner';
 
 function NavLinks({
   collapsed,
@@ -69,6 +71,8 @@ export function AppShell({
 
   return (
     <TooltipProvider delayDuration={200}>
+      <ToastProvider>
+      <ActionRunnerProvider>
       <div className="flex min-h-svh w-full">
         {/* Desktop sidebar */}
         <aside
@@ -209,6 +213,8 @@ export function AppShell({
         </div>
       </div>
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
+      </ActionRunnerProvider>
+      </ToastProvider>
     </TooltipProvider>
   );
 }

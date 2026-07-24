@@ -10,6 +10,7 @@ import {
   Plug,
   ScrollText,
   Server,
+  ShieldCheck,
   Settings,
   type LucideIcon,
 } from "lucide-react";
@@ -30,6 +31,7 @@ export const navItems: NavItem[] = [
   { title: "Machines", href: "/machines", icon: Server },
   { title: "Logs", href: "/logs", icon: ScrollText },
   { title: "Alerts", href: "/alerts", icon: Bell },
+  { title: "Audit", href: "/audit", icon: ShieldCheck },
   { title: "Users", href: "/settings/users", icon: Settings },
   { title: "Services", href: "/settings/services", icon: Plug },
   { title: "Design gallery", href: "/design", icon: Palette },
