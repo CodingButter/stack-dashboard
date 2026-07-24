@@ -2,35 +2,49 @@
 """NAS agent — poll-only stats server. Python stdlib only.
 
 Endpoints (all require Authorization: Bearer <token>):
-  GET /health  liveness + agent meta
-  GET /stats   cpu/load/mem/swap/disk/bcache/fs/net/dstate/uptime/failed-units
-  GET /smart   smartctl JSON per device, cached 30 min
-  GET /gpu     intel_gpu_top / nvidia-smi snapshot, cached 10 s
+  GET  /health        liveness + agent meta
+  GET  /stats         cpu/load/mem/swap/disk/bcache/fs/net/dstate/uptime/failed-units
+  GET  /smart         smartctl JSON per device, cached 30 min
+  GET  /gpu           intel_gpu_top / nvidia-smi snapshot, cached 10 s
+  GET  /docker        mediastack container states + one-shot stats, cached 10 s
+  GET  /logs/journal  ?unit=&cursor=&lines=   cursor-based journal pull (allowlisted units)
+  GET  /logs/docker   ?container=&since=&tail=  docker logs via unix socket
+  GET  /logs/auth     ?cursor=&lines=          sshd journal entries
+  POST /actions/<name>  strict allowlist; deny-list enforced server-side;
+                        destructive actions need X-Confirm: <action>:<target>
 
 Environment:
   AGENT_TOKEN_FILE  path to bearer token file (default /etc/nas-agent/token)
   AGENT_BIND        bind address (default 127.0.0.1 — set to tailnet IP in unit)
   AGENT_PORT        port (default 9101)
   AGENT_GPU         intel | nvidia | none (default none)
+  AGENT_ROLE        nas | gpu-node (gpu-node disables docker/actions/logs
+                    except its own journal units)
   AGENT_VOLUMES     comma-separated mountpoints to report fill for
                     (default /volume1,/volume2)
+  DOCKER_SOCK       docker unix socket (default /var/run/docker.sock)
 
-Design constraints: the NAS is disk-I/O bound. Hot-path reads are /proc and
-/sys only. Subprocesses are limited to smartctl (30-min cache), GPU tools
-(10-s cache), and systemctl --failed (30-s cache).
+Design constraints: the NAS is disk-I/O bound. Hot-path reads are /proc,
+/sys, and the docker unix socket. Subprocesses are limited to smartctl
+(30-min cache), GPU tools (10-s cache), systemctl --failed (30-s cache),
+journalctl (on demand, bounded -n), and allowlisted actions.
 """
 
 import glob
 import hmac
+import http.client
 import json
 import os
 import re
+import socket
 import subprocess
 import sys
 import threading
 import time
+import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+import controlib
 import statlib
 
 AGENT_VERSION = "0.1.0"
@@ -39,11 +53,15 @@ TOKEN_FILE = os.environ.get("AGENT_TOKEN_FILE", "/etc/nas-agent/token")
 BIND = os.environ.get("AGENT_BIND", "127.0.0.1")
 PORT = int(os.environ.get("AGENT_PORT", "9101"))
 GPU_MODE = os.environ.get("AGENT_GPU", "none")
+ROLE = os.environ.get("AGENT_ROLE", "nas")
 VOLUMES = [v for v in os.environ.get("AGENT_VOLUMES", "/volume1,/volume2").split(",") if v]
+DOCKER_SOCK = os.environ.get("DOCKER_SOCK", "/var/run/docker.sock")
 
 SMART_CACHE_S = 30 * 60
 GPU_CACHE_S = 10
 FAILED_UNITS_CACHE_S = 30
+DOCKER_CACHE_S = 10
+CONTAINER_LIST_CACHE_S = 30
 
 
 def log(msg):
@@ -234,10 +252,142 @@ def collect_failed_units():
     return {"count": len(units), "units": [u.get("unit") for u in units]}
 
 
+# ------------------------------------------------------------- docker client
+
+class UnixHTTPConnection(http.client.HTTPConnection):
+    """http.client over the docker unix socket — no docker CLI subprocess."""
+
+    def __init__(self, sock_path, timeout=10):
+        super().__init__("localhost", timeout=timeout)
+        self._sock_path = sock_path
+
+    def connect(self):
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        s.settimeout(self.timeout)
+        s.connect(self._sock_path)
+        self.sock = s
+
+
+def docker_request(method, path, timeout=10):
+    """Single request against the docker API. Returns (status, body_bytes)
+    or (None, None) on socket failure."""
+    conn = UnixHTTPConnection(DOCKER_SOCK, timeout=timeout)
+    try:
+        conn.request(method, path, headers={"Host": "docker"})
+        resp = conn.getresponse()
+        return resp.status, resp.read()
+    except (OSError, http.client.HTTPException) as e:
+        log("docker %s %s failed: %s" % (method, path, e))
+        return None, None
+    finally:
+        conn.close()
+
+
+MEDIASTACK_FILTER = urllib.parse.quote(
+    json.dumps({"label": ["com.docker.compose.project=mediastack"]}))
+
+
+def list_mediastack_containers():
+    """name -> summary for compose project mediastack. This is the only
+    universe /docker, /logs/docker, and docker actions may target."""
+    status, body = docker_request(
+        "GET", "/v1.43/containers/json?all=1&filters=" + MEDIASTACK_FILTER)
+    if status != 200:
+        return {}
+    out = {}
+    for c in json.loads(body):
+        name = (c.get("Names") or ["/?"])[0].lstrip("/")
+        out[name] = {
+            "id": c.get("Id"),
+            "image": c.get("Image"),
+            "state": c.get("State"),
+            "status": c.get("Status"),
+            "service": (c.get("Labels") or {}).get("com.docker.compose.service"),
+        }
+    return out
+
+
+def collect_docker():
+    containers = CONTAINERS_CACHE.get()
+    result = []
+    for name, c in sorted(containers.items()):
+        entry = dict(c, name=name, protected=name in controlib.DENY_CONTAINERS)
+        status, body = docker_request(
+            "GET", "/v1.43/containers/%s/json" % c["id"])
+        if status == 200:
+            insp = json.loads(body)
+            st = insp.get("State", {})
+            entry["restart_count"] = insp.get("RestartCount", 0)
+            entry["started_at"] = st.get("StartedAt")
+            entry["oom_killed"] = st.get("OOMKilled")
+            entry["exit_code"] = st.get("ExitCode")
+        if c["state"] == "running":
+            status, body = docker_request(
+                "GET", "/v1.43/containers/%s/stats?stream=false&one-shot=true"
+                % c["id"], timeout=15)
+            if status == 200:
+                s = json.loads(body)
+                entry["cpu_pct"] = _docker_cpu_pct(s)
+                mem = s.get("memory_stats", {})
+                entry["mem_used_mb"] = round(
+                    (mem.get("usage", 0) - mem.get("stats", {}).get("inactive_file", 0))
+                    / 1048576, 1)
+                entry["mem_limit_mb"] = round(mem.get("limit", 0) / 1048576, 1)
+        entry.pop("id", None)
+        result.append(entry)
+    return {"containers": result, "sampled_at": int(time.time())}
+
+
+def _docker_cpu_pct(s):
+    """one-shot stats carry no precpu sample on some engines; guard for it."""
+    try:
+        cpu = s["cpu_stats"]
+        pre = s["precpu_stats"]
+        cpu_delta = cpu["cpu_usage"]["total_usage"] - pre["cpu_usage"]["total_usage"]
+        sys_delta = cpu.get("system_cpu_usage", 0) - pre.get("system_cpu_usage", 0)
+        if sys_delta <= 0 or cpu_delta < 0:
+            return None
+        return round(cpu_delta / sys_delta * cpu.get("online_cpus", 1) * 100, 1)
+    except (KeyError, TypeError):
+        return None
+
+
+# ------------------------------------------------------------------- actions
+
+def execute_action(plan):
+    """Execute a validated action plan. Returns (status, payload)."""
+    if plan["kind"] == "docker":
+        containers = CONTAINERS_CACHE.get()
+        c = containers.get(plan["container"])
+        if c is None:
+            return 400, {"error": "container not found"}
+        op = plan["op"]
+        path = "/v1.43/containers/%s/%s" % (c["id"], op)
+        if op in ("restart", "stop"):
+            path += "?t=10"
+        status, body = docker_request("POST", path, timeout=45)
+        if status is None:
+            return 502, {"error": "docker socket unavailable"}
+        ok = status in (204, 304)
+        return (200 if ok else 502), {
+            "ok": ok, "docker_status": status,
+            "detail": body.decode("utf-8", "replace")[:200] if body else None}
+    if plan["kind"] == "systemd":
+        out = run_cmd(["systemctl", plan["op"], plan["unit"]], timeout=60)
+        ok = out is not None
+        return (200 if ok else 502), {"ok": ok}
+    # fixed argv (tiermover_dry_run)
+    out = run_cmd(plan["argv"], timeout=600)
+    ok = out is not None
+    return (200 if ok else 502), {"ok": ok, "output": (out or "")[-4000:]}
+
+
 SAMPLER = StatsSampler()
 SMART_CACHE = TimedCache(SMART_CACHE_S, collect_smart)
 GPU_CACHE = TimedCache(GPU_CACHE_S, collect_gpu)
 FAILED_UNITS_CACHE = TimedCache(FAILED_UNITS_CACHE_S, collect_failed_units)
+DOCKER_CACHE = TimedCache(DOCKER_CACHE_S, collect_docker)
+CONTAINERS_CACHE = TimedCache(CONTAINER_LIST_CACHE_S, list_mediastack_containers)
 STARTED_AT = time.time()
 
 
@@ -287,6 +437,10 @@ class Handler(BaseHTTPRequestHandler):
         expected = "Bearer " + TOKEN
         return hmac.compare_digest(auth.encode(), expected.encode())
 
+    def _query(self):
+        q = urllib.parse.urlparse(self.path).query
+        return {k: v[0] for k, v in urllib.parse.parse_qs(q).items()}
+
     def do_GET(self):
         if not self._authorized():
             self._send_json(401, {"error": "unauthorized"})
@@ -296,18 +450,115 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/health":
                 self._send_json(200, {"ok": True, "version": AGENT_VERSION,
                                       "uptime_s": int(time.time() - STARTED_AT),
-                                      "gpu_mode": GPU_MODE})
+                                      "gpu_mode": GPU_MODE, "role": ROLE})
             elif path == "/stats":
                 self._send_json(200, build_stats())
             elif path == "/smart":
                 self._send_json(200, SMART_CACHE.get())
             elif path == "/gpu":
                 self._send_json(200, GPU_CACHE.get())
+            elif path == "/logs/journal":
+                self._handle_journal()
+            elif ROLE == "gpu-node":
+                # gpu-node role serves stats + its own journal only
+                self._send_json(404, {"error": "not found"})
+            elif path == "/docker":
+                self._send_json(200, DOCKER_CACHE.get())
+            elif path == "/logs/docker":
+                self._handle_docker_logs()
+            elif path == "/logs/auth":
+                self._handle_auth_log()
             else:
                 self._send_json(404, {"error": "not found"})
         except Exception as e:  # never let a handler kill the thread silently
             log("handler error %s: %r" % (path, e))
             self._send_json(500, {"error": "internal error"})
+
+    def do_POST(self):
+        if not self._authorized():
+            self._send_json(401, {"error": "unauthorized"})
+            return
+        path = self.path.split("?", 1)[0]
+        try:
+            if ROLE == "gpu-node" or not path.startswith("/actions/"):
+                self._send_json(404, {"error": "not found"})
+                return
+            action = path[len("/actions/"):]
+            q = self._query()
+            target = q.get("target")
+            confirm = self.headers.get("X-Confirm")
+            known = CONTAINERS_CACHE.get()
+            status, err, plan = controlib.plan_action(action, target, confirm, known)
+            caller = self.address_string()
+            if status != 200:
+                log("action %s target=%s from %s -> %d %s"
+                    % (action, target, caller, status, err.get("error")))
+                self._send_json(status, err)
+                return
+            status, payload = execute_action(plan)
+            log("action %s target=%s from %s -> %d %s"
+                % (action, target, caller, status, json.dumps(payload)[:200]))
+            self._send_json(status, payload)
+        except Exception as e:
+            log("handler error %s: %r" % (path, e))
+            self._send_json(500, {"error": "internal error"})
+
+    # ------------------------------------------------------------ log routes
+
+    def _handle_journal(self):
+        q = self._query()
+        unit = q.get("unit", "")
+        allow = (controlib.GPU_JOURNAL_UNITS if ROLE == "gpu-node"
+                 else controlib.JOURNAL_UNITS)
+        if unit not in allow:
+            self._send_json(400, {"error": "unit not allowlisted"})
+            return
+        cursor = q.get("cursor")
+        if cursor is not None and not controlib.valid_cursor(cursor):
+            self._send_json(400, {"error": "invalid cursor"})
+            return
+        lines = controlib.clamp_lines(q.get("lines"))
+        raw = run_cmd(controlib.journal_argv(unit, cursor, lines), timeout=20)
+        if raw is None:
+            self._send_json(502, {"error": "journalctl failed"})
+            return
+        self._send_json(200, controlib.parse_journal_json(raw, cursor))
+
+    def _handle_auth_log(self):
+        q = self._query()
+        cursor = q.get("cursor")
+        if cursor is not None and not controlib.valid_cursor(cursor):
+            self._send_json(400, {"error": "invalid cursor"})
+            return
+        lines = controlib.clamp_lines(q.get("lines"))
+        raw = run_cmd(controlib.auth_journal_argv(cursor, lines), timeout=20)
+        if raw is None:
+            self._send_json(502, {"error": "journalctl failed"})
+            return
+        self._send_json(200, controlib.parse_journal_json(raw, cursor))
+
+    def _handle_docker_logs(self):
+        q = self._query()
+        name = q.get("container", "")
+        containers = CONTAINERS_CACHE.get()
+        if name not in containers:
+            self._send_json(400, {"error": "container not allowlisted"})
+            return
+        try:
+            since = int(q.get("since", "0"))
+        except ValueError:
+            self._send_json(400, {"error": "invalid since"})
+            return
+        tail = controlib.clamp_lines(q.get("tail"))
+        path = ("/v1.43/containers/%s/logs?stdout=1&stderr=1&timestamps=1"
+                "&since=%d&tail=%d" % (containers[name]["id"], since, tail))
+        status, body = docker_request("GET", path, timeout=20)
+        if status != 200:
+            self._send_json(502, {"error": "docker logs failed",
+                                  "docker_status": status})
+            return
+        self._send_json(200, {"container": name, "since": since,
+                              "text": controlib.demux_docker_logs(body)})
 
 
 def main():
@@ -315,7 +566,8 @@ def main():
     TOKEN = load_token()
     SAMPLER.snapshot()  # prime the delta baseline
     srv = ThreadingHTTPServer((BIND, PORT), Handler)
-    log("nas-agent %s listening on %s:%d (gpu=%s)" % (AGENT_VERSION, BIND, PORT, GPU_MODE))
+    log("nas-agent %s listening on %s:%d (gpu=%s role=%s)"
+        % (AGENT_VERSION, BIND, PORT, GPU_MODE, ROLE))
     try:
         srv.serve_forever()
     except KeyboardInterrupt:
