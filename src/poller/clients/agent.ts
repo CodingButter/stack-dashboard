@@ -22,7 +22,13 @@ export interface AgentStats {
   netTxMbs: number;
   bcacheHitPct: number;
   failedUnits: number;
-  filesystems: Array<{ path: string; usedPct: number }>;
+  uptimeS: number;
+  filesystems: Array<{
+    path: string;
+    usedPct: number;
+    totalBytes: number;
+    usedBytes: number;
+  }>;
   disks: Array<{ device: string; utilPct: number; awaitMs: number }>;
 }
 
@@ -42,9 +48,12 @@ export function parseAgentStats(raw: unknown, box: string): AgentStats {
     netTxMbs: Number(s.net?.tx_mbs ?? 0),
     bcacheHitPct: Number(s.bcache?.hit_ratio_pct ?? 0),
     failedUnits: Number(s.failed_units?.count ?? 0),
+    uptimeS: Number(s.uptime?.uptime_s ?? 0),
     filesystems: fs.map((f: Record<string, unknown>) => ({
       path: String(f.path ?? ""),
       usedPct: Number(f.used_pct ?? 0),
+      totalBytes: Number(f.total_bytes ?? 0),
+      usedBytes: Number(f.used_bytes ?? 0),
     })),
     disks: Object.entries(disks).map(([device, d]) => ({
       device,
@@ -54,6 +63,31 @@ export function parseAgentStats(raw: unknown, box: string): AgentStats {
   };
 }
 
+export interface SmartDrive {
+  device: string;
+  healthy: boolean | null;
+  temperatureC: number | null;
+  powerOnHours: number | null;
+  model: string;
+  sparePct: number | null;
+  mediaErrors: number | null;
+}
+
+export function parseAgentSmart(raw: unknown): SmartDrive[] {
+  const devices = (raw as { devices?: Record<string, Record<string, any>> })
+    ?.devices;
+  if (!devices || typeof devices !== "object") return [];
+  return Object.entries(devices).map(([device, d]) => ({
+    device,
+    healthy: typeof d.healthy === "boolean" ? d.healthy : null,
+    temperatureC: d.temperature_c ?? null,
+    powerOnHours: d.power_on_hours ?? null,
+    model: String(d.model ?? ""),
+    sparePct: d.nvme?.available_spare ?? null,
+    mediaErrors: d.nvme?.media_errors ?? null,
+  }));
+}
+
 /** Build an agent poller for a given box (nas, bigbeast, ...). */
 export function makeAgentPoller(service: string, box: string): Poller {
   return {
@@ -61,10 +95,13 @@ export function makeAgentPoller(service: string, box: string): Poller {
     configured: (cfg) => Boolean(cfg.url && cfg.apiKey),
     async poll(cfg): Promise<Omit<PollOutcome, "service" | "latencyMs">> {
       const base = cfg.url!.replace(/\/$/, "");
-      const res = await httpFetch(`${base}/stats`, {
-        headers: { Authorization: `Bearer ${cfg.apiKey ?? ""}` },
-      });
+      const headers = { Authorization: `Bearer ${cfg.apiKey ?? ""}` };
+      const res = await httpFetch(`${base}/stats`, { headers });
       if (!res.ok) return { ok: false, error: res.error };
+
+      // Best-effort: the agent caches SMART for 30 min, so this is a cheap
+      // local read. A SMART failure never fails the stats poll.
+      const smartRes = await httpFetch(`${base}/smart`, { headers });
 
       const stats = parseAgentStats(res.data, box);
       const metrics = [
@@ -89,7 +126,16 @@ export function makeAgentPoller(service: string, box: string): Poller {
           value: d.utilPct,
         })),
       ];
-      return { ok: true, snapshots: [{ kind: "stats", payload: stats }], metrics };
+      const snapshotRows: Array<{ kind: string; payload: unknown }> = [
+        { kind: "stats", payload: stats },
+      ];
+      if (smartRes.ok) {
+        snapshotRows.push({
+          kind: "smart",
+          payload: { drives: parseAgentSmart(smartRes.data) },
+        });
+      }
+      return { ok: true, snapshots: snapshotRows, metrics };
     },
   };
 }
