@@ -33,7 +33,7 @@ function NavLinks({
             href={item.href}
             onClick={onNavigate}
             className={cn(
-              "flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground",
+              "flex min-h-11 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground md:min-h-0",
               active && "bg-sidebar-accent text-sidebar-primary",
               collapsed && "justify-center px-2",
             )}
@@ -135,7 +135,7 @@ export function AppShell({
                 <Button
                   variant="ghost"
                   size="icon-sm"
-                  className="md:hidden"
+                  className="size-11 md:hidden"
                   aria-label="Open navigation"
                 >
                   <Menu className="size-5" />
@@ -183,13 +183,18 @@ export function AppShell({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                className="md:hidden"
+                className="size-11 md:hidden"
                 aria-label="Search"
                 onClick={() => setPaletteOpen(true)}
               >
                 <Search className="size-4" />
               </Button>
-              <Button variant="ghost" size="icon-sm" className="relative" aria-label="Alerts">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="relative size-11 md:size-7"
+                aria-label="Alerts"
+              >
                 <Bell className="size-4" />
                 {alertCount > 0 && (
                   <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-accent-alerts text-[9px] font-bold text-background">
