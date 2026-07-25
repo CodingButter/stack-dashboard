@@ -18,6 +18,11 @@ EnvironmentFile=%h/stack-dashboard/.env.production.local
 Environment=NODE_ENV=production
 Environment=PORT=3800
 Environment=HOSTNAME=0.0.0.0
+# Tailnet-only over plain HTTP: the private network is the trust boundary, not
+# TLS. Without this the session cookie is marked Secure in production and the
+# browser drops it over http:// — every request would bounce to /login. Put the
+# app behind an HTTPS reverse proxy to remove this and restore Secure cookies.
+Environment=COOKIE_SECURE=false
 ExecStart=/usr/bin/env node %h/stack-dashboard/.next/standalone/server.js
 Restart=on-failure
 RestartSec=3
