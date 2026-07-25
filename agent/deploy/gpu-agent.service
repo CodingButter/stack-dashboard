@@ -1,0 +1,31 @@
+# GPU-node agent — the same stdlib-Python agent as the NAS, in gpu-node role.
+# Installed by agent/deploy/install-gpu-agent.sh on the Tdarr GPU boxes
+# (bigbeast, zenbeast). System-level unit: runs as root for journald access.
+#
+# gpu-node role (AGENT_ROLE=gpu-node) exposes ONLY hardware telemetry
+# (/health /stats /smart /gpu) + the tdarr-node journal. Docker log/auth
+# endpoints and ALL POST /actions/* are 404 here — no mutations from GPU
+# boxes (Tdarr node control goes through the Tdarr server API on the NAS).
+[Unit]
+Description=stackdash GPU-node telemetry agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# AGENT_BIND=<tailnet-ip> and AGENT_TOKEN are written into an override drop-in
+# by the installer (per-box), so this base unit stays host-agnostic.
+Environment=AGENT_ROLE=gpu-node
+Environment=AGENT_GPU=nvidia
+Environment=AGENT_VOLUMES=/
+Environment=AGENT_PORT=9101
+EnvironmentFile=/etc/nas-agent/agent.env
+ExecStart=/usr/bin/python3 /usr/local/bin/nas-agent/nas_agent.py
+Restart=on-failure
+RestartSec=3
+# Telemetry-only: tiny footprint, never contend with transcodes.
+MemoryMax=128M
+CPUQuota=20%
+
+[Install]
+WantedBy=multi-user.target

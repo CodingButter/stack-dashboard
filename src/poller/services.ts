@@ -16,6 +16,8 @@ export interface ServiceDef {
 
 export const SERVICES: ServiceDef[] = [
   { id: "agent", label: "NAS Agent", auth: "token", urlHint: "http://<nas-tailnet-ip>:9101" },
+  { id: "agent-bigbeast", label: "GPU Agent — bigbeast", auth: "token", urlHint: "http://<bigbeast-tailnet-ip>:9101" },
+  { id: "agent-zenbeast", label: "GPU Agent — zenbeast", auth: "token", urlHint: "http://<zenbeast-tailnet-ip>:9101" },
   { id: "plex", label: "Plex", auth: "token", urlHint: "http://<nas>:32400" },
   { id: "tautulli", label: "Tautulli", auth: "apikey-query", urlHint: "http://<nas>:8181" },
   { id: "sonarr", label: "Sonarr", auth: "apikey-header", urlHint: "http://<nas>:8989" },

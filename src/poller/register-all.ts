@@ -24,5 +24,9 @@ register(seerrPoller);
 register(tdarrPoller);
 register(qbittorrentPoller);
 register(makeAgentPoller("agent", "nas"));
+// Fleet GPU-node agents (telemetry only) — each maps to its own box name so
+// gpu metrics land under box='bigbeast'/'zenbeast' for the /machines panel.
+register(makeAgentPoller("agent-bigbeast", "bigbeast"));
+register(makeAgentPoller("agent-zenbeast", "zenbeast"));
 
 export {};

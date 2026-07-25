@@ -1,0 +1,28 @@
+# stackdash web — Next.js standalone server (systemd USER service).
+# Install: deploy/install-devbeast.sh copies this to ~/.config/systemd/user/
+# and enables it under a lingering-enabled user so it survives reboot.
+#
+# Runtime: plain node on the traced standalone bundle — no pnpm at runtime.
+# Binds 0.0.0.0 so it answers on the tailnet IP and localhost; keep the box
+# firewalled/tailnet-only (the app is tailnet-only by design, see README).
+[Unit]
+Description=stackdash web (Next.js standalone) on :3800
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/stack-dashboard
+# Standalone server reads these; secrets come from the env file (0600, untracked).
+EnvironmentFile=%h/stack-dashboard/.env.production.local
+Environment=NODE_ENV=production
+Environment=PORT=3800
+Environment=HOSTNAME=0.0.0.0
+ExecStart=/usr/bin/env node %h/stack-dashboard/.next/standalone/server.js
+Restart=on-failure
+RestartSec=3
+# dev-beast is also a Tdarr node — never let the dashboard fight transcodes.
+MemoryMax=1G
+
+[Install]
+WantedBy=default.target

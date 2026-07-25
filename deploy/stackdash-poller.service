@@ -1,0 +1,24 @@
+# stackdash poller — background worker that polls every configured service,
+# persists metrics/snapshots/status, pulls logs, and evaluates alert rules
+# (systemd USER service). The poller is NOT bundled into the standalone build;
+# it runs from the repo tree via tsx, so the full checkout + node_modules must
+# be present (the web build already requires the checkout to build).
+[Unit]
+Description=stackdash poller (metrics, logs, alerts worker)
+After=network-online.target stackdash-web.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/stack-dashboard
+EnvironmentFile=%h/stack-dashboard/.env.production.local
+Environment=NODE_ENV=production
+# Run the worker loop. tsx is a devDependency in the checkout's node_modules.
+ExecStart=/usr/bin/env pnpm tsx src/poller/index.ts
+Restart=on-failure
+RestartSec=5
+# Keep the worker light alongside Tdarr transcodes on this box.
+MemoryMax=1G
+
+[Install]
+WantedBy=default.target

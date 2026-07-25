@@ -88,6 +88,42 @@ export function parseAgentSmart(raw: unknown): SmartDrive[] {
   }));
 }
 
+export interface AgentGpu {
+  mode: string;
+  utilPct: number | null;
+  encoderPct: number | null;
+  decoderPct: number | null;
+  vramUsedMb: number | null;
+  vramTotalMb: number | null;
+  tempC: number | null;
+  powerW: number | null;
+}
+
+/**
+ * Normalize the agent /gpu snapshot. Only the nvidia shape carries the scalar
+ * fields the fleet Tdarr boxes report; intel/none/error return nulls (the
+ * caller emits no gpu metrics in that case). Returns null when there is no
+ * usable GPU reading at all.
+ */
+export function parseAgentGpu(raw: unknown): AgentGpu | null {
+  const g = raw as Record<string, any> | null;
+  if (!g || typeof g !== "object") return null;
+  const mode = String(g.mode ?? "none");
+  if (mode !== "nvidia") return null; // intel/none/error carry no scalar util
+  if (g.error) return null;
+  const num = (v: unknown) => (v == null ? null : Number(v));
+  return {
+    mode,
+    utilPct: num(g.util_pct),
+    encoderPct: num(g.encoder_pct),
+    decoderPct: num(g.decoder_pct),
+    vramUsedMb: num(g.vram_used_mb),
+    vramTotalMb: num(g.vram_total_mb),
+    tempC: num(g.temp_c),
+    powerW: num(g.power_w),
+  };
+}
+
 /** Build an agent poller for a given box (nas, bigbeast, ...). */
 export function makeAgentPoller(service: string, box: string): Poller {
   return {
@@ -105,6 +141,9 @@ export function makeAgentPoller(service: string, box: string): Poller {
       // Container inventory — the log puller discovers docker log sources
       // from this snapshot, so it must be persisted every cycle.
       const dockerRes = await httpFetch(`${base}/docker`, { headers });
+      // GPU telemetry (nvidia on the fleet Tdarr boxes; "none" on the NAS —
+      // harmless, yields no gpu metrics). Cached 10 s agent-side; cheap.
+      const gpuRes = await httpFetch(`${base}/gpu`, { headers });
 
       const stats = parseAgentStats(res.data, box);
       const metrics = [
@@ -140,6 +179,22 @@ export function makeAgentPoller(service: string, box: string): Poller {
       }
       if (dockerRes.ok && dockerRes.data && typeof dockerRes.data === "object") {
         snapshotRows.push({ kind: "docker", payload: dockerRes.data });
+      }
+      if (gpuRes.ok) {
+        const gpu = parseAgentGpu(gpuRes.data);
+        if (gpu) {
+          snapshotRows.push({ kind: "gpu", payload: gpu });
+          const gpuMetric = (metric: string, value: number | null) =>
+            value == null ? [] : [{ box, metric, value }];
+          metrics.push(
+            ...gpuMetric("gpu_util", gpu.utilPct),
+            ...gpuMetric("gpu.encoder_pct", gpu.encoderPct),
+            ...gpuMetric("gpu.decoder_pct", gpu.decoderPct),
+            ...gpuMetric("gpu.vram_used_mb", gpu.vramUsedMb),
+            ...gpuMetric("gpu.temp_c", gpu.tempC),
+            ...gpuMetric("gpu.power_w", gpu.powerW),
+          );
+        }
       }
       return { ok: true, snapshots: snapshotRows, metrics };
     },
