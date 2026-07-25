@@ -109,7 +109,11 @@ This keeps the dashboard usable by anyone, not just its author.
 
 - **Tailnet-only.** The app is meant to sit on a private Tailscale network. It is
   not hardened for public exposure; put it behind an authenticating reverse proxy
-  if you expose it.
+  if you expose it. The web service binds `0.0.0.0:3800`, so its reachability is
+  bounded by the host's network (LAN + tailnet, no public port-forward) rather
+  than by the listen address. The session cookie is served without the `Secure`
+  flag (`COOKIE_SECURE=false`) because the tailnet carries plain HTTP; restore
+  `Secure` by terminating TLS at a reverse proxy.
 - **Auth.** Passwordless-username + password login, scrypt-hashed, session
   cookies. Admin-only pages for users, services, and audit.
 - **Action safety.** Mutations require the right role; destructive ones require a
