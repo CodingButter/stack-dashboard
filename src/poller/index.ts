@@ -28,12 +28,28 @@ import {
   runLogRetention,
   type AgentFetcher,
 } from "./logs";
+import { runAlertCycle } from "@/alerts";
 
 // Register all service pollers (side-effect imports populate the registry).
 import "./register-all";
 
 const RETENTION_INTERVAL_MS = 60 * 60 * 1000; // hourly
+const ALERT_INTERVAL_MS = 15_000; // evaluate rules every 15 s
 const TICK_MS = 1_000;
+
+async function runAlertsSafe(): Promise<void> {
+  try {
+    const summary = await runAlertCycle(db);
+    if (summary.opened || summary.resolved) {
+      console.log(
+        `[poller] alerts +${summary.opened} -${summary.resolved} ` +
+          `(refreshed ${summary.refreshed}, pending ${summary.pending})`,
+      );
+    }
+  } catch (err) {
+    console.warn(`[poller] alert cycle failed:`, err);
+  }
+}
 
 function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   return Promise.race([
@@ -111,6 +127,7 @@ async function runOnce(): Promise<void> {
     );
   }
   await pullLogsSafe();
+  await runAlertsSafe();
 }
 
 async function runLoop(): Promise<void> {
@@ -126,6 +143,7 @@ async function runLoop(): Promise<void> {
   console.log(`[poller] loop: ${pollers.length} services`);
   let lastRetention = 0;
   let lastLogPull = 0;
+  let lastAlerts = 0;
 
   for (;;) {
     const now = Date.now();
@@ -146,6 +164,11 @@ async function runLoop(): Promise<void> {
     if (now - lastLogPull >= LOG_PULL_INTERVAL_MS) {
       lastLogPull = now;
       await pullLogsSafe();
+    }
+
+    if (now - lastAlerts >= ALERT_INTERVAL_MS) {
+      lastAlerts = now;
+      await runAlertsSafe();
     }
 
     if (now - lastRetention >= RETENTION_INTERVAL_MS) {

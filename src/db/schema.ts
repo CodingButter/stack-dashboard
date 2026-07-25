@@ -159,6 +159,39 @@ export const logCursors = pgTable("log_cursors", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const alertSeverity = pgEnum("alert_severity", [
+  "critical",
+  "warning",
+  "info",
+]);
+
+/**
+ * Open/resolved alert instances raised by the rule engine (Segment 06). One
+ * row per (ruleId, target); the engine upserts on breach and stamps
+ * `resolvedAt` when the auto-resolve predicate clears. `acked` mutes the shell
+ * badge without resolving. Two-strike debounce lives in the engine, not here.
+ */
+export const alerts = pgTable(
+  "alerts",
+  {
+    id: text("id").primaryKey(),
+    ruleId: text("rule_id").notNull(),
+    severity: alertSeverity("severity").notNull(),
+    // the thing the rule is about (container name, mount, node, service…)
+    target: text("target").notNull(),
+    message: text("message").notNull(),
+    firstSeen: timestamp("first_seen", { withTimezone: true }).notNull().defaultNow(),
+    lastSeen: timestamp("last_seen", { withTimezone: true }).notNull().defaultNow(),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    acked: boolean("acked").notNull().default(false),
+    ackedBy: text("acked_by").references(() => users.id, { onDelete: "set null" }),
+  },
+  (t) => [
+    index("alerts_rule_target_idx").on(t.ruleId, t.target),
+    index("alerts_resolved_last_seen_idx").on(t.resolvedAt, t.lastSeen),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type Session = typeof sessions.$inferSelect;
 export type AuditEntry = typeof auditLog.$inferSelect;
@@ -169,3 +202,4 @@ export type Setting = typeof settings.$inferSelect;
 export type PollState = typeof pollState.$inferSelect;
 export type LogLine = typeof logLines.$inferSelect;
 export type LogCursor = typeof logCursors.$inferSelect;
+export type Alert = typeof alerts.$inferSelect;
