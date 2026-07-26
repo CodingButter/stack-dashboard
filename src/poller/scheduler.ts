@@ -22,6 +22,7 @@ export const POLL_INTERVALS_MS: Record<string, number> = {
   sonarr: 30_000, // arr queue
   radarr: 30_000,
   seerr: 30_000,
+  "plex-recent": 300_000, // recently-added per section — 5 min, slow tier
   "sonarr:library": 300_000, // wanted/missing + library counts — 5 min
   "radarr:library": 300_000,
   prowlarr: 300_000, // indexer health — 5 min

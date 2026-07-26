@@ -1,0 +1,23 @@
+{
+  "MediaContainer": {
+    "size": 2,
+    "Metadata": [
+      {
+        "ratingKey": "50123",
+        "type": "movie",
+        "title": "Dune: Part Two",
+        "year": 2024,
+        "thumb": "/library/metadata/50123/thumb/1710000000",
+        "addedAt": 1710000900
+      },
+      {
+        "ratingKey": "50110",
+        "type": "movie",
+        "title": "The Fall Guy",
+        "year": 2024,
+        "thumb": "/library/metadata/50110/thumb/1709990000",
+        "addedAt": 1709990000
+      }
+    ]
+  }
+}
