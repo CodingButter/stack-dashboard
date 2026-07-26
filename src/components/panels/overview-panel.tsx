@@ -7,7 +7,7 @@ import { PanelCard } from "@/components/widgets/panel-card";
 import { SparkLine } from "@/components/widgets/spark-line";
 import { StatusPill } from "@/components/widgets/status-pill";
 import { InfoDot } from "@/components/widgets/info-dot";
-import { formatAgo, formatBps, formatBytes } from "@/lib/format";
+import { formatAgo, formatBps, formatBytes, formatMbpsValue } from "@/lib/format";
 import type { Overview, Point, ServiceHealth } from "@/lib/panels/schemas";
 import { usePanelData } from "./use-panel-data";
 import { ProgressBar } from '@/components/widgets/progress-bar';
@@ -192,7 +192,7 @@ export function OverviewPanel() {
                 <span className="stat-num text-base">{v.netRxSeries.at(-1)?.v.toFixed(1) ?? "0.0"} / {v.netTxSeries.at(-1)?.v.toFixed(1) ?? "0.0"} MB/s</span>
               </div>
               <LiveTicker
-                unit="MB/s"
+                format={formatMbpsValue}
                 height={64}
                 series={[
                   { name: "rx", color: "var(--accent-downloads)", data: values(v.netRxSeries) },

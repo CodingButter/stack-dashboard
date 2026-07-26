@@ -23,14 +23,21 @@ export interface TickerSeries {
 export function LiveTicker({
   series,
   unit,
+  format,
+  legend = "series",
   height = 96,
   className,
 }: {
   series: TickerSeries[];
   unit?: string;
+  /** Formats a raw sample value for the tooltip and legend (e.g. bytes/s → "12.4 MB/s"). Overrides `unit`. */
+  format?: (value: number) => string;
+  /** "series" shows one reading per series; "none" hides the bottom readings entirely. */
+  legend?: "series" | "none";
   height?: number;
   className?: string;
 }) {
+  const fmt = format ?? ((v: number) => `${v}${unit ? ` ${unit}` : ""}`);
   const length = Math.max(...series.map((s) => s.data.length), 0);
   const points = Array.from({ length }, (_, i) => {
     const p: Record<string, number> = { i };
@@ -52,7 +59,7 @@ export function LiveTicker({
                 fontSize: 12,
               }}
               labelFormatter={() => ""}
-              formatter={(value) => [`${value}${unit ? ` ${unit}` : ""}`]}
+              formatter={(value) => [fmt(Number(value))]}
             />
             {series.map((s) => (
               <Line
@@ -68,21 +75,22 @@ export function LiveTicker({
           </LineChart>
         </ResponsiveContainer>
       </div>
-      <div className="mt-1 flex gap-3 text-sm text-muted-foreground">
-        {series.map((s) => (
-          <span key={s.name} className="inline-flex items-center gap-1">
-            <span
-              className="size-1.5 rounded-full"
-              style={{ background: s.color }}
-            />
-            {s.name}
-            <span className="stat-num text-foreground">
-              {s.data[s.data.length - 1] ?? 0}
-              {unit ? ` ${unit}` : ""}
+      {legend === "series" ? (
+        <div className="mt-1 flex gap-3 text-sm text-muted-foreground">
+          {series.map((s) => (
+            <span key={s.name} className="inline-flex items-center gap-1">
+              <span
+                className="size-1.5 rounded-full"
+                style={{ background: s.color }}
+              />
+              {s.name}
+              <span className="stat-num text-foreground">
+                {fmt(s.data[s.data.length - 1] ?? 0)}
+              </span>
             </span>
-          </span>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

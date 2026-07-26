@@ -13,6 +13,18 @@ export function formatBps(bps: number): string {
   return `${formatBytes(bps)}/s`;
 }
 
+/** bytes/second → "12.4 MB/s" (always MB/s, never smaller units) */
+export function formatMbps(bps: number): string {
+  const mb = Number.isFinite(bps) && bps > 0 ? bps / 1024 / 1024 : 0;
+  return `${mb.toFixed(1)} MB/s`;
+}
+
+/** already-MB/s number → "12.4 MB/s" */
+export function formatMbpsValue(mb: number): string {
+  const v = Number.isFinite(mb) && mb > 0 ? mb : 0;
+  return `${v.toFixed(1)} MB/s`;
+}
+
 export function formatUptime(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds <= 0) return "—";
   const d = Math.floor(seconds / 86400);

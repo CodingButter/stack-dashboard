@@ -4,7 +4,7 @@ import { KpiCard } from "@/components/widgets/kpi-card";
 import { LiveTicker } from "@/components/widgets/live-ticker";
 import { PanelCard } from "@/components/widgets/panel-card";
 import { InfoDot } from "@/components/widgets/info-dot";
-import { formatBps, formatBytes } from "@/lib/format";
+import { formatBps, formatBytes, formatMbps } from "@/lib/format";
 import type { GlossaryTerm } from "@/lib/glossary";
 import type { Downloads } from "@/lib/panels/schemas";
 import { usePanelData } from "./use-panel-data";
@@ -216,7 +216,7 @@ export function DownloadsPanel() {
 
       <PanelCard title="Throughput" subsystem="downloads" info="throughput">
         <LiveTicker
-          unit="B/s"
+          format={formatMbps}
           height={120}
           series={[
             {
