@@ -28,5 +28,8 @@ register(makeAgentPoller("agent", "nas"));
 // gpu metrics land under box='bigbeast'/'zenbeast' for the /machines panel.
 register(makeAgentPoller("agent-bigbeast", "bigbeast"));
 register(makeAgentPoller("agent-zenbeast", "zenbeast"));
+// dev-beast hosts the web+poller and is also a Tdarr transcode node, so it runs
+// the same telemetry agent (gpu=none) to report its own cpu/mem/disk.
+register(makeAgentPoller("agent-devbeast", "dev-beast"));
 
 export {};

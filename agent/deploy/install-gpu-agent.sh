@@ -18,6 +18,7 @@
 set -euo pipefail
 
 GPU_HOST="${GPU_HOST:?set GPU_HOST=bigbeast or zenbeast}"
+AGENT_GPU="${AGENT_GPU:-nvidia}"   # nvidia (default) | intel | none (dev-beast has no GPU)
 AGENT_DIR="/usr/local/bin/nas-agent"
 TOKEN_DIR="/etc/nas-agent"
 TOKEN_FILE="${TOKEN_DIR}/token"
@@ -53,7 +54,7 @@ ssh "${GPU_HOST}" "
 # 4. Per-box env drop-in (role/gpu/bind) read by the unit's EnvironmentFile.
 ssh "${GPU_HOST}" "sudo -n sh -c 'cat > ${ENV_FILE} <<ENV
 AGENT_ROLE=gpu-node
-AGENT_GPU=nvidia
+AGENT_GPU=${AGENT_GPU}
 AGENT_BIND=tailscale
 AGENT_VOLUMES=/
 AGENT_PORT=9101
