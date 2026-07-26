@@ -155,8 +155,8 @@ export function registerArrActions(
       id: `${service}.toggle-monitored`,
       label: `Toggle monitored (${service})`,
       service,
-      blastRadius: "safe",
-      requiredRole: "viewer",
+      blastRadius: "disruptive",
+      requiredRole: "admin",
       params: z.object({ itemId: idSchema, monitored: z.boolean() }),
       target: (p) => `${kind}-${p.itemId}`,
       executor: async (p) => {
