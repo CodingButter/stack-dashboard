@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { PanelCard } from "@/components/widgets/panel-card";
 import { SparkLine } from "@/components/widgets/spark-line";
 import { StatusPill } from "@/components/widgets/status-pill";
@@ -71,6 +73,10 @@ function Stat({
 
 function MachineCard({ m }: { m: Machine }) {
   const s = m.stats;
+  // Boxes with a lot of disks (e.g. the NAS array) start with the Disks table
+  // collapsed so a single machine doesn't dominate the page; small boxes stay open.
+  const manyDisks = (s?.disks.length ?? 0) > 3;
+  const [disksOpen, setDisksOpen] = useState(!manyDisks);
   return (
     <PanelCard
       title={m.label}
@@ -129,9 +135,25 @@ function MachineCard({ m }: { m: Machine }) {
           {s.disks.length > 0 ? (
             <div>
               <h4 className="mb-1.5 flex items-center gap-1 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Disks
+                {manyDisks ? (
+                  <button
+                    type="button"
+                    onClick={() => setDisksOpen((o) => !o)}
+                    className="flex items-center gap-1 uppercase tracking-wider transition-colors hover:text-foreground"
+                    aria-expanded={disksOpen}
+                  >
+                    <ChevronDown
+                      className={`size-3.5 transition-transform ${disksOpen ? "" : "-rotate-90"}`}
+                    />
+                    Disks
+                    <span className="normal-case text-muted-foreground/70">({s.disks.length})</span>
+                  </button>
+                ) : (
+                  <>Disks</>
+                )}
                 <InfoDot term="disk-utilization" />
               </h4>
+              {disksOpen ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead>
@@ -160,6 +182,7 @@ function MachineCard({ m }: { m: Machine }) {
                   </tbody>
                 </table>
               </div>
+              ) : null}
               {s.bcacheHitPct > 0 ? (
                 <p className="mt-1 text-sm text-muted-foreground">
                   bcache hit ratio {s.bcacheHitPct.toFixed(1)}%
