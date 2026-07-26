@@ -19,7 +19,7 @@ describe("poll interval tiers", () => {
     expect(POLL_INTERVALS_MS.tautulli).toBe(15_000);
     expect(POLL_INTERVALS_MS.sabnzbd).toBe(15_000);
     expect(POLL_INTERVALS_MS.qbittorrent).toBe(15_000);
-    expect(POLL_INTERVALS_MS.tdarr).toBe(20_000);
+    expect(POLL_INTERVALS_MS.tdarr).toBe(10_000);
     expect(POLL_INTERVALS_MS.sonarr).toBe(30_000);
     expect(POLL_INTERVALS_MS.radarr).toBe(30_000);
     expect(POLL_INTERVALS_MS["sonarr:library"]).toBe(300_000);

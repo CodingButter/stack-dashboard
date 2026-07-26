@@ -16,7 +16,9 @@ import { ProgressBar } from '@/components/widgets/progress-bar';
 const LABELS = { tdarr: "Tdarr server" };
 
 export function TdarrPanel() {
-  const { data, error } = usePanelData<TdarrData>("/api/panels/tdarr");
+  // Tdarr transcode progress moves fast — poll harder than the default 12 s so
+  // the bars/percent tick smoothly (server poller writes fresh snapshots every 10 s).
+  const { data, error } = usePanelData<TdarrData>("/api/panels/tdarr", 6_000);
 
   if (!data) {
     return (

@@ -18,7 +18,7 @@ export const POLL_INTERVALS_MS: Record<string, number> = {
   tautulli: 15_000,
   sabnzbd: 15_000,
   qbittorrent: 15_000,
-  tdarr: 20_000,
+  tdarr: 10_000, // transcode progress moves fast; keep the page lively (breaker still backs off on failure)
   sonarr: 30_000, // arr queue
   radarr: 30_000,
   seerr: 30_000,
