@@ -13,7 +13,7 @@ import nas_agent
 class TestResolveBind(unittest.TestCase):
     def test_literal_ip_passes_through(self):
         self.assertEqual(nas_agent.resolve_bind("127.0.0.1"), "127.0.0.1")
-        self.assertEqual(nas_agent.resolve_bind("100.86.8.110"), "100.86.8.110")
+        self.assertEqual(nas_agent.resolve_bind("100.64.0.1"), "100.64.0.1")
 
     def test_hostname_passes_through(self):
         self.assertEqual(nas_agent.resolve_bind("0.0.0.0"), "0.0.0.0")

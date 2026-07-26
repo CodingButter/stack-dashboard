@@ -1,12 +1,12 @@
 import { AppShell } from "@/components/shell/app-shell";
-import { OverviewPanel } from "@/components/panels/overview-panel";
+import { TdarrPanel } from "@/components/panels/tdarr-panel";
 import { requireSession } from "@/lib/session";
 
-export default async function Home() {
+export default async function TdarrPage() {
   await requireSession();
   return (
-    <AppShell title="Overview">
-      <OverviewPanel />
+    <AppShell title="Tdarr">
+      <TdarrPanel />
     </AppShell>
   );
 }

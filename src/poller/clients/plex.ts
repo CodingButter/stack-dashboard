@@ -9,11 +9,22 @@ import type { Poller } from "../registry";
 import type { PollOutcome } from "../persist";
 import { httpFetch } from "./http";
 
+export interface PlexSessionDetail {
+  title: string;
+  user: string;
+  player: string;
+  state: string;
+  decision: "transcode" | "directplay";
+  progressPct: number;
+  bandwidthKbps: number;
+}
+
 export interface PlexSessions {
   count: number;
   directPlay: number;
   transcode: number;
   totalBitrateKbps: number;
+  sessions: PlexSessionDetail[];
 }
 
 interface PlexSessionEntry {
@@ -21,6 +32,25 @@ interface PlexSessionEntry {
   TranscodeSession?: unknown;
   Session?: { bandwidth?: number };
   bitrate?: number;
+  title?: string;
+  grandparentTitle?: string;
+  parentIndex?: number;
+  index?: number;
+  type?: string;
+  viewOffset?: number;
+  duration?: number;
+  User?: { title?: string };
+  Player?: { product?: string; title?: string; state?: string };
+}
+
+/** "Show · S04E02 — Episode" for episodes, plain title for movies. */
+function sessionTitle(e: PlexSessionEntry): string {
+  if (e.type === "episode" && e.grandparentTitle) {
+    const s = String(e.parentIndex ?? "?").padStart(2, "0");
+    const ep = String(e.index ?? "?").padStart(2, "0");
+    return `${e.grandparentTitle} · S${s}E${ep}`;
+  }
+  return String(e.title ?? "Unknown");
 }
 
 export function parsePlexSessions(raw: unknown): PlexSessions {
@@ -30,16 +60,32 @@ export function parsePlexSessions(raw: unknown): PlexSessions {
   let directPlay = 0;
   let transcode = 0;
   let totalBitrateKbps = 0;
+  const sessions: PlexSessionDetail[] = [];
   for (const e of entries) {
     if (e.TranscodeSession) transcode++;
     else directPlay++;
-    totalBitrateKbps += Number(e.Session?.bandwidth ?? e.bitrate ?? 0);
+    const bandwidth = Number(e.Session?.bandwidth ?? e.bitrate ?? 0);
+    totalBitrateKbps += bandwidth;
+    const duration = Number(e.duration ?? 0);
+    sessions.push({
+      title: sessionTitle(e),
+      user: String(e.User?.title ?? "unknown"),
+      player: String(e.Player?.product ?? e.Player?.title ?? ""),
+      state: String(e.Player?.state ?? "unknown"),
+      decision: e.TranscodeSession ? "transcode" : "directplay",
+      progressPct:
+        duration > 0
+          ? Math.round((Number(e.viewOffset ?? 0) / duration) * 1000) / 10
+          : 0,
+      bandwidthKbps: bandwidth,
+    });
   }
   return {
     count: Number(mc?.size ?? entries.length),
     directPlay,
     transcode,
     totalBitrateKbps,
+    sessions,
   };
 }
 

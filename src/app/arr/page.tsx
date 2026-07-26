@@ -1,12 +1,12 @@
 import { AppShell } from "@/components/shell/app-shell";
-import { OverviewPanel } from "@/components/panels/overview-panel";
+import { ArrPanel } from "@/components/panels/arr-panel";
 import { requireSession } from "@/lib/session";
 
-export default async function Home() {
+export default async function ArrPage() {
   await requireSession();
   return (
-    <AppShell title="Overview">
-      <OverviewPanel />
+    <AppShell title="Arr stack">
+      <ArrPanel />
     </AppShell>
   );
 }

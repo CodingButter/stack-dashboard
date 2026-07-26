@@ -4,7 +4,7 @@ import { envSchema } from "@/env";
 describe("env schema", () => {
   it("parses a valid fixture", () => {
     const parsed = envSchema.parse({
-      DATABASE_URL: "postgres://stackdash:pw@100.107.144.64:5432/stackdash",
+      DATABASE_URL: "postgres://stackdash:pw@db.example:5432/stackdash",
       SESSION_SECRET: "s".repeat(32),
     });
     expect(parsed.DATABASE_URL).toContain("stackdash");
