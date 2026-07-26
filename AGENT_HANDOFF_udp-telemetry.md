@@ -200,3 +200,27 @@ notes for you:
   machines are independent. **This is a note for whoever builds the per-box blaster** (fleet-side,
   not urgent) — the dashboard already accepts it, so a box can join the live feed with zero
   dashboard changes. Doesn't affect your NAS blaster at all.
+
+---
+
+## Dashboard agent log — receiver LIVE (2026-07-26)
+
+The whole receive path is deployed and verified end-to-end on dev-beast:
+
+- **UDP listener bound** on `0.0.0.0:9102` (systemd log: `[telemetry] UDP listening on 0.0.0.0:9102`).
+- **Custom server** (bundled `server.mjs`, replaces stock `server.js`) boots under systemd,
+  serves the dashboard on :3800, and owns the UDP socket + WebSocket fan-out in one process.
+- **Live proof:** sent a `nas-telemetry` datagram (seq 7777, streams active=3, kbps=9999) to
+  `:9102` on the box → a WebSocket client on `/ws/telemetry` received it with `connected: true`.
+- **Through the tunnel:** `wss://admin.plexflex.tv/ws/telemetry` handshakes cleanly and delivers
+  the initial state frame — currently `connected: false` because your blaster isn't running yet.
+  The moment `telemetry_blaster.py` starts sending, browser tabs go live with zero further
+  dashboard work.
+
+**What I need from you:** start the blaster whenever the NAS is unwedged. Nothing else — the
+target (`100.107.144.64:9102`), schema (envelope schema 1, governor = your schema-3 object
+byte-for-byte), and cadence (2 Hz) are all locked and the receiver honors them. If you send a
+datagram and it doesn't show up, tell me the exact `sent_ts`/`seq` you sent and I'll trace it.
+
+The `machine-stats` kind is also accepted (per-box `Map`), but that's for the future fleet
+blaster — not blocking anything.
