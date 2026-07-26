@@ -11,7 +11,7 @@ import { parsePlexSessions } from "../plex";
 import { parseSeerrRequests } from "../seerr";
 import { parseTdarrNodes, parseTdarrStats } from "../tdarr";
 import { parseQbitTorrents } from "../qbittorrent";
-import { parseAgentStats } from "../agent";
+import { parseAgentStats, parseAgentGpu } from "../agent";
 
 const FIX = join(__dirname, "..", "__fixtures__");
 const load = (name: string): unknown =>
@@ -171,6 +171,30 @@ describe("agent client", () => {
     expect(s.iowait).toBeGreaterThanOrEqual(0);
     expect(s.filesystems.some((f) => f.path === "/volume1")).toBe(true);
     expect(s.disks.length).toBeGreaterThan(0);
+  });
+
+  it("parses an nvidia /gpu snapshot into scalar fields", () => {
+    const g = parseAgentGpu({
+      mode: "nvidia",
+      util_pct: 42,
+      encoder_pct: 88,
+      decoder_pct: 0,
+      vram_used_mb: 2048,
+      vram_total_mb: 12288,
+      temp_c: 61,
+      power_w: 120.5,
+    });
+    expect(g?.utilPct).toBe(42);
+    expect(g?.encoderPct).toBe(88);
+    expect(g?.tempC).toBe(61);
+    expect(g?.powerW).toBe(120.5);
+  });
+
+  it("returns null for non-nvidia / error / garbage gpu bodies", () => {
+    expect(parseAgentGpu({ mode: "none" })).toBeNull();
+    expect(parseAgentGpu({ mode: "nvidia", error: "nvidia-smi failed" })).toBeNull();
+    expect(parseAgentGpu(null)).toBeNull();
+    expect(parseAgentGpu("garbage")).toBeNull();
   });
 });
 
