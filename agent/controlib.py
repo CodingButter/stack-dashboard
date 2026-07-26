@@ -44,6 +44,7 @@ ACTIONS = {
     "systemd_restart": ("systemd", True),
     "systemd_run": ("systemd", False),
     "tiermover_dry_run": ("fixed", False),
+    "nas_reboot": ("fixed", True),
 }
 
 MAX_LINES = 1000
@@ -164,7 +165,7 @@ def plan_action(action, target, confirm_header, known_containers):
         if not target or target not in SYSTEMD_UNITS:
             return 400, {"error": "unknown unit target"}, None
     elif kind == "fixed":
-        target = target or "tier-mover"
+        target = target or ("nas" if action == "nas_reboot" else "tier-mover")
 
     if destructive and confirm_header != "%s:%s" % (action, target):
         return 428, {"error": "confirmation required",
@@ -176,6 +177,13 @@ def plan_action(action, target, confirm_header, known_containers):
     if kind == "systemd":
         op = "restart" if action == "systemd_restart" else "start"
         return 200, None, {"kind": "systemd", "op": op, "unit": target}
+    if action == "nas_reboot":
+        # Delayed a few seconds so the HTTP response gets out before the
+        # box goes down; the dashboard warns about the 15-min watchdog window.
+        return 200, None, {"kind": "fixed",
+                           "argv": ["systemd-run", "--on-active=5",
+                                    "--unit", "nas-agent-reboot",
+                                    "systemctl", "reboot"]}
     # tiermover_dry_run
     return 200, None, {"kind": "fixed",
                        "argv": ["systemd-run", "--wait", "--collect", "--pipe",

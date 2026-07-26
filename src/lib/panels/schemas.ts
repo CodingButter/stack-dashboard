@@ -142,6 +142,7 @@ export const streamsSchema = z.object({
       totalBitrateKbps: z.number(),
       sessions: z.array(
         z.object({
+          sessionId: z.string().default(""),
           title: z.string(),
           user: z.string(),
           player: z.string(),

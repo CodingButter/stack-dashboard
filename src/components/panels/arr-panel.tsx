@@ -6,6 +6,7 @@ import { formatAgo, formatBytes } from "@/lib/format";
 import type { Arr } from "@/lib/panels/schemas";
 import { usePanelData } from "./use-panel-data";
 import { UptimeRow } from "./uptime-row";
+import { ActionButton } from '@/components/actions/action-button';
 
 const LABELS = {
   sonarr: "Sonarr",
@@ -56,8 +57,19 @@ export function ArrPanel() {
                         label={ix.name}
                         className="border-0 bg-transparent px-0"
                       />
-                      <span className="text-[10px] uppercase text-muted-foreground">
-                        {ix.protocol} · {ix.privacy}
+                      <span className="flex items-center gap-1.5">
+                        <span className="text-[10px] uppercase text-muted-foreground">
+                          {ix.protocol} · {ix.privacy}
+                        </span>
+                        <ActionButton
+                          actionId="prowlarr.test-indexer"
+                          params={{ indexerId: ix.id }}
+                          target={`indexer-${ix.id}`}
+                          size="sm"
+                          className="h-6 px-1.5 text-[10px]"
+                        >
+                          Test
+                        </ActionButton>
                       </span>
                     </div>
                     {limited ? (
@@ -99,8 +111,22 @@ export function ArrPanel() {
 }
 
 function ArrAppCard({ name, app }: { name: string; app: Arr["sonarr"] }) {
+  const service = name.toLowerCase();
   return (
-    <PanelCard title={name} subsystem="downloads">
+    <PanelCard
+      title={name}
+      subsystem="downloads"
+      actions={
+        <ActionButton
+          actionId={`${service}.search-missing`}
+          target="missing"
+          size="sm"
+          className="h-7 px-2 text-xs"
+        >
+          Search missing
+        </ActionButton>
+      }
+    >
       {!app ? (
         <p className="py-6 text-center text-sm text-muted-foreground">
           No {name} data

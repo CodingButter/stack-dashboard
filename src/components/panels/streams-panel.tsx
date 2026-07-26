@@ -6,6 +6,7 @@ import { SparkLine } from "@/components/widgets/spark-line";
 import type { Streams } from "@/lib/panels/schemas";
 import { usePanelData } from "./use-panel-data";
 import { UptimeRow } from "./uptime-row";
+import { ActionButton } from '@/components/actions/action-button';
 
 const LABELS = { plex: "Plex", tautulli: "Tautulli" };
 
@@ -86,8 +87,22 @@ export function StreamsPanel() {
                   <span className="truncate">
                     {s.user} · {s.player} · {s.state}
                   </span>
-                  <span className="stat-num shrink-0">
-                    {(s.bandwidthKbps / 1000).toFixed(1)} Mbps
+                  <span className="flex shrink-0 items-center gap-2">
+                    <span className="stat-num">
+                      {(s.bandwidthKbps / 1000).toFixed(1)} Mbps
+                    </span>
+                    {s.sessionId ? (
+                      <ActionButton
+                        actionId="plex.terminate-stream"
+                        params={{ sessionId: s.sessionId }}
+                        target={s.sessionId}
+                        variant="destructive"
+                        size="sm"
+                        className="h-6 px-1.5 text-[10px]"
+                      >
+                        Terminate
+                      </ActionButton>
+                    ) : null}
                   </span>
                 </div>
                 <div className="h-1 w-full overflow-hidden rounded-full bg-muted">

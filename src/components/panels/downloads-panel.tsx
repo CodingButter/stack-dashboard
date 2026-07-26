@@ -8,6 +8,7 @@ import type { Downloads } from "@/lib/panels/schemas";
 import { usePanelData } from "./use-panel-data";
 import { UptimeRow } from "./uptime-row";
 import { SparkLine } from '@/components/widgets/spark-line';
+import { ActionButton } from '@/components/actions/action-button';
 
 const LABELS = { sabnzbd: "SABnzbd", qbittorrent: "qBittorrent" };
 
@@ -71,7 +72,22 @@ export function DownloadsPanel() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <PanelCard title="SABnzbd queue" subsystem="downloads">
+        <PanelCard
+          title="SABnzbd queue"
+          subsystem="downloads"
+          actions={
+            sab ? (
+              <ActionButton
+                actionId={sab.paused ? "sab.resume-queue" : "sab.pause-queue"}
+                target="queue"
+                size="sm"
+                className="h-7 px-2 text-xs"
+              >
+                {sab.paused ? "Resume" : "Pause"}
+              </ActionButton>
+            ) : null
+          }
+        >
           {!sab ? (
             <p className="py-6 text-center text-sm text-muted-foreground">No SAB data</p>
           ) : (
@@ -128,7 +144,22 @@ export function DownloadsPanel() {
           )}
         </PanelCard>
 
-        <PanelCard title="qBittorrent" subsystem="downloads">
+        <PanelCard
+          title="qBittorrent"
+          subsystem="downloads"
+          actions={
+            qb ? (
+              <div className="flex gap-1.5">
+                <ActionButton actionId="qbit.pause-all" target="all" size="sm" className="h-7 px-2 text-xs">
+                  Pause all
+                </ActionButton>
+                <ActionButton actionId="qbit.resume-all" target="all" size="sm" className="h-7 px-2 text-xs">
+                  Resume all
+                </ActionButton>
+              </div>
+            ) : null
+          }
+        >
           {!qb ? (
             <p className="py-6 text-center text-sm text-muted-foreground">
               qBittorrent unreachable
