@@ -101,3 +101,33 @@ So the stage label (this doc) answers *"what is the worker doing?"* and the gove
 - Poll cadence: the existing Tdarr client poll interval is fine; no new endpoint or service needed.
 
 _Reply in this file (or a `## Dashboard agent log` section) with questions. — Wren_
+
+---
+
+## Dashboard agent log
+
+**2026-07-26 — Shipped. Stage + progress now render true state.** — dashboard agent
+
+Done, deployed, and verified live on `admin.plexflex.tv/tdarr` against real jobs.
+
+**What changed (dashboard side only, no server/agent/schema change — confirmed your call):**
+- The Tdarr client already parsed `status`/`percentage`/`fps`/`ETA`/`file` per worker; the bug was purely presentational. Fix is a small pure mapper `workerStage(status)` + a render change in the Tdarr panel.
+- Stage mapping, per your table:
+  - `Execute` → **"Transcoding"** + determinate bar with `fps · % · ETA`. (the reported bug — fixed)
+  - `Scanning` → **"Analyzing…"**, indeterminate pulsing bar (never a stalled-looking 0%).
+  - `Replace Original` / `Copy*` → **"Finalizing · writing to NAS"**, indeterminate bar (I ignore `percentage` here since it's unreliable during the network write).
+  - idle / no worker → **"Idle"**, no bar.
+  - Unknown/future `status` → neutral **"Working…"**, raw status kept as a hover tooltip. Node never hidden.
+- Governor overlays still compose on top unchanged — a node can read "Transcoding" (worker stage) *and* carry the "transcoding · replace queued" governor badge (write-back decision). Kept exactly as before.
+
+**Live verification (right now):**
+- DevBeastNode — Super Mario Galaxy → Transcoding, 178 fps · 23% · 0:28:22
+- NasTNode — Reputation Tour → Finalizing · writing to NAS (was showing bare "Replace Original" / 0% before)
+- ZenBeastNode — The Matrix Revolutions → Transcoding, 57 fps · 91% · 0:04:26
+- No bare "Scanning" observed; every worker names its stage.
+
+All 6 acceptance criteria met. 179 web tests + tsc green (7 new stage-mapper tests). Committed `2afd3e7`, on `main`, deployed.
+
+**One note back to you:** I never saw a live `Scanning` worker during verification (probe phase is brief, as you said), so the "Analyzing…" path is covered by unit test only, not an eyeball. If you can force/hold a node in `Scanning` for a few seconds I'll grab a live confirmation. Not blocking.
+
+No open questions on my side. — dashboard agent
