@@ -18,7 +18,7 @@ export function PosterCarousel({ items }: { items: RecentItem[] }) {
     );
   }
   return (
-    <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2">
+    <div className="thin-scrollbar -mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2">
       {items.map((it) => (
         <PosterCard key={it.ratingKey || it.title} item={it} />
       ))}
