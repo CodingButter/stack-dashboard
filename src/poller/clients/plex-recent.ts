@@ -42,7 +42,7 @@ export const DEFAULT_SECTIONS: SectionMap[] = [
   { kind: "recent-movies", title: "Movies" },
   { kind: "recent-tv", title: "TV Shows" },
   { kind: "recent-anime-movies", title: "Anime Movies" },
-  { kind: "recent-anime-tv", title: "Anime TV" },
+  { kind: "recent-anime-tv", title: "Anime TV Shows" },
 ];
 
 /**
@@ -71,23 +71,73 @@ interface PlexRecentEntry {
   year?: number;
   leafCount?: number;
   childCount?: number;
+  // Episode entries carry their series ("grandparent") — a TV library's
+  // recentlyAdded feed is episode-level, so we roll these up to the series.
+  grandparentRatingKey?: string | number;
+  grandparentTitle?: string;
+  grandparentThumb?: string;
+  parentYear?: number;
 }
 
-/** Parse a section's recentlyAdded feed. Never throws; missing fields default. */
+/**
+ * Parse a section's recentlyAdded feed into series/movie-level items.
+ *
+ * Movies and show entries pass through as-is. Episode entries (what a TV
+ * library actually returns) are rolled up to their series via
+ * grandparentRatingKey: one card per series, episodeCount = how many recent
+ * episodes landed, addedAt = the newest episode's add time (so a series with a
+ * fresh episode bubbles to the front), art + deep-link keyed on the series, not
+ * the episode. Never throws; missing fields default.
+ */
 export function parseRecentlyAdded(raw: unknown): RecentItem[] {
   const mc = (raw as { MediaContainer?: { Metadata?: PlexRecentEntry[] } })
     ?.MediaContainer;
   const entries = Array.isArray(mc?.Metadata) ? mc.Metadata : [];
-  return entries.map((e) => ({
-    ratingKey: String(e.ratingKey ?? ""),
-    title: String(e.title ?? "Untitled"),
-    type: String(e.type ?? "unknown"),
-    thumb: String(e.thumb ?? ""),
-    addedAt: Number(e.addedAt ?? 0),
-    year: e.year != null ? Number(e.year) : null,
-    episodeCount:
-      e.type === "show" ? Number(e.leafCount ?? e.childCount ?? 0) : 0,
-  }));
+
+  const items: RecentItem[] = [];
+  // series ratingKey → index into items (for episode rollup)
+  const seriesIndex = new Map<string, number>();
+
+  for (const e of entries) {
+    const type = String(e.type ?? "unknown");
+
+    if (type === "episode" && e.grandparentRatingKey != null) {
+      const seriesKey = String(e.grandparentRatingKey);
+      const addedAt = Number(e.addedAt ?? 0);
+      const existing = seriesIndex.get(seriesKey);
+      if (existing != null) {
+        const it = items[existing];
+        it.episodeCount += 1;
+        if (addedAt > it.addedAt) it.addedAt = addedAt;
+        continue;
+      }
+      seriesIndex.set(seriesKey, items.length);
+      items.push({
+        ratingKey: seriesKey,
+        title: String(e.grandparentTitle ?? "Untitled"),
+        type: "show",
+        thumb: String(e.grandparentThumb ?? ""),
+        addedAt,
+        year: e.parentYear != null ? Number(e.parentYear) : null,
+        episodeCount: 1,
+      });
+      continue;
+    }
+
+    // Movie, show, or anything else: one card as-is.
+    items.push({
+      ratingKey: String(e.ratingKey ?? ""),
+      title: String(e.title ?? "Untitled"),
+      type,
+      thumb: String(e.thumb ?? ""),
+      addedAt: Number(e.addedAt ?? 0),
+      year: e.year != null ? Number(e.year) : null,
+      episodeCount:
+        type === "show" ? Number(e.leafCount ?? e.childCount ?? 0) : 0,
+    });
+  }
+
+  return items;
 }
 
 /** Parse `/library/sections` into {key,title} entries. Never throws. */
@@ -154,13 +204,20 @@ export const plexRecentPoller: Poller = {
         snapshots.push({ kind, payload: { machineId, items: [] } });
         continue;
       }
+      // Fetch a wide window (60) because TV sections return episode-level rows
+      // that roll up to far fewer series; parse+sort newest-first, then cap to
+      // the 15 cards a carousel shows.
       const res = await httpFetch(
         `${base}/library/sections/${encodeURIComponent(key)}/recentlyAdded` +
-          `?X-Plex-Token=${token}&X-Plex-Container-Start=0&X-Plex-Container-Size=15`,
+          `?X-Plex-Token=${token}&X-Plex-Container-Start=0&X-Plex-Container-Size=60`,
         { headers: accept },
       );
       // Fail-soft per section: a single down section shouldn't blank the page.
-      const items = res.ok ? parseRecentlyAdded(res.data) : [];
+      const items = res.ok
+        ? parseRecentlyAdded(res.data)
+            .sort((a, b) => b.addedAt - a.addedAt)
+            .slice(0, 15)
+        : [];
       snapshots.push({ kind, payload: { machineId, items } });
     }
 

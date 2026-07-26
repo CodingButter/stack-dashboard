@@ -521,6 +521,47 @@ describe("plex-recent client", () => {
     expect(secs[0].title).toBe("Films");
     expect(secs[1].title).toBe("TV Shows");
     expect(secs[2].title).toBe("Anime Movies");
-    expect(secs[3].title).toBe("Anime TV");
+    expect(secs[3].title).toBe("Anime TV Shows");
+  });
+
+  it("rolls episodes up to their series with episodeCount + newest addedAt", () => {
+    const items = parseRecentlyAdded({
+      MediaContainer: {
+        Metadata: [
+          {
+            type: "episode",
+            title: "Reese Drives",
+            grandparentRatingKey: "5664",
+            grandparentTitle: "Malcolm in the Middle",
+            grandparentThumb: "/library/metadata/5664/thumb/1",
+            addedAt: 1784950774,
+          },
+          {
+            type: "episode",
+            title: "Houseboat",
+            grandparentRatingKey: "5664",
+            grandparentTitle: "Malcolm in the Middle",
+            grandparentThumb: "/library/metadata/5664/thumb/1",
+            addedAt: 1784949843,
+          },
+          {
+            type: "episode",
+            title: "Pilot",
+            grandparentRatingKey: "9001",
+            grandparentTitle: "Another Show",
+            addedAt: 1784000000,
+          },
+        ],
+      },
+    });
+    // Two series, not three episodes.
+    expect(items.length).toBe(2);
+    const malcolm = items.find((i) => i.ratingKey === "5664")!;
+    expect(malcolm.type).toBe("show");
+    expect(malcolm.title).toBe("Malcolm in the Middle");
+    expect(malcolm.episodeCount).toBe(2);
+    // Newest episode's addedAt bubbles the series.
+    expect(malcolm.addedAt).toBe(1784950774);
+    expect(malcolm.thumb).toBe("/library/metadata/5664/thumb/1");
   });
 });
