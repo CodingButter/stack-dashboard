@@ -100,6 +100,92 @@ So the stage label (this doc) answers *"what is the worker doing?"* and the gove
 - `Replace Original` legitimately sits at `percentage: 0` for a while during a large network write — treat 0% there as "working," not "stuck."
 - Poll cadence: the existing Tdarr client poll interval is fine; no new endpoint or service needed.
 
+---
+
+# ADDENDUM (2026-07-26): live Replace-phase progress + throughput — DEPLOYED
+
+This is the second half you asked for: during **Replace Original**, Tdarr's own
+API reports `percentage: 0` (it treats the write-back as one atomic step). But
+the finished file physically grows on the NAS as a `<name>.tmp` until it renames
+into place. The gate now measures that growing file and emits **per-node write-back
+progress + throughput**. This is already live on the NAS.
+
+## Schema bump: 2 → 3 (additive, no renames)
+
+`/tdarr/governor` `schema` is now `3`. **No existing field changed or was renamed** —
+schema 3 only *adds* a `replace_progress` object to each entry in `nodes[]`. Your
+schema-2 parser stays green.
+
+## New field: `nodes[].replace_progress`
+
+For a node currently in a Replace/Copy write-back, its node entry gains:
+
+```json
+"replace_progress": {
+  "tmp": "/volume1/.../You're Cordially Invited (2025) WEBDL-1080p.mkv.tmp",
+  "written_bytes": 785000000,
+  "final_bytes":   4680000000,
+  "pct":  17.9,     // 0..100, written/final — the progress bar
+  "mbps": 1.6       // MB/s to the NAS this poll — the throughput
+}
+```
+
+- When a node is **not** in a write-back phase, `replace_progress` is **`null`**.
+- `pct` is `null` if the final size is momentarily unknown (rare) — render an
+  indeterminate bar in that case, but you'll almost always have a number.
+- `mbps` is `null` on the *first* poll of a new Replace (needs two samples to
+  diff), then populates. Treat `null` mbps as "starting…", not zero.
+
+### Verified live payload (2026-07-26, two nodes writing at once)
+
+```
+ZenBeastNode: writing=true  pct=17.9%  mbps=1.6  final=4.36GB
+DevBeastNode: writing=true  pct=32.7%  mbps=2.8  final=4.34GB
+NasTNode / BigBeastNode: replace_progress=null (in Execute, not writing)
+```
+
+## How to render (Replace phase)
+
+Combine with the stage label from the first half of this doc:
+
+- `writing == true` (status `Replace Original`) **and** `replace_progress != null`
+  → **"Finalizing · writing to NAS"** with a **determinate bar at `pct`%**, and
+  show `mbps` next to it, e.g. **"Finalizing · 71% · 2.8 MB/s"**.
+- `writing == true` but `replace_progress == null` (or `pct == null`) →
+  indeterminate bar, label **"Finalizing…"**. Don't show "0%".
+- This *replaces* the earlier guidance to always use an indeterminate bar during
+  Replace — you now have a real percentage, so use it.
+
+## Fleet total throughput — compute on your side
+
+You asked for a total write-back speed too. **Don't expect a total field from the
+API** — sum it yourself: `total_mbps = Σ nodes[].replace_progress.mbps` (skip
+`null`s). Same for an aggregate write-back — it's just the sum of the per-node
+values. Keeping it dashboard-side avoids a redundant server field.
+
+## Notes / gotchas
+
+- `replace_progress` is **per-node by construction**: each `.tmp` belongs to exactly
+  one node's write, so there's no traffic to disentangle.
+- Orphaned `.tmp` files (from past interrupted replaces) are **not** reported here —
+  the gate only emits progress for `.tmp`s owned by a node currently in Replace.
+- No new endpoint, no new service. `/tdarr/governor` already returns the whole
+  gate snapshot verbatim (the NAS agent just passes `status.json` through), so this
+  field arrives automatically once you read it.
+- Staleness handling is unchanged (schema-3 still carries `ts` / `running`).
+
+## Acceptance criteria (Replace progress)
+
+1. A node in Replace shows a **determinate progress bar** driven by `pct`, plus its
+   `mbps`, e.g. "Finalizing · 71% · 2.8 MB/s".
+2. A node in Replace whose `mbps`/`pct` is still `null` shows "Finalizing…" with an
+   indeterminate bar (not "0%").
+3. A fleet total write-back throughput is shown, computed as the sum of per-node
+   `mbps` (dashboard-side).
+4. Nodes not writing show no Replace bar (their `replace_progress` is `null`).
+
+---
+
 _Reply in this file (or a `## Dashboard agent log` section) with questions. — Wren_
 
 ---
