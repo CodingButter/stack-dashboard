@@ -1,0 +1,46 @@
+[
+  {
+    "path": "/data/media/tv",
+    "accessible": true,
+    "freeSpace": 15459983343616,
+    "unmappedFolders": [
+      {
+        "name": ".tdarr_cache",
+        "path": "/data/media/tv/.tdarr_cache",
+        "relativePath": ".tdarr_cache"
+      },
+      {
+        "name": "Example Series 1 (2020)",
+        "path": "/data/media/tv/Example Series 1 (2020)",
+        "relativePath": "Example Series 1 (2020)"
+      },
+      {
+        "name": "Example Series 2 (2020)",
+        "path": "/data/media/tv/Example Series 2 (2020)",
+        "relativePath": "Example Series 2 (2020)"
+      }
+    ],
+    "id": 2
+  },
+  {
+    "path": "/data/media/anime-tv",
+    "accessible": true,
+    "freeSpace": 15459983343616,
+    "unmappedFolders": [],
+    "id": 3
+  },
+  {
+    "path": "/data2/media/tv",
+    "accessible": true,
+    "freeSpace": 1901547384832,
+    "unmappedFolders": [],
+    "id": 4
+  },
+  {
+    "path": "/data2/media/anime-tv",
+    "accessible": true,
+    "freeSpace": 1901547384832,
+    "unmappedFolders": [],
+    "id": 5
+  }
+]
