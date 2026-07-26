@@ -3,6 +3,8 @@
 import { KpiCard } from "@/components/widgets/kpi-card";
 import { PanelCard } from "@/components/widgets/panel-card";
 import { SparkLine } from "@/components/widgets/spark-line";
+import { InfoDot } from "@/components/widgets/info-dot";
+import type { GlossaryTerm } from "@/lib/glossary";
 import type { Streams } from "@/lib/panels/schemas";
 import { usePanelData } from "./use-panel-data";
 import { UptimeRow } from "./uptime-row";
@@ -29,6 +31,7 @@ export function StreamsPanel() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <KpiCard
           label="Active streams"
+          info="active-streams"
           value={p?.count ?? 0}
           spark={
             <SparkLine
@@ -38,15 +41,17 @@ export function StreamsPanel() {
             />
           }
         />
-        <KpiCard label="Direct play" value={p?.directPlay ?? 0} />
+        <KpiCard label="Direct play" value={p?.directPlay ?? 0} info="direct-play" />
         <KpiCard
           label="Transcoding"
+          info="stream-transcode"
           value={p?.transcode ?? 0}
           delta={p && p.transcode > 0 ? "gpu busy" : undefined}
           deltaDirection={p && p.transcode > 0 ? "down" : undefined}
         />
         <KpiCard
           label="Bandwidth"
+          info="stream-bandwidth"
           value={((p?.totalBitrateKbps ?? 0) / 1000).toFixed(1)}
           unit="Mbps"
           spark={
@@ -59,7 +64,7 @@ export function StreamsPanel() {
         />
       </div>
 
-      <PanelCard title="Now playing" subsystem="plex">
+      <PanelCard title="Now playing" subsystem="plex" info="now-playing">
         {!p || p.sessions.length === 0 ? (
           <p className="py-8 text-center text-base text-muted-foreground">
             Nothing playing right now
@@ -118,19 +123,19 @@ export function StreamsPanel() {
       </PanelCard>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <PanelCard title="Tautulli breakdown" subsystem="plex">
+        <PanelCard title="Tautulli breakdown" subsystem="plex" info="tautulli-breakdown">
           {!t ? (
             <p className="py-6 text-center text-base text-muted-foreground">
               No Tautulli data
             </p>
           ) : (
             <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-base sm:grid-cols-3">
-              <Stat label="Streams" value={t.streamCount} />
-              <Stat label="Direct play" value={t.directPlay} />
-              <Stat label="Direct stream" value={t.directStream} />
-              <Stat label="Transcode" value={t.transcode} />
-              <Stat label="LAN" value={`${(t.lanBandwidth / 1000).toFixed(1)} Mbps`} />
-              <Stat label="WAN" value={`${(t.wanBandwidth / 1000).toFixed(1)} Mbps`} />
+              <Stat label="Streams" value={t.streamCount} info="streams" />
+              <Stat label="Direct play" value={t.directPlay} info="direct-play" />
+              <Stat label="Direct stream" value={t.directStream} info="direct-stream" />
+              <Stat label="Transcode" value={t.transcode} info="stream-transcode" />
+              <Stat label="LAN" value={`${(t.lanBandwidth / 1000).toFixed(1)} Mbps`} info="lan" />
+              <Stat label="WAN" value={`${(t.wanBandwidth / 1000).toFixed(1)} Mbps`} info="wan" />
             </dl>
           )}
         </PanelCard>
@@ -147,17 +152,28 @@ export function StreamsPanel() {
         </PanelCard>
       </div>
 
-      <PanelCard title="Uptime" subsystem="alerts">
+      <PanelCard title="Uptime" subsystem="alerts" info="uptime">
         <UptimeRow uptime={data.uptime} labels={LABELS} />
       </PanelCard>
     </div>
   );
 }
 
-function Stat({ label, value }: { label: string; value: number | string }) {
+function Stat({
+  label,
+  value,
+  info,
+}: {
+  label: string;
+  value: number | string;
+  info?: GlossaryTerm;
+}) {
   return (
     <div className="flex items-baseline justify-between gap-2">
-      <dt className="text-sm text-muted-foreground">{label}</dt>
+      <dt className="flex items-center gap-1 text-sm text-muted-foreground">
+        {label}
+        {info ? <InfoDot term={info} /> : null}
+      </dt>
       <dd className="stat-num text-base">{value}</dd>
     </div>
   );

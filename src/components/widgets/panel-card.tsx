@@ -1,4 +1,6 @@
 import { cn } from "@/lib/utils";
+import { InfoDot } from "@/components/widgets/info-dot";
+import type { GlossaryTerm } from "@/lib/glossary";
 
 export type Subsystem =
   | "storage"
@@ -21,12 +23,14 @@ export function PanelCard({
   title,
   subsystem,
   actions,
+  info,
   children,
   className,
 }: {
   title: string;
   subsystem?: Subsystem;
   actions?: React.ReactNode;
+  info?: GlossaryTerm;
   children: React.ReactNode;
   className?: string;
 }) {
@@ -44,8 +48,9 @@ export function PanelCard({
         />
       ) : null}
       <header className="flex items-center justify-between gap-2 border-b border-border px-4 py-2.5">
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        <h3 className="flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           {title}
+          {info ? <InfoDot term={info} /> : null}
         </h3>
         {actions}
       </header>

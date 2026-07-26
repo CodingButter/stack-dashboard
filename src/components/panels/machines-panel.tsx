@@ -3,7 +3,9 @@
 import { PanelCard } from "@/components/widgets/panel-card";
 import { SparkLine } from "@/components/widgets/spark-line";
 import { StatusPill } from "@/components/widgets/status-pill";
+import { InfoDot } from "@/components/widgets/info-dot";
 import { formatAgo, formatBytes, formatUptime } from "@/lib/format";
+import type { GlossaryTerm } from "@/lib/glossary";
 import type { Machine, Machines, Point } from "@/lib/panels/schemas";
 import { usePanelData } from "./use-panel-data";
 
@@ -11,11 +13,22 @@ function values(points: Point[]): number[] {
   return points.map((p) => Math.round(p.v * 10) / 10);
 }
 
-function Stat({ label, value, warn }: { label: string; value: string; warn?: boolean }) {
+function Stat({
+  label,
+  value,
+  warn,
+  info,
+}: {
+  label: string;
+  value: string;
+  warn?: boolean;
+  info?: GlossaryTerm;
+}) {
   return (
     <div className="flex flex-col">
-      <span className="text-sm uppercase tracking-wide text-muted-foreground">
+      <span className="flex items-center gap-1 text-sm uppercase tracking-wide text-muted-foreground">
         {label}
+        {info ? <InfoDot term={info} /> : null}
       </span>
       <span className={warn ? "stat-num text-base font-bold text-status-down" : "stat-num text-base"}>
         {value}
@@ -44,12 +57,12 @@ function MachineCard({ m }: { m: Machine }) {
       ) : (
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
-            <Stat label="CPU" value={`${s.cpuBusy.toFixed(1)}%`} />
-            <Stat label="iowait" value={`${s.iowait.toFixed(1)}%`} warn={s.iowait > 20} />
-            <Stat label="Load" value={s.load1.toFixed(2)} />
-            <Stat label="Mem" value={`${s.memUsedPct.toFixed(1)}%`} />
-            <Stat label="D-state" value={String(s.dstate)} warn={s.dstate > 0} />
-            <Stat label="Uptime" value={formatUptime(s.uptimeS)} />
+            <Stat label="CPU" value={`${s.cpuBusy.toFixed(1)}%`} info="cpu" />
+            <Stat label="iowait" value={`${s.iowait.toFixed(1)}%`} warn={s.iowait > 20} info="iowait" />
+            <Stat label="Load" value={s.load1.toFixed(2)} info="load" />
+            <Stat label="Mem" value={`${s.memUsedPct.toFixed(1)}%`} info="memory" />
+            <Stat label="D-state" value={String(s.dstate)} warn={s.dstate > 0} info="d-state" />
+            <Stat label="Uptime" value={formatUptime(s.uptimeS)} info="uptime" />
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -73,8 +86,9 @@ function MachineCard({ m }: { m: Machine }) {
 
           {s.disks.length > 0 ? (
             <div>
-              <h4 className="mb-1.5 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              <h4 className="mb-1.5 flex items-center gap-1 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                 Disks
+                <InfoDot term="disk-utilization" />
               </h4>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
@@ -114,8 +128,9 @@ function MachineCard({ m }: { m: Machine }) {
 
           {m.smart && m.smart.length > 0 ? (
             <div>
-              <h4 className="mb-1.5 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              <h4 className="mb-1.5 flex items-center gap-1 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                 SMART
+                <InfoDot term="smart" />
               </h4>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {m.smart.map((d) => (

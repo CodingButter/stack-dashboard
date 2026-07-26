@@ -2,10 +2,12 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { DonutGauge } from "@/components/widgets/donut-gauge";
+import { InfoDot } from "@/components/widgets/info-dot";
 import { KpiCard } from "@/components/widgets/kpi-card";
 import { PanelCard } from "@/components/widgets/panel-card";
 import { StatusPill } from "@/components/widgets/status-pill";
 import { TrackerStrip, type TrackerCell } from "@/components/widgets/tracker-strip";
+import { GLOSSARY } from "@/lib/glossary";
 
 describe("KpiCard", () => {
   it("renders label, value, unit and delta", () => {
@@ -87,5 +89,32 @@ describe("PanelCard", () => {
     );
     expect(screen.getByText("Storage tiers")).toBeDefined();
     expect(screen.getByText("gauge here")).toBeDefined();
+  });
+});
+
+describe("InfoDot", () => {
+  it("renders a trigger labelled from the glossary entry", () => {
+    render(<InfoDot term="queue-depth" />);
+    const trigger = screen.getByRole("button", { name: `What is ${GLOSSARY["queue-depth"].title}?` });
+    expect(trigger).toBeDefined();
+  });
+
+  it("prefers inline copy over the glossary lookup", () => {
+    render(<InfoDot title="Custom" body="Custom body" />);
+    expect(screen.getByRole("button", { name: "What is Custom?" })).toBeDefined();
+  });
+
+  it("renders nothing when there is no text to show", () => {
+    const { container } = render(<InfoDot />);
+    expect(container.querySelector("button")).toBeNull();
+  });
+});
+
+describe("glossary integrity", () => {
+  it("every entry has a non-empty title and body", () => {
+    for (const [key, entry] of Object.entries(GLOSSARY)) {
+      expect(entry.title, `${key} title`).toBeTruthy();
+      expect(entry.body, `${key} body`).toBeTruthy();
+    }
   });
 });

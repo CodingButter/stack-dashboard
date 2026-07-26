@@ -3,7 +3,9 @@
 import { KpiCard } from "@/components/widgets/kpi-card";
 import { LiveTicker } from "@/components/widgets/live-ticker";
 import { PanelCard } from "@/components/widgets/panel-card";
+import { InfoDot } from "@/components/widgets/info-dot";
 import { formatBps, formatBytes } from "@/lib/format";
+import type { GlossaryTerm } from "@/lib/glossary";
 import type { Downloads } from "@/lib/panels/schemas";
 import { usePanelData } from "./use-panel-data";
 import { UptimeRow } from "./uptime-row";
@@ -31,6 +33,7 @@ export function DownloadsPanel() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <KpiCard
           label="Usenet speed"
+          info="usenet-speed"
           value={formatBps(sab?.speedBps ?? 0)}
           delta={sab?.paused ? "paused" : undefined}
           deltaDirection={sab?.paused ? "down" : undefined}
@@ -44,6 +47,7 @@ export function DownloadsPanel() {
         />
         <KpiCard
           label="Torrent down"
+          info="torrent-down"
           value={formatBps(qb?.dlSpeed ?? 0)}
           spark={
             <SparkLine
@@ -55,6 +59,7 @@ export function DownloadsPanel() {
         />
         <KpiCard
           label="Torrent up"
+          info="torrent-up"
           value={formatBps(qb?.upSpeed ?? 0)}
           spark={
             <SparkLine
@@ -66,6 +71,7 @@ export function DownloadsPanel() {
         />
         <KpiCard
           label="Queue"
+          info="sab-queue"
           value={sab?.queueSize ?? 0}
           unit={sab ? `jobs · ${formatBytes(sab.mbLeft * 1024 * 1024)} left` : undefined}
         />
@@ -75,6 +81,7 @@ export function DownloadsPanel() {
         <PanelCard
           title="SABnzbd queue"
           subsystem="downloads"
+          info="sab-queue"
           actions={
             sab ? (
               <ActionButton
@@ -147,6 +154,7 @@ export function DownloadsPanel() {
         <PanelCard
           title="qBittorrent"
           subsystem="downloads"
+          info="qbittorrent"
           actions={
             qb ? (
               <div className="flex gap-1.5">
@@ -167,12 +175,12 @@ export function DownloadsPanel() {
           ) : (
             <>
               <dl className="grid grid-cols-3 gap-x-4 gap-y-2 text-base">
-                <Stat label="Total" value={qb.total} />
-                <Stat label="Downloading" value={qb.downloading} />
-                <Stat label="Seeding" value={qb.seeding} />
-                <Stat label="Stalled" value={qb.stalled} />
-                <Stat label="Errored" value={qb.errored} warn={qb.errored > 0} />
-                <Stat label="Seedboost" value={qb.seedboost} />
+                <Stat label="Total" value={qb.total} info="qbittorrent" />
+                <Stat label="Downloading" value={qb.downloading} info="torrent-down" />
+                <Stat label="Seeding" value={qb.seeding} info="seeding" />
+                <Stat label="Stalled" value={qb.stalled} info="stalled" />
+                <Stat label="Errored" value={qb.errored} warn={qb.errored > 0} info="errored" />
+                <Stat label="Seedboost" value={qb.seedboost} info="seedboost" />
               </dl>
               {Object.keys(qb.byCategory).length > 0 ? (
                 <div className="mt-4 flex flex-wrap gap-1.5">
@@ -194,7 +202,7 @@ export function DownloadsPanel() {
         </PanelCard>
       </div>
 
-      <PanelCard title="Throughput" subsystem="downloads">
+      <PanelCard title="Throughput" subsystem="downloads" info="throughput">
         <LiveTicker
           unit="B/s"
           height={120}
@@ -218,7 +226,7 @@ export function DownloadsPanel() {
         />
       </PanelCard>
 
-      <PanelCard title="Uptime" subsystem="alerts">
+      <PanelCard title="Uptime" subsystem="alerts" info="uptime">
         <UptimeRow uptime={data.uptime} labels={LABELS} />
       </PanelCard>
     </div>
@@ -229,14 +237,19 @@ function Stat({
   label,
   value,
   warn,
+  info,
 }: {
   label: string;
   value: number;
   warn?: boolean;
+  info?: GlossaryTerm;
 }) {
   return (
     <div className="flex items-baseline justify-between gap-2">
-      <dt className="text-sm text-muted-foreground">{label}</dt>
+      <dt className="flex items-center gap-1 text-sm text-muted-foreground">
+        {label}
+        {info ? <InfoDot term={info} /> : null}
+      </dt>
       <dd className={warn ? "stat-num text-base font-bold text-status-down" : "stat-num text-base"}>
         {value}
       </dd>

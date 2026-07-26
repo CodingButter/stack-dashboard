@@ -2,7 +2,9 @@
 
 import { PanelCard } from "@/components/widgets/panel-card";
 import { StatusPill } from "@/components/widgets/status-pill";
+import { InfoDot } from "@/components/widgets/info-dot";
 import { formatAgo, formatBytes } from "@/lib/format";
+import type { GlossaryTerm } from "@/lib/glossary";
 import type { Arr } from "@/lib/panels/schemas";
 import { usePanelData } from "./use-panel-data";
 import { UptimeRow } from "./uptime-row";
@@ -33,7 +35,7 @@ export function ArrPanel() {
         <ArrAppCard name="Radarr" app={data.radarr} />
       </div>
 
-      <PanelCard title="Prowlarr indexers" subsystem="downloads">
+      <PanelCard title="Prowlarr indexers" subsystem="downloads" info="prowlarr-indexers">
         {!data.prowlarr ? (
           <p className="py-6 text-center text-base text-muted-foreground">
             No Prowlarr data
@@ -86,7 +88,7 @@ export function ArrPanel() {
         )}
       </PanelCard>
 
-      <PanelCard title="Seerr requests" subsystem="plex">
+      <PanelCard title="Seerr requests" subsystem="plex" info="seerr-requests">
         {!data.seerr ? (
           <p className="py-6 text-center text-base text-muted-foreground">
             No Seerr data
@@ -103,7 +105,7 @@ export function ArrPanel() {
         )}
       </PanelCard>
 
-      <PanelCard title="Uptime" subsystem="alerts">
+      <PanelCard title="Uptime" subsystem="alerts" info="uptime">
         <UptimeRow uptime={data.uptime} labels={LABELS} />
       </PanelCard>
     </div>
@@ -135,19 +137,21 @@ function ArrAppCard({ name, app }: { name: string; app: Arr["sonarr"] }) {
         <>
           <StuckBanner queue={app.queue} />
           <dl className="grid grid-cols-3 gap-x-4 gap-y-2 text-base">
-            <Stat label="Queue" value={app.queue.total} />
-            <Stat label="Downloading" value={app.queue.downloading} />
-            <Stat label="Queued" value={app.queue.queued} />
-            <Stat label="Stalled" value={app.queue.stalled} warn={app.queue.stalled > 0} />
+            <Stat label="Queue" value={app.queue.total} info="arr-queue" />
+            <Stat label="Downloading" value={app.queue.downloading} info="arr-queue" />
+            <Stat label="Queued" value={app.queue.queued} info="arr-queue" />
+            <Stat label="Stalled" value={app.queue.stalled} warn={app.queue.stalled > 0} info="stalled" />
             <Stat
               label="Import pending"
               value={app.queue.importPending}
               warn={app.queue.importPending > 0}
+              info="import-pending"
             />
-            <Stat label="Errored" value={app.queue.errored} warn={app.queue.errored > 0} />
+            <Stat label="Errored" value={app.queue.errored} warn={app.queue.errored > 0} info="errored" />
           </dl>
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-            <span>
+            <span className="inline-flex items-center gap-1">
+              <InfoDot term="arr-root-folders" />
               health:{" "}
               <span
                 className={
@@ -195,14 +199,19 @@ function Stat({
   label,
   value,
   warn,
+  info,
 }: {
   label: string;
   value: number;
   warn?: boolean;
+  info?: GlossaryTerm;
 }) {
   return (
     <div className="flex items-baseline justify-between gap-2">
-      <dt className="text-sm text-muted-foreground">{label}</dt>
+      <dt className="flex items-center gap-1 text-sm text-muted-foreground">
+        {label}
+        {info ? <InfoDot term={info} /> : null}
+      </dt>
       <dd className={warn ? "stat-num text-base font-bold text-status-degraded" : "stat-num text-base"}>
         {value}
       </dd>

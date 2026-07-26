@@ -23,7 +23,7 @@ export function StoragePanel() {
 
   return (
     <div className="flex flex-col gap-4">
-      <PanelCard title="Tiers" subsystem="storage">
+      <PanelCard title="Tiers" subsystem="storage" info="storage-tiers">
         {data.tiers.length === 0 ? (
           <p className="py-6 text-center text-base text-muted-foreground">
             No agent data yet
@@ -48,21 +48,21 @@ export function StoragePanel() {
       </PanelCard>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <PanelCard title="Cold tier fill" subsystem="storage">
+        <PanelCard title="Cold tier fill" subsystem="storage" info="cold-tier">
           <SparkLine
             data={data.series.vol1UsedPct.map((x) => x.v)}
             color="var(--accent-storage)"
             height={72}
           />
         </PanelCard>
-        <PanelCard title="Hot tier fill" subsystem="storage">
+        <PanelCard title="Hot tier fill" subsystem="storage" info="hot-tier">
           <SparkLine
             data={data.series.vol2UsedPct.map((x) => x.v)}
             color="var(--accent-downloads)"
             height={72}
           />
         </PanelCard>
-        <PanelCard title="bcache hit ratio" subsystem="storage">
+        <PanelCard title="bcache hit ratio" subsystem="storage" info="bcache-hit-ratio">
           <SparkLine
             data={data.series.bcacheHitPct.map((x) => x.v)}
             color="var(--accent-machines)"
@@ -78,7 +78,7 @@ export function StoragePanel() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <PanelCard title="Disk utilization" subsystem="storage">
+        <PanelCard title="Disk utilization" subsystem="storage" info="disk-utilization">
           {data.disks.length === 0 ? (
             <p className="py-6 text-center text-base text-muted-foreground">No disk data</p>
           ) : (
@@ -110,7 +110,7 @@ export function StoragePanel() {
           )}
         </PanelCard>
 
-        <PanelCard title="SMART" subsystem="storage">
+        <PanelCard title="SMART" subsystem="storage" info="smart">
           {data.smart.length === 0 ? (
             <p className="py-6 text-center text-base text-muted-foreground">
               No SMART data
@@ -156,7 +156,7 @@ export function StoragePanel() {
       </div>
 
       {data.rootFolders.length > 0 ? (
-        <PanelCard title="Arr root folders" subsystem="downloads">
+        <PanelCard title="Arr root folders" subsystem="downloads" info="arr-root-folders">
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {data.rootFolders.map((rf) => (
               <div
@@ -176,7 +176,7 @@ export function StoragePanel() {
         </PanelCard>
       ) : null}
 
-      <PanelCard title="Uptime" subsystem="alerts">
+      <PanelCard title="Uptime" subsystem="alerts" info="uptime">
         <UptimeRow uptime={data.uptime} labels={LABELS} />
       </PanelCard>
     </div>

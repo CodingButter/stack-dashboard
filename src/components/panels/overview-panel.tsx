@@ -6,6 +6,7 @@ import { LiveTicker } from "@/components/widgets/live-ticker";
 import { PanelCard } from "@/components/widgets/panel-card";
 import { SparkLine } from "@/components/widgets/spark-line";
 import { StatusPill } from "@/components/widgets/status-pill";
+import { InfoDot } from "@/components/widgets/info-dot";
 import { formatAgo, formatBps, formatBytes } from "@/lib/format";
 import type { Overview, Point, ServiceHealth } from "@/lib/panels/schemas";
 import { usePanelData } from "./use-panel-data";
@@ -53,14 +54,15 @@ export function OverviewPanel() {
     <div className="flex flex-col gap-4">
       {/* KPI strip */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
-        <KpiCard label="Active streams" value={data.kpis.streams} unit={data.kpis.transcodes > 0 ? `· ${data.kpis.transcodes} tc` : undefined} />
-        <KpiCard label="Download" value={formatBps(data.kpis.downloadSpeedBps)} />
-        <KpiCard label="Upload" value={formatBps(data.kpis.uploadSpeedBps)} />
-        <KpiCard label="Queue depth" value={data.kpis.queueDepth} unit="items" />
-        <KpiCard label="Transcode" value={data.kpis.transcodeFps} unit="fps" />
+        <KpiCard label="Active streams" value={data.kpis.streams} info="active-streams" unit={data.kpis.transcodes > 0 ? `· ${data.kpis.transcodes} tc` : undefined} />
+        <KpiCard label="Download" value={formatBps(data.kpis.downloadSpeedBps)} info="torrent-down" />
+        <KpiCard label="Upload" value={formatBps(data.kpis.uploadSpeedBps)} info="torrent-up" />
+        <KpiCard label="Queue depth" value={data.kpis.queueDepth} unit="items" info="queue-depth" />
+        <KpiCard label="Transcode" value={data.kpis.transcodeFps} unit="fps" info="stream-transcode" />
         <KpiCard
           label="Alerts"
           value={data.kpis.alerts}
+          info="alerts"
           delta={data.kpis.alerts > 0 ? "attention" : "clear"}
           deltaDirection={data.kpis.alerts > 0 ? "down" : "up"}
         />
@@ -68,7 +70,7 @@ export function OverviewPanel() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Storage tiers */}
-        <PanelCard title="Storage tiers" subsystem="storage">
+        <PanelCard title="Storage tiers" subsystem="storage" info="storage-tiers">
           {data.tiers.length === 0 ? (
             <p className="py-6 text-center text-base text-muted-foreground">
               No agent data yet
@@ -92,7 +94,7 @@ export function OverviewPanel() {
         </PanelCard>
 
         {/* Service health grid */}
-        <PanelCard title="Service health" subsystem="alerts">
+        <PanelCard title="Service health" subsystem="alerts" info="service-health">
           {data.services.length === 0 ? (
             <p className="py-6 text-center text-base text-muted-foreground">
               No polls recorded yet
@@ -120,7 +122,7 @@ export function OverviewPanel() {
       </div>
 
       {/* NAS vitals */}
-      <PanelCard title="NAS vitals" subsystem="machines">
+      <PanelCard title="NAS vitals" subsystem="machines" info="nas-vitals">
         {!v ? (
           <p className="py-6 text-center text-base text-muted-foreground">
             NAS agent unreachable — no vitals snapshot
@@ -129,14 +131,14 @@ export function OverviewPanel() {
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             <div>
               <div className="flex items-baseline justify-between">
-                <span className="text-sm text-muted-foreground">CPU</span>
+                <span className="flex items-center gap-1 text-sm text-muted-foreground">CPU<InfoDot term="cpu" /></span>
                 <span className="stat-num text-base">{v.cpuBusy.toFixed(1)}%</span>
               </div>
               <SparkLine data={values(v.cpuSeries)} color="var(--accent-machines)" />
             </div>
             <div data-warn={v.iowait > IOWAIT_WARN_PCT}>
               <div className="flex items-baseline justify-between">
-                <span className="text-sm text-muted-foreground">iowait</span>
+                <span className="flex items-center gap-1 text-sm text-muted-foreground">iowait<InfoDot term="iowait" /></span>
                 <span
                   className={
                     v.iowait > IOWAIT_WARN_PCT
@@ -154,7 +156,7 @@ export function OverviewPanel() {
             </div>
             <div>
               <div className="flex items-baseline justify-between">
-                <span className="text-sm text-muted-foreground">Memory</span>
+                <span className="flex items-center gap-1 text-sm text-muted-foreground">Memory<InfoDot term="memory" /></span>
                 <span className="stat-num text-base">{v.memUsedPct.toFixed(1)}%</span>
               </div>
               <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
@@ -163,8 +165,9 @@ export function OverviewPanel() {
                   style={{ width: `${Math.min(100, v.memUsedPct)}%` }}
                 />
               </div>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
                 swap {v.swapUsedPct.toFixed(1)}% · load {v.load1.toFixed(2)}
+                <InfoDot term="load" />
               </p>
             </div>
             <div>
@@ -180,9 +183,10 @@ export function OverviewPanel() {
           </div>
         )}
         {v ? (
-          <p className="mt-3 text-right text-sm text-muted-foreground">
-            bcache hit {v.bcacheHitPct.toFixed(1)}% · D-state {v.dstate} ·{" "}
-            {v.failedUnits} failed units · updated {formatAgo(v.polledAt)}
+          <p className="mt-3 flex flex-wrap items-center justify-end gap-1 text-right text-sm text-muted-foreground">
+            <span className="inline-flex items-center gap-0.5">bcache hit {v.bcacheHitPct.toFixed(1)}%<InfoDot term="bcache-hit-ratio" /></span> ·{" "}
+            <span className="inline-flex items-center gap-0.5">D-state {v.dstate}<InfoDot term="d-state" /></span> ·{" "}
+            <span className="inline-flex items-center gap-0.5">{v.failedUnits} failed units<InfoDot term="failed-units" /></span> · updated {formatAgo(v.polledAt)}
           </p>
         ) : null}
       </PanelCard>

@@ -1,6 +1,8 @@
 "use client";
 
 import { PanelCard } from "@/components/widgets/panel-card";
+import { InfoDot } from "@/components/widgets/info-dot";
+import type { GlossaryTerm } from "@/lib/glossary";
 import type { TdarrPanel } from "@/lib/panels/schemas";
 import { cn } from "@/lib/utils";
 
@@ -44,7 +46,7 @@ export function GovernorCard({ governor }: { governor: TdarrPanel["governor"] })
   // No snapshot ever received — the emitter/endpoint isn't deployed yet.
   if (!governor) {
     return (
-      <PanelCard title="I/O Governor" subsystem="tdarr">
+      <PanelCard title="I/O Governor" subsystem="tdarr" info="governor">
         <p className="py-4 text-center text-base text-muted-foreground">
           Governor status unavailable — the NAS gate hasn&apos;t reported yet.
         </p>
@@ -55,7 +57,7 @@ export function GovernorCard({ governor }: { governor: TdarrPanel["governor"] })
   // Snapshot exists but the gate is dead/stale — a distinct, loud state.
   if (!governor.running) {
     return (
-      <PanelCard title="I/O Governor" subsystem="tdarr">
+      <PanelCard title="I/O Governor" subsystem="tdarr" info="governor">
         <div className="rounded-md border border-status-down/40 bg-status-down/10 px-3 py-3">
           <div className="flex items-center gap-2">
             <span className="size-2 rounded-full bg-status-down" />
@@ -86,7 +88,7 @@ export function GovernorCard({ governor }: { governor: TdarrPanel["governor"] })
   );
 
   return (
-    <PanelCard title="I/O Governor" subsystem="tdarr">
+    <PanelCard title="I/O Governor" subsystem="tdarr" info="governor">
       <div className="flex flex-col gap-3">
         <div className={cn("rounded-md border px-3 py-2.5", m.ring)}>
           <div className="flex items-center justify-between">
@@ -95,6 +97,7 @@ export function GovernorCard({ governor }: { governor: TdarrPanel["governor"] })
               <span className={cn("text-base font-semibold", m.text)}>
                 {m.label}
               </span>
+              <InfoDot term="governor-mode" />
               {governor.frozen ? (
                 <span className="rounded bg-accent-streams/20 px-1.5 py-0.5 text-sm font-medium text-accent-streams">
                   ❄ frozen
@@ -109,9 +112,10 @@ export function GovernorCard({ governor }: { governor: TdarrPanel["governor"] })
         </div>
 
         <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-base sm:grid-cols-3">
-          <Stat label="Active streams" value={String(governor.activeStreams)} />
+          <Stat label="Active streams" value={String(governor.activeStreams)} info="active-streams" />
           <Stat
             label="Stream bandwidth"
+            info="stream-bandwidth"
             value={
               governor.streamKbps > 0
                 ? `${(governor.streamKbps / 1000).toFixed(1)} Mbps`
@@ -120,22 +124,25 @@ export function GovernorCard({ governor }: { governor: TdarrPanel["governor"] })
           />
           <Stat
             label="SAB cap"
+            info="sab-cap"
             value={
               governor.sabLimitMbps == null
                 ? "uncapped"
                 : `${governor.sabLimitMbps} MB/s`
             }
           />
-          <Stat label="Lane holder" value={governor.laneHolder ?? "—"} />
+          <Stat label="Lane holder" value={governor.laneHolder ?? "—"} info="lane-holder" />
           <Stat
             label="Replace queued"
+            info="replace-queued"
             value={deferred.length > 0 ? String(deferred.length) : "none"}
           />
           <Stat
             label="Governor-paused"
+            info="governor-paused"
             value={trulyPaused.length > 0 ? String(trulyPaused.length) : "none"}
           />
-          <Stat label="Lane timeout" value={`${governor.laneMaxSecs}s`} />
+          <Stat label="Lane timeout" value={`${governor.laneMaxSecs}s`} info="lane-timeout" />
         </dl>
 
         {deferred.length > 0 ? (
@@ -160,10 +167,21 @@ export function GovernorCard({ governor }: { governor: TdarrPanel["governor"] })
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({
+  label,
+  value,
+  info,
+}: {
+  label: string;
+  value: string;
+  info?: GlossaryTerm;
+}) {
   return (
     <div className="flex flex-col">
-      <dt className="text-sm text-muted-foreground">{label}</dt>
+      <dt className="flex items-center gap-1 text-sm text-muted-foreground">
+        {label}
+        {info ? <InfoDot term={info} /> : null}
+      </dt>
       <dd className="stat-num truncate font-medium">{value}</dd>
     </div>
   );

@@ -1,4 +1,6 @@
 import { cn } from "@/lib/utils";
+import { InfoDot } from "@/components/widgets/info-dot";
+import type { GlossaryTerm } from "@/lib/glossary";
 
 /**
  * Tremor-style KPI card: big monospace value, optional delta badge and a
@@ -11,6 +13,7 @@ export function KpiCard({
   delta,
   deltaDirection = "flat",
   spark,
+  info,
   className,
 }: {
   label: string;
@@ -19,6 +22,7 @@ export function KpiCard({
   delta?: string;
   deltaDirection?: "up" | "down" | "flat";
   spark?: React.ReactNode;
+  info?: GlossaryTerm;
   className?: string;
 }) {
   const deltaColor = {
@@ -35,7 +39,10 @@ export function KpiCard({
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        <span className="text-sm font-medium text-muted-foreground">{label}</span>
+        <span className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
+          {label}
+          {info ? <InfoDot term={info} /> : null}
+        </span>
         {delta ? (
           <span
             data-direction={deltaDirection}

@@ -8,6 +8,7 @@ import type { TdarrPanel as TdarrData } from "@/lib/panels/schemas";
 import { usePanelData } from "./use-panel-data";
 import { UptimeRow } from "./uptime-row";
 import { GovernorCard } from "./governor-card";
+import { InfoDot } from "@/components/widgets/info-dot";
 import { ActionButton } from '@/components/actions/action-button';
 import { workerStage } from "@/lib/panels/tdarr-stage";
 import { cn } from "@/lib/utils";
@@ -33,18 +34,20 @@ export function TdarrPanel() {
   return (
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-5">
-        <KpiCard label="Library files" value={s?.totalFiles ?? 0} />
-        <KpiCard label="Transcodes" value={s?.totalTranscodes ?? 0} />
-        <KpiCard label="Health checks" value={s?.totalHealthChecks ?? 0} />
+        <KpiCard label="Library files" value={s?.totalFiles ?? 0} info="library-files" />
+        <KpiCard label="Transcodes" value={s?.totalTranscodes ?? 0} info="transcodes" />
+        <KpiCard label="Health checks" value={s?.totalHealthChecks ?? 0} info="health-checks" />
         <KpiCard
           label="Space saved"
           value={(s?.sizeDiffGb ?? 0).toFixed(0)}
           unit="GB"
+          info="space-saved"
           delta={s && s.sizeDiffGb > 0 ? "reclaimed" : undefined}
           deltaDirection={s && s.sizeDiffGb > 0 ? "up" : undefined}
         />
         <KpiCard
           label="Queue depth"
+          info="queue-depth"
           value={data.series.queueDepth.at(-1)?.v ?? 0}
           spark={
             <SparkLine
@@ -68,7 +71,7 @@ export function TdarrPanel() {
           </PanelCard>
         ) : (
           data.nodes.map((n) => (
-            <PanelCard key={n.nodeName} title={n.nodeName} subsystem="tdarr">
+            <PanelCard key={n.nodeName} title={n.nodeName} subsystem="tdarr" info="tdarr-node">
               <div className="mb-2 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <StatusPill
@@ -116,8 +119,9 @@ export function TdarrPanel() {
                   })()}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1 text-sm text-muted-foreground">
                     limits: {n.limits.transcodeGpu} GPU · {n.limits.transcodeCpu} CPU
+                    <InfoDot term="node-limits" />
                   </span>
                   <ActionButton
                     actionId={n.paused ? "tdarr.resume-node" : "tdarr.pause-node"}
@@ -135,8 +139,9 @@ export function TdarrPanel() {
                   ⚠ NAS node worker limit violated — must stay ≤1 GPU / 0 CPU
                 </p>
               ) : null}
-              <p className="mb-2 text-sm text-muted-foreground">
+              <p className="mb-2 flex items-center gap-1 text-sm text-muted-foreground">
                 queue: {n.queue.transcode} transcode · {n.queue.healthcheck} healthcheck
+                <InfoDot term="node-queue" />
               </p>
               {n.workers.length === 0 ? (
                 <p className="py-3 text-center text-sm text-muted-foreground">
@@ -158,10 +163,11 @@ export function TdarrPanel() {
                           ) : null}
                         </div>
                         <div
-                          className="text-sm text-muted-foreground"
+                          className="flex items-center gap-1 text-sm text-muted-foreground"
                           title={w.status || undefined}
                         >
                           {stage.label}
+                          <InfoDot term="worker-stage" />
                         </div>
                         {stage.bar === "none" ? null : (
                           <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
@@ -189,14 +195,14 @@ export function TdarrPanel() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <PanelCard title="Queue depth" subsystem="tdarr">
+        <PanelCard title="Queue depth" subsystem="tdarr" info="queue-depth">
           <SparkLine
             data={data.series.queueDepth.map((x) => x.v)}
             color="var(--accent-tdarr)"
             height={80}
           />
         </PanelCard>
-        <PanelCard title="Active workers" subsystem="tdarr">
+        <PanelCard title="Active workers" subsystem="tdarr" info="active-workers">
           <SparkLine
             data={data.series.workersActive.map((x) => x.v)}
             color="var(--accent-machines)"
@@ -205,7 +211,7 @@ export function TdarrPanel() {
         </PanelCard>
       </div>
 
-      <PanelCard title="Uptime" subsystem="alerts">
+      <PanelCard title="Uptime" subsystem="alerts" info="uptime">
         <UptimeRow uptime={data.uptime} labels={LABELS} />
       </PanelCard>
     </div>
