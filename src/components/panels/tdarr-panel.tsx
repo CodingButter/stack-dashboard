@@ -9,6 +9,8 @@ import { usePanelData } from "./use-panel-data";
 import { UptimeRow } from "./uptime-row";
 import { GovernorCard } from "./governor-card";
 import { ActionButton } from '@/components/actions/action-button';
+import { workerStage } from "@/lib/panels/tdarr-stage";
+import { cn } from "@/lib/utils";
 
 const LABELS = { tdarr: "Tdarr server" };
 
@@ -142,23 +144,43 @@ export function TdarrPanel() {
                 </p>
               ) : (
                 <div className="flex flex-col gap-2">
-                  {n.workers.map((w, i) => (
-                    <div key={i} className="flex flex-col gap-1">
-                      <div className="flex items-center justify-between gap-2 text-base">
-                        <span className="truncate">{w.file.split("/").pop() || w.status}</span>
-                        <span className="stat-num shrink-0 text-muted-foreground">
-                          {w.fps > 0 ? `${w.fps.toFixed(0)} fps · ` : ""}
-                          {w.percent.toFixed(0)}%{w.eta ? ` · ${w.eta}` : ""}
-                        </span>
-                      </div>
-                      <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
+                  {n.workers.map((w, i) => {
+                    const stage = workerStage(w.status);
+                    return (
+                      <div key={i} className="flex flex-col gap-1">
+                        <div className="flex items-center justify-between gap-2 text-base">
+                          <span className="truncate">{w.file.split("/").pop() || stage.label}</span>
+                          {stage.isTranscoding ? (
+                            <span className="stat-num shrink-0 text-muted-foreground">
+                              {w.fps > 0 ? `${w.fps.toFixed(0)} fps · ` : ""}
+                              {w.percent.toFixed(0)}%{w.eta ? ` · ${w.eta}` : ""}
+                            </span>
+                          ) : null}
+                        </div>
                         <div
-                          className="h-full rounded-full bg-accent-tdarr"
-                          style={{ width: `${Math.min(100, w.percent)}%` }}
-                        />
+                          className="text-sm text-muted-foreground"
+                          title={w.status || undefined}
+                        >
+                          {stage.label}
+                        </div>
+                        {stage.bar === "none" ? null : (
+                          <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
+                            <div
+                              className={cn(
+                                "h-full rounded-full bg-accent-tdarr",
+                                stage.bar === "indeterminate" && "w-full animate-pulse",
+                              )}
+                              style={
+                                stage.bar === "determinate"
+                                  ? { width: `${Math.min(100, w.percent)}%` }
+                                  : undefined
+                              }
+                            />
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </PanelCard>
