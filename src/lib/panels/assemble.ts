@@ -22,12 +22,16 @@ import type {
   Machine,
   Overview,
   Point,
+  Rail,
+  RecentStats,
   ServiceHealth,
+  StatCard,
   Storage as StoragePanel,
   Streams,
   TdarrPanel,
   TrackerCellWire,
 } from "./schemas";
+import { workerStage } from "./tdarr-stage";
 
 export interface SnapRow {
   service: string;
@@ -543,4 +547,119 @@ export function buildRecentlyAdded(
     return { kind, title, items };
   });
   return { generatedAt: now.toISOString(), sections };
+}
+
+/**
+ * Rail data: a truthful Ingestion breakdown from Tdarr + a Streams summary from
+ * Plex sessions. Reuses the same snapshot rows the Tdarr/Streams panels read.
+ *
+ * Ingestion honesty rules (do NOT use `workerCount` / `tdarr.workers.active` —
+ * those count idle worker slots as active):
+ *  - `processing`   = workers whose stage is NOT Idle, across NON-PAUSED nodes.
+ *  - `queued`       = sum of `queue.transcode` across non-paused nodes.
+ *  - `totalCapacity`= sum of `limits.transcodeCpu + transcodeGpu` across
+ *                     non-paused nodes only (a paused node's slots can't run, so
+ *                     they must not appear as idle headroom).
+ *  - `idleCapacity` = max(0, totalCapacity - processing).
+ */
+export function buildRail(snaps: SnapRow[], now: Date = new Date()): Rail {
+  const tdarr =
+    snap<{ nodes: TdarrNode[] }>(snaps, "tdarr", "nodes")?.payload ?? null;
+  const liveNodes = (tdarr?.nodes ?? []).filter((n) => !n.paused);
+
+  let processing = 0;
+  let queued = 0;
+  let totalCapacity = 0;
+  for (const n of liveNodes) {
+    for (const w of n.workers ?? []) {
+      if (workerStage(w.status).label !== "Idle") processing += 1;
+    }
+    queued += n.queue?.transcode ?? 0;
+    const limits = n.limits ?? { transcodeCpu: 0, transcodeGpu: 0 };
+    totalCapacity += limits.transcodeCpu + limits.transcodeGpu;
+  }
+  const idleCapacity = Math.max(0, totalCapacity - processing);
+
+  const plex = snap<PlexSessions>(snaps, "plex", "sessions")?.payload ?? null;
+  const bandwidthMbps = plex
+    ? Math.round((plex.totalBitrateKbps / 1000) * 10) / 10
+    : 0;
+
+  return {
+    generatedAt: now.toISOString(),
+    ingestion: { processing, queued, idleCapacity, totalCapacity },
+    streams: {
+      live: plex?.count ?? 0,
+      transcodes: plex?.transcode ?? 0,
+      bandwidthMbps,
+    },
+  };
+}
+
+/** Poller caps each recent section to this many newest items. A current window
+ * at/over this cap is "saturated" — older items may exist but aren't in the
+ * snapshot, so a prior-window comparison is unreliable and the trend is hidden. */
+const RECENT_SECTION_CAP = 15;
+/** Default trend comparison window (seconds). 7 days, matching the mockup. */
+const TREND_WINDOW_SECONDS = 7 * 24 * 60 * 60;
+
+/**
+ * Compute a stat card from a flat list of item `addedAt` values (unix seconds).
+ * Returns `trendPct: null` (→ card shows count only) when the trend is not
+ * meaningful: prior window empty, current window saturated at the section cap,
+ * or too few items to be anything but noise. Never returns Infinity/NaN.
+ */
+function statCard(addedAts: number[], nowSeconds: number): StatCard {
+  const count = addedAts.length;
+  const currentStart = nowSeconds - TREND_WINDOW_SECONDS;
+  const priorStart = nowSeconds - 2 * TREND_WINDOW_SECONDS;
+  let current = 0;
+  let prior = 0;
+  for (const t of addedAts) {
+    if (t >= currentStart) current += 1;
+    else if (t >= priorStart) prior += 1;
+  }
+  // Meaningfulness gate — runs BEFORE any division.
+  const saturated = current >= RECENT_SECTION_CAP;
+  if (prior === 0 || saturated || current + prior < 2) {
+    return { count, trendPct: null };
+  }
+  const trendPct = Math.round(((current - prior) / prior) * 100);
+  return { count, trendPct };
+}
+
+/** unix-seconds addedAt list for one plex-recent section. */
+function sectionAddedAts(snaps: SnapRow[], kind: string): number[] {
+  const payload =
+    snap<RecentSnapPayload>(snaps, "plex-recent", kind)?.payload ?? null;
+  return (payload?.items ?? []).map((it) => Number(it.addedAt ?? 0));
+}
+
+/**
+ * Four stat cards for the /recently-added header, read from the four separate
+ * plex-recent snapshot rows (there is no unified items[] snapshot). Counts are
+ * always exact; trends are conditional (see `statCard`).
+ *
+ * NOTE: TV/anime rows are series-level cards (one per series, each with an
+ * episodeCount) — `newShows` counts series with recent activity, not episodes
+ * added. `recentItems` is the count in the capped recent window (≤ 60), not a
+ * full-library total; the fourth card is labeled "Recent Items" to stay honest.
+ */
+export function buildRecentStats(
+  snaps: SnapRow[],
+  now: Date = new Date(),
+): RecentStats {
+  const nowSeconds = Math.floor(now.getTime() / 1000);
+  const movies = sectionAddedAts(snaps, "recent-movies");
+  const tv = sectionAddedAts(snaps, "recent-tv");
+  const animeMovies = sectionAddedAts(snaps, "recent-anime-movies");
+  const animeTv = sectionAddedAts(snaps, "recent-anime-tv");
+  const anime = [...animeMovies, ...animeTv];
+  const all = [...movies, ...tv, ...animeMovies, ...animeTv];
+  return {
+    newMovies: statCard(movies, nowSeconds),
+    newShows: statCard(tv, nowSeconds),
+    animeAdded: statCard(anime, nowSeconds),
+    recentItems: statCard(all, nowSeconds),
+  };
 }
