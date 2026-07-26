@@ -257,6 +257,75 @@ describe("agent governor (tdarr-gate)", () => {
       pausedByGovernor: true,
       laneHeldSecs: null,
     });
+    // v1 payloads (no schema:2 fields) default the new booleans to false.
+    expect(g.nodes[0].activelyWorking).toBe(false);
+    expect(g.nodes[0].replaceDeferred).toBe(false);
+  });
+
+  it("captures schema:2 per-node actively_working / replace_deferred flags", () => {
+    const g = parseAgentGovernor(
+      govStatus({
+        schema: 2,
+        lane_holder: "DevBeastNode",
+        nodes: [
+          {
+            // lane holder: transcoding AND owns the write lane
+            name: "DevBeastNode",
+            exempt: false,
+            paused: false,
+            paused_by_governor: false,
+            heavy: true,
+            writing: true,
+            actively_working: true,
+            replace_deferred: false,
+            lane_held_secs: 42,
+            worker_count: 1,
+            worker_statuses: ["Transcode Replace"],
+          },
+          {
+            // transcoding now, write-back queued behind the holder — NOT stopped
+            name: "ZenBeastNode",
+            exempt: false,
+            paused: true,
+            paused_by_governor: true,
+            heavy: false,
+            writing: false,
+            actively_working: true,
+            replace_deferred: true,
+            lane_held_secs: null,
+            worker_count: 1,
+            worker_statuses: ["Transcode Execute"],
+          },
+          {
+            // genuinely held: paused by governor with no live worker
+            name: "BigBeastNode",
+            exempt: false,
+            paused: true,
+            paused_by_governor: true,
+            heavy: false,
+            writing: false,
+            actively_working: false,
+            replace_deferred: false,
+            lane_held_secs: null,
+            worker_count: 0,
+            worker_statuses: [],
+          },
+        ],
+      }),
+      nowFresh,
+    )!;
+    const byName = Object.fromEntries(g.nodes.map((n) => [n.name, n]));
+    expect(byName.ZenBeastNode).toMatchObject({
+      replaceDeferred: true,
+      activelyWorking: true,
+    });
+    expect(byName.BigBeastNode).toMatchObject({
+      pausedByGovernor: true,
+      replaceDeferred: false,
+      activelyWorking: false,
+    });
+    // The lane holder must never read as replace-deferred.
+    expect(byName.DevBeastNode.replaceDeferred).toBe(false);
   });
 
   it("treats a stale ts (> 3x poll_secs) as NOT RUNNING even without a flag", () => {

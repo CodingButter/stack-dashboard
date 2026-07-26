@@ -77,7 +77,17 @@ export function TdarrPanel() {
                   {(() => {
                     const g = govNodes.get(n.nodeName);
                     if (!g) return null;
-                    if (g.pausedByGovernor) {
+                    // schema:2 — a node deferring its write-back is still
+                    // transcoding, not stopped. Show that distinctly; reserve
+                    // "gov-paused" for a node genuinely held with no live worker.
+                    if (g.replaceDeferred) {
+                      return (
+                        <span className="rounded bg-accent-tdarr/15 px-1.5 py-0.5 text-sm font-medium text-accent-tdarr">
+                          transcoding · replace queued
+                        </span>
+                      );
+                    }
+                    if (g.pausedByGovernor && !g.activelyWorking) {
                       return (
                         <span className="rounded bg-status-degraded/15 px-1.5 py-0.5 text-sm font-medium text-status-degraded">
                           gov-paused

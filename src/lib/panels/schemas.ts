@@ -350,6 +350,8 @@ export const tdarrPanelSchema = z.object({
           pausedByGovernor: z.boolean(),
           heavy: z.boolean(),
           writing: z.boolean(),
+          activelyWorking: z.boolean().default(false),
+          replaceDeferred: z.boolean().default(false),
           laneHeldSecs: z.number().nullable(),
           workerCount: z.number(),
           workerStatuses: z.array(z.string()),

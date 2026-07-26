@@ -131,6 +131,10 @@ export interface GovernorNode {
   pausedByGovernor: boolean;
   heavy: boolean;
   writing: boolean;
+  /** schema:2 — node has a live worker phase (Execute/Transcode/…) right now. */
+  activelyWorking: boolean;
+  /** schema:2 — pausedByGovernor && activelyWorking && !writing: transcoding now, write-back queued behind the lane holder (NOT paused/stopped). */
+  replaceDeferred: boolean;
   laneHeldSecs: number | null;
   workerCount: number;
   workerStatuses: string[];
@@ -193,6 +197,9 @@ export function parseAgentGovernor(
         pausedByGovernor: Boolean(n.paused_by_governor),
         heavy: Boolean(n.heavy),
         writing: Boolean(n.writing),
+        // schema:2 fields — default false so v1 payloads parse unchanged.
+        activelyWorking: Boolean(n.actively_working),
+        replaceDeferred: Boolean(n.replace_deferred),
         laneHeldSecs: n.lane_held_secs == null ? null : Number(n.lane_held_secs),
         workerCount: Number(n.worker_count ?? 0),
         workerStatuses: Array.isArray(n.worker_statuses)

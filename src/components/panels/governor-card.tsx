@@ -74,7 +74,16 @@ export function GovernorCard({ governor }: { governor: TdarrPanel["governor"] })
   }
 
   const m = MODE_META[governor.mode];
-  const paused = governor.governorPausedNodes;
+
+  // schema:2 — a node flagged pausedByGovernor is NOT idle. Split by per-node
+  // state: replaceDeferred means "transcoding now, write-back queued behind the
+  // lane holder" (still working), vs genuinely paused (no live worker). The flat
+  // governorPausedNodes list conflates the two and even lists the lane holder,
+  // which reads as a contradiction — derive from node state instead.
+  const deferred = governor.nodes.filter((n) => n.replaceDeferred);
+  const trulyPaused = governor.nodes.filter(
+    (n) => n.pausedByGovernor && !n.replaceDeferred && !n.activelyWorking,
+  );
 
   return (
     <PanelCard title="I/O Governor" subsystem="tdarr">
@@ -119,17 +128,30 @@ export function GovernorCard({ governor }: { governor: TdarrPanel["governor"] })
           />
           <Stat label="Lane holder" value={governor.laneHolder ?? "—"} />
           <Stat
+            label="Replace queued"
+            value={deferred.length > 0 ? String(deferred.length) : "none"}
+          />
+          <Stat
             label="Governor-paused"
-            value={paused.length > 0 ? String(paused.length) : "none"}
+            value={trulyPaused.length > 0 ? String(trulyPaused.length) : "none"}
           />
           <Stat label="Lane timeout" value={`${governor.laneMaxSecs}s`} />
         </dl>
 
-        {paused.length > 0 ? (
+        {deferred.length > 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Transcoding · replace queued:{" "}
+            <span className="font-medium text-status-degraded">
+              {deferred.map((n) => n.name).join(", ")}
+            </span>
+          </p>
+        ) : null}
+
+        {trulyPaused.length > 0 ? (
           <p className="text-sm text-muted-foreground">
             Paused by governor:{" "}
             <span className="font-medium text-status-degraded">
-              {paused.join(", ")}
+              {trulyPaused.map((n) => n.name).join(", ")}
             </span>
           </p>
         ) : null}
