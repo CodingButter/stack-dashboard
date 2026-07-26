@@ -76,14 +76,14 @@ export function StreamsPanel() {
                   <span
                     className={
                       s.decision === "transcode"
-                        ? "shrink-0 rounded bg-status-degraded/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-status-degraded"
-                        : "shrink-0 rounded bg-status-up/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-status-up"
+                        ? "shrink-0 rounded bg-status-degraded/15 px-1.5 py-0.5 text-xs font-semibold uppercase text-status-degraded"
+                        : "shrink-0 rounded bg-status-up/15 px-1.5 py-0.5 text-xs font-semibold uppercase text-status-up"
                     }
                   >
                     {s.decision === "transcode" ? "transcode" : "direct"}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span className="truncate">
                     {s.user} · {s.player} · {s.state}
                   </span>
@@ -98,7 +98,7 @@ export function StreamsPanel() {
                         target={s.sessionId}
                         variant="destructive"
                         size="sm"
-                        className="h-6 px-1.5 text-[10px]"
+                        className="h-6 px-1.5 text-xs"
                       >
                         Terminate
                       </ActionButton>
@@ -141,7 +141,7 @@ export function StreamsPanel() {
             color="var(--accent-plex)"
             height={96}
           />
-          <p className="mt-2 text-right text-[10px] text-muted-foreground">
+          <p className="mt-2 text-right text-xs text-muted-foreground">
             sessions · last hour
           </p>
         </PanelCard>

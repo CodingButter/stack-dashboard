@@ -92,7 +92,7 @@ export function DownloadsPanel() {
             <p className="py-6 text-center text-sm text-muted-foreground">No SAB data</p>
           ) : (
             <>
-              <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+              <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
                 <span>
                   status <span className="stat-num text-foreground">{sab.status}</span>
                 </span>
@@ -135,7 +135,7 @@ export function DownloadsPanel() {
                 </div>
               )}
               {sab.totals ? (
-                <p className="mt-3 text-right text-[10px] text-muted-foreground">
+                <p className="mt-3 text-right text-xs text-muted-foreground">
                   today {formatBytes(sab.totals.day)} · week {formatBytes(sab.totals.week)}{" "}
                   · month {formatBytes(sab.totals.month)}
                 </p>
@@ -181,7 +181,7 @@ export function DownloadsPanel() {
                     .map(([cat, n]) => (
                       <span
                         key={cat || "(none)"}
-                        className="rounded-full border border-border/60 bg-background/40 px-2 py-0.5 text-[10px] text-muted-foreground"
+                        className="rounded-full border border-border/60 bg-background/40 px-2 py-0.5 text-xs text-muted-foreground"
                       >
                         {cat || "uncategorized"}{" "}
                         <span className="stat-num text-foreground">{n}</span>

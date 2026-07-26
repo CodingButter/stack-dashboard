@@ -41,7 +41,7 @@ export function StoragePanel() {
             ))}
           </div>
         )}
-        <p className="mt-3 text-center text-[11px] text-muted-foreground">
+        <p className="mt-3 text-center text-xs text-muted-foreground">
           hot NVMe /volume2 → cold RAID5+bcache /volume1 · valve 80% / 90% ·
           tier-mover nightly 05:30
         </p>
@@ -68,7 +68,7 @@ export function StoragePanel() {
             color="var(--accent-machines)"
             height={72}
           />
-          <p className="mt-1 text-right text-[10px] text-muted-foreground">
+          <p className="mt-1 text-right text-xs text-muted-foreground">
             now{" "}
             <span className="stat-num text-foreground">
               {data.bcacheHitPct === null ? "—" : `${data.bcacheHitPct.toFixed(1)}%`}
@@ -101,7 +101,7 @@ export function StoragePanel() {
                         style={{ width: `${Math.min(100, d.utilPct)}%` }}
                       />
                     </div>
-                    <span className="stat-num w-24 shrink-0 text-right text-[11px] text-muted-foreground">
+                    <span className="stat-num w-24 shrink-0 text-right text-xs text-muted-foreground">
                       {d.utilPct.toFixed(1)}% · {d.awaitMs.toFixed(1)} ms
                     </span>
                   </div>
@@ -124,7 +124,7 @@ export function StoragePanel() {
                 >
                   <div className="min-w-0">
                     <p className="stat-num truncate">{d.device}</p>
-                    <p className="truncate text-[10px] text-muted-foreground">{d.model}</p>
+                    <p className="truncate text-xs text-muted-foreground">{d.model}</p>
                   </div>
                   <div className="shrink-0 text-right">
                     <p
@@ -138,7 +138,7 @@ export function StoragePanel() {
                     >
                       {d.healthy === null ? "unknown" : d.healthy ? "healthy" : "FAILING"}
                     </p>
-                    <p className="stat-num text-[10px] text-muted-foreground">
+                    <p className="stat-num text-xs text-muted-foreground">
                       {d.temperatureC !== null ? `${d.temperatureC}°C · ` : ""}
                       {d.powerOnHours !== null
                         ? `${Math.round(d.powerOnHours / 24)}d on`

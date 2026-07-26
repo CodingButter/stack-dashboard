@@ -86,7 +86,7 @@ export function OverviewPanel() {
               ))}
             </div>
           )}
-          <p className="mt-3 text-center text-[11px] text-muted-foreground">
+          <p className="mt-3 text-center text-xs text-muted-foreground">
             valve thresholds 80% / 90% · tier-mover runs nightly 05:30
           </p>
         </PanelCard>
@@ -109,7 +109,7 @@ export function OverviewPanel() {
                     label={SERVICE_LABELS[s.service] ?? s.service}
                     className="border-0 bg-transparent px-0"
                   />
-                  <span className="stat-num text-[10px] text-muted-foreground">
+                  <span className="stat-num text-xs text-muted-foreground">
                     {s.ok ? `${s.latencyMs ?? 0} ms` : `down · ${formatAgo(s.polledAt)}`}
                   </span>
                 </div>
@@ -163,7 +163,7 @@ export function OverviewPanel() {
                   style={{ width: `${Math.min(100, v.memUsedPct)}%` }}
                 />
               </div>
-              <p className="mt-1 text-[10px] text-muted-foreground">
+              <p className="mt-1 text-xs text-muted-foreground">
                 swap {v.swapUsedPct.toFixed(1)}% · load {v.load1.toFixed(2)}
               </p>
             </div>
@@ -180,7 +180,7 @@ export function OverviewPanel() {
           </div>
         )}
         {v ? (
-          <p className="mt-3 text-right text-[10px] text-muted-foreground">
+          <p className="mt-3 text-right text-xs text-muted-foreground">
             bcache hit {v.bcacheHitPct.toFixed(1)}% · D-state {v.dstate} ·{" "}
             {v.failedUnits} failed units · updated {formatAgo(v.polledAt)}
           </p>

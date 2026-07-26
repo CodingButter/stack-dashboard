@@ -40,7 +40,7 @@ export function ArrPanel() {
           </p>
         ) : (
           <>
-            <p className="mb-3 text-[11px] text-muted-foreground">
+            <p className="mb-3 text-xs text-muted-foreground">
               {data.prowlarr.enabled} of {data.prowlarr.total} enabled
             </p>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -58,7 +58,7 @@ export function ArrPanel() {
                         className="border-0 bg-transparent px-0"
                       />
                       <span className="flex items-center gap-1.5">
-                        <span className="text-[10px] uppercase text-muted-foreground">
+                        <span className="text-xs uppercase text-muted-foreground">
                           {ix.protocol} · {ix.privacy}
                         </span>
                         <ActionButton
@@ -66,14 +66,14 @@ export function ArrPanel() {
                           params={{ indexerId: ix.id }}
                           target={`indexer-${ix.id}`}
                           size="sm"
-                          className="h-6 px-1.5 text-[10px]"
+                          className="h-6 px-1.5 text-xs"
                         >
                           Test
                         </ActionButton>
                       </span>
                     </div>
                     {limited ? (
-                      <span className="text-[10px] text-status-degraded">
+                      <span className="text-xs text-status-degraded">
                         rate-limited until {formatAgo(ix.disabledTill).replace(" ago", "")}{" "}
                         from now{ix.failure ? ` · ${ix.failure}` : ""}
                       </span>
@@ -145,7 +145,7 @@ function ArrAppCard({ name, app }: { name: string; app: Arr["sonarr"] }) {
             />
             <Stat label="Errored" value={app.queue.errored} warn={app.queue.errored > 0} />
           </dl>
-          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
             <span>
               health:{" "}
               <span

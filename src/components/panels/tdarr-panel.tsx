@@ -68,7 +68,7 @@ export function TdarrPanel() {
                   className="border-0 bg-transparent px-0"
                 />
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-muted-foreground">
+                  <span className="text-xs text-muted-foreground">
                     limits: {n.limits.transcodeGpu} GPU · {n.limits.transcodeCpu} CPU
                   </span>
                   <ActionButton
@@ -83,11 +83,11 @@ export function TdarrPanel() {
                 </div>
               </div>
               {n.limitViolation ? (
-                <p className="mb-2 rounded-md border border-status-down/40 bg-status-down/10 px-2 py-1.5 text-[11px] font-semibold text-status-down">
+                <p className="mb-2 rounded-md border border-status-down/40 bg-status-down/10 px-2 py-1.5 text-xs font-semibold text-status-down">
                   ⚠ NAS node worker limit violated — must stay ≤1 GPU / 0 CPU
                 </p>
               ) : null}
-              <p className="mb-2 text-[11px] text-muted-foreground">
+              <p className="mb-2 text-xs text-muted-foreground">
                 queue: {n.queue.transcode} transcode · {n.queue.healthcheck} healthcheck
               </p>
               {n.workers.length === 0 ? (
@@ -98,7 +98,7 @@ export function TdarrPanel() {
                 <div className="flex flex-col gap-2">
                   {n.workers.map((w, i) => (
                     <div key={i} className="flex flex-col gap-1">
-                      <div className="flex items-center justify-between gap-2 text-xs">
+                      <div className="flex items-center justify-between gap-2 text-sm">
                         <span className="truncate">{w.file.split("/").pop() || w.status}</span>
                         <span className="stat-num shrink-0 text-muted-foreground">
                           {w.fps > 0 ? `${w.fps.toFixed(0)} fps · ` : ""}

@@ -14,7 +14,7 @@ function values(points: Point[]): number[] {
 function Stat({ label, value, warn }: { label: string; value: string; warn?: boolean }) {
   return (
     <div className="flex flex-col">
-      <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+      <span className="text-xs uppercase tracking-wide text-muted-foreground">
         {label}
       </span>
       <span className={warn ? "stat-num text-sm font-bold text-status-down" : "stat-num text-sm"}>
@@ -54,32 +54,32 @@ function MachineCard({ m }: { m: Machine }) {
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div>
-              <span className="text-[10px] text-muted-foreground">cpu %</span>
+              <span className="text-xs text-muted-foreground">cpu %</span>
               <SparkLine data={values(m.series.cpu)} color="var(--accent-machines)" />
             </div>
             <div>
-              <span className="text-[10px] text-muted-foreground">mem %</span>
+              <span className="text-xs text-muted-foreground">mem %</span>
               <SparkLine data={values(m.series.mem)} color="var(--accent-storage)" />
             </div>
             <div>
-              <span className="text-[10px] text-muted-foreground">net rx MB/s</span>
+              <span className="text-xs text-muted-foreground">net rx MB/s</span>
               <SparkLine data={values(m.series.netRx)} color="var(--accent-downloads)" />
             </div>
             <div>
-              <span className="text-[10px] text-muted-foreground">net tx MB/s</span>
+              <span className="text-xs text-muted-foreground">net tx MB/s</span>
               <SparkLine data={values(m.series.netTx)} color="var(--accent-plex)" />
             </div>
           </div>
 
           {s.disks.length > 0 ? (
             <div>
-              <h4 className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Disks
               </h4>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="text-[10px] uppercase text-muted-foreground">
+                    <tr className="text-xs uppercase text-muted-foreground">
                       <th className="pb-1 pr-4 font-medium">device</th>
                       <th className="pb-1 pr-4 font-medium">util %</th>
                       <th className="pb-1 font-medium">await ms</th>
@@ -105,7 +105,7 @@ function MachineCard({ m }: { m: Machine }) {
                 </table>
               </div>
               {s.bcacheHitPct > 0 ? (
-                <p className="mt-1 text-[10px] text-muted-foreground">
+                <p className="mt-1 text-xs text-muted-foreground">
                   bcache hit ratio {s.bcacheHitPct.toFixed(1)}%
                 </p>
               ) : null}
@@ -114,7 +114,7 @@ function MachineCard({ m }: { m: Machine }) {
 
           {m.smart && m.smart.length > 0 ? (
             <div>
-              <h4 className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <h4 className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 SMART
               </h4>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -134,7 +134,7 @@ function MachineCard({ m }: { m: Machine }) {
                     <StatusPill
                       status={d.healthy === false ? "down" : d.healthy === true ? "up" : "unknown"}
                       label={d.healthy === false ? "FAIL" : d.healthy === true ? "OK" : "?"}
-                      className="px-1.5 py-0 text-[10px]"
+                      className="px-1.5 py-0 text-xs"
                     />
                   </div>
                 ))}
@@ -142,7 +142,7 @@ function MachineCard({ m }: { m: Machine }) {
             </div>
           ) : null}
 
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
             {s.filesystems.map((f) => (
               <span key={f.path} className="stat-num">
                 {f.path} {f.usedPct.toFixed(1)}% ({formatBytes(f.usedBytes)} /{" "}
