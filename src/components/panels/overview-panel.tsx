@@ -128,13 +128,13 @@ export function OverviewPanel() {
             NAS agent unreachable — no vitals snapshot
           </p>
         ) : (
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <div className="flex items-baseline justify-between">
                 <span className="flex items-center gap-1 text-sm text-muted-foreground">CPU<InfoDot term="cpu" /></span>
                 <span className="stat-num text-base">{v.cpuBusy.toFixed(1)}%</span>
               </div>
-              <SparkLine data={values(v.cpuSeries)} color="var(--accent-machines)" />
+              <SparkLine data={values(v.cpuSeries)} height={64} color="var(--accent-machines)" />
             </div>
             <div data-warn={v.iowait > IOWAIT_WARN_PCT}>
               <div className="flex items-baseline justify-between">
@@ -151,6 +151,7 @@ export function OverviewPanel() {
               </div>
               <SparkLine
                 data={values(v.iowaitSeries)}
+                height={64}
                 color={v.iowait > IOWAIT_WARN_PCT ? "var(--status-down)" : "var(--accent-storage)"}
               />
             </div>
