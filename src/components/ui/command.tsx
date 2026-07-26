@@ -59,7 +59,9 @@ function CommandDialog({
         )}
         showCloseButton={showCloseButton}
       >
-        {children}
+        {/* cmdk components require the Command root for their store context —
+            without it every CommandInput/List/Item crashes on mount. */}
+        <Command>{children}</Command>
       </DialogContent>
     </Dialog>
   )

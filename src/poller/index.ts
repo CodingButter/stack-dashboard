@@ -21,12 +21,35 @@ import {
 import { allPollers, type Poller } from "./registry";
 import { runRetention } from "./retention";
 import { loadServiceConfig } from "./settings";
+import { httpFetch } from "./clients/http";
+import {
+  LOG_PULL_INTERVAL_MS,
+  pullLogs,
+  runLogRetention,
+  type AgentFetcher,
+} from "./logs";
+import { runAlertCycle } from "@/alerts";
 
 // Register all service pollers (side-effect imports populate the registry).
 import "./register-all";
 
 const RETENTION_INTERVAL_MS = 60 * 60 * 1000; // hourly
+const ALERT_INTERVAL_MS = 15_000; // evaluate rules every 15 s
 const TICK_MS = 1_000;
+
+async function runAlertsSafe(): Promise<void> {
+  try {
+    const summary = await runAlertCycle(db);
+    if (summary.opened || summary.resolved) {
+      console.log(
+        `[poller] alerts +${summary.opened} -${summary.resolved} ` +
+          `(refreshed ${summary.refreshed}, pending ${summary.pending})`,
+      );
+    }
+  } catch (err) {
+    console.warn(`[poller] alert cycle failed:`, err);
+  }
+}
 
 function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   return Promise.race([
@@ -65,6 +88,33 @@ async function pollOnce(poller: Poller): Promise<PollOutcome> {
   }
 }
 
+/** Bearer-authed fetcher against the NAS agent's log endpoints. */
+async function makeAgentFetcher(): Promise<AgentFetcher | null> {
+  const cfg = await loadServiceConfig("agent");
+  if (!cfg.url || !cfg.apiKey) return null;
+  const base = cfg.url.replace(/\/$/, "");
+  const headers = { Authorization: `Bearer ${cfg.apiKey}` };
+  return {
+    async get<T>(path: string): Promise<T | null> {
+      const res = await httpFetch<T>(`${base}${path}`, { headers });
+      return res.ok && res.data !== undefined ? res.data : null;
+    },
+  };
+}
+
+async function pullLogsSafe(): Promise<void> {
+  try {
+    const agent = await makeAgentFetcher();
+    if (!agent) return;
+    const { pulled, errors } = await pullLogs(db, agent);
+    const total = Object.values(pulled).reduce((a, b) => a + b, 0);
+    if (total > 0) console.log(`[poller] logs +${total}`, pulled);
+    for (const e of errors) console.warn(`[poller] logs error: ${e}`);
+  } catch (err) {
+    console.warn(`[poller] logs pull failed:`, err);
+  }
+}
+
 async function runOnce(): Promise<void> {
   const pollers = allPollers();
   console.log(`[poller] --once: ${pollers.length} services`);
@@ -76,6 +126,8 @@ async function runOnce(): Promise<void> {
         `${outcome.latencyMs}ms${outcome.error ? ` err=${outcome.error}` : ""}`,
     );
   }
+  await pullLogsSafe();
+  await runAlertsSafe();
 }
 
 async function runLoop(): Promise<void> {
@@ -90,6 +142,8 @@ async function runLoop(): Promise<void> {
 
   console.log(`[poller] loop: ${pollers.length} services`);
   let lastRetention = 0;
+  let lastLogPull = 0;
+  let lastAlerts = 0;
 
   for (;;) {
     const now = Date.now();
@@ -107,10 +161,26 @@ async function runLoop(): Promise<void> {
       }
     }
 
+    if (now - lastLogPull >= LOG_PULL_INTERVAL_MS) {
+      lastLogPull = now;
+      await pullLogsSafe();
+    }
+
+    if (now - lastAlerts >= ALERT_INTERVAL_MS) {
+      lastAlerts = now;
+      await runAlertsSafe();
+    }
+
     if (now - lastRetention >= RETENTION_INTERVAL_MS) {
       lastRetention = now;
       const counts = await runRetention(db);
       console.log(`[poller] retention`, counts);
+      try {
+        const logCounts = await runLogRetention(db);
+        console.log(`[poller] log retention`, logCounts);
+      } catch (err) {
+        console.warn(`[poller] log retention failed:`, err);
+      }
     }
 
     await new Promise((r) => setTimeout(r, TICK_MS));

@@ -57,9 +57,39 @@ function NavLinks({
   );
 }
 
+/**
+ * Live active-alert count for the shell badge. Polls /api/alerts?count=1 every
+ * 20 s. Used when no explicit `alertCount` is passed (i.e. everywhere except
+ * the static design gallery).
+ */
+function useLiveAlertCount(enabled: boolean): number {
+  const [count, setCount] = React.useState(0);
+  React.useEffect(() => {
+    if (!enabled) return;
+    let alive = true;
+    const load = async () => {
+      try {
+        const res = await fetch("/api/alerts?count=1", { cache: "no-store" });
+        if (!res.ok) return;
+        const body = (await res.json()) as { count?: number };
+        if (alive && typeof body.count === "number") setCount(body.count);
+      } catch {
+        // transient — keep last known count
+      }
+    };
+    load();
+    const t = setInterval(load, 20_000);
+    return () => {
+      alive = false;
+      clearInterval(t);
+    };
+  }, [enabled]);
+  return count;
+}
+
 export function AppShell({
   title,
-  alertCount = 0,
+  alertCount,
   children,
 }: {
   title: string;
@@ -69,6 +99,8 @@ export function AppShell({
   const [collapsed, setCollapsed] = React.useState(false);
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [paletteOpen, setPaletteOpen] = React.useState(false);
+  const liveCount = useLiveAlertCount(alertCount === undefined);
+  const badgeCount = alertCount ?? liveCount;
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -196,17 +228,20 @@ export function AppShell({
                 <Search className="size-4" />
               </Button>
               <Button
+                asChild
                 variant="ghost"
                 size="icon-sm"
                 className="relative size-11 md:size-7"
                 aria-label="Alerts"
               >
-                <Bell className="size-4" />
-                {alertCount > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-accent-alerts text-[9px] font-bold text-background">
-                    {alertCount > 9 ? "9+" : alertCount}
-                  </span>
-                )}
+                <Link href="/alerts">
+                  <Bell className="size-4" />
+                  {badgeCount > 0 && (
+                    <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-accent-alerts text-[9px] font-bold text-background">
+                      {badgeCount > 9 ? "9+" : badgeCount}
+                    </span>
+                  )}
+                </Link>
               </Button>
             </div>
           </header>

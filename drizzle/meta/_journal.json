@@ -15,6 +15,20 @@
       "when": 1784863404217,
       "tag": "0001_left_mad_thinker",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784922403553,
+      "tag": "0002_nice_scarecrow",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1784951033316,
+      "tag": "0003_massive_wendell_vaughn",
+      "breakpoints": true
     }
   ]
 }

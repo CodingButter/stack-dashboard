@@ -86,6 +86,15 @@ def auth_journal_argv(cursor, lines):
     return argv
 
 
+def kernel_journal_argv(cursor, lines):
+    """Kernel ring buffer via journald (-k == _TRANSPORT=kernel)."""
+    argv = ["journalctl", "-k", "-o", "json", "-n", str(lines),
+            "--no-pager"]
+    if cursor:
+        argv += ["--after-cursor", cursor]
+    return argv
+
+
 def parse_journal_json(raw, fallback_cursor=None):
     """journalctl -o json emits one JSON object per line. Return trimmed
     entries plus the cursor of the last entry (for the next poll)."""

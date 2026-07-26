@@ -102,6 +102,9 @@ export function makeAgentPoller(service: string, box: string): Poller {
       // Best-effort: the agent caches SMART for 30 min, so this is a cheap
       // local read. A SMART failure never fails the stats poll.
       const smartRes = await httpFetch(`${base}/smart`, { headers });
+      // Container inventory — the log puller discovers docker log sources
+      // from this snapshot, so it must be persisted every cycle.
+      const dockerRes = await httpFetch(`${base}/docker`, { headers });
 
       const stats = parseAgentStats(res.data, box);
       const metrics = [
@@ -134,6 +137,9 @@ export function makeAgentPoller(service: string, box: string): Poller {
           kind: "smart",
           payload: { drives: parseAgentSmart(smartRes.data) },
         });
+      }
+      if (dockerRes.ok && dockerRes.data && typeof dockerRes.data === "object") {
+        snapshotRows.push({ kind: "docker", payload: dockerRes.data });
       }
       return { ok: true, snapshots: snapshotRows, metrics };
     },
