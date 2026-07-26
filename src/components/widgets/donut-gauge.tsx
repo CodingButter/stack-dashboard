@@ -16,7 +16,7 @@ export function DonutGauge({
   label,
   sublabel,
   thresholds = [],
-  size = 120,
+  size = 148,
   className,
 }: {
   value: number; // percent 0-100
@@ -88,10 +88,15 @@ export function DonutGauge({
           );
         })}
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="stat-num text-xl font-semibold">{Math.round(clamped)}%</span>
+      <div
+        className="absolute inset-x-0 top-0 flex flex-col items-center justify-center px-1 text-center"
+        style={{ height: size, width: size }}
+      >
+        <span className="stat-num text-xl font-semibold leading-none">{Math.round(clamped)}%</span>
         {sublabel ? (
-          <span className="text-sm text-muted-foreground">{sublabel}</span>
+          <span className="mt-1 max-w-full text-xs leading-tight text-muted-foreground">
+            {sublabel}
+          </span>
         ) : null}
       </div>
       {label ? (
