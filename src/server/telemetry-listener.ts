@@ -19,8 +19,22 @@
  * - No secrets ride this path; nothing is logged from the payload body.
  */
 import dgram from "node:dgram";
+import { gunzipSync } from "node:zlib";
 import { z } from "zod";
 import { parseAgentGovernor, type GovernorStatus } from "@/poller/clients/agent";
+
+/**
+ * Datagrams may be gzip'd: raw JSON (1.7–2.3KB for a multi-node governor) exceeds
+ * the ~1280-byte WireGuard MTU, so the blaster gzips to ~600B. Detection is
+ * self-describing via the gzip magic bytes (0x1f 0x8b) — plain-JSON senders stay
+ * supported. Returns UTF-8 JSON text either way.
+ */
+function decodeDatagram(msg: Buffer): string {
+  if (msg.length >= 2 && msg[0] === 0x1f && msg[1] === 0x8b) {
+    return gunzipSync(msg).toString("utf8");
+  }
+  return msg.toString("utf8");
+}
 
 /** Envelope schema 1 — the blast wrapper. `governor` stays raw here and is run
  * through the existing parseAgentGovernor() so we reuse the schema-3 logic. */
@@ -173,9 +187,9 @@ export class TelemetryListener {
   ingest(msg: Buffer): void {
     let parsed: z.infer<typeof envelopeSchema>;
     try {
-      parsed = envelopeSchema.parse(JSON.parse(msg.toString("utf8")));
+      parsed = envelopeSchema.parse(JSON.parse(decodeDatagram(msg)));
     } catch {
-      return; // malformed / wrong kind / truncated — ignore
+      return; // malformed / bad gzip / wrong kind / truncated — ignore
     }
 
     if (parsed.kind === "nas-telemetry") this.ingestNas(parsed);

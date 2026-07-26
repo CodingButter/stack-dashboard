@@ -1,4 +1,5 @@
 import dgram from "node:dgram";
+import { gzipSync } from "node:zlib";
 
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -50,6 +51,25 @@ describe("TelemetryListener.ingest", () => {
     const l = new TelemetryListener(() => 1000 * 1000 + 100);
     expect(() => l.ingest(Buffer.from("not json", "utf8"))).not.toThrow();
     expect(() => l.ingest(Buffer.from('{"schema":9}', "utf8"))).not.toThrow();
+    expect(l.getState().snapshot).toBeNull();
+  });
+
+  it("accepts a gzip'd datagram (magic bytes 0x1f 0x8b) and inflates it", () => {
+    const l = new TelemetryListener(() => 1000 * 1000 + 100);
+    const gz = gzipSync(envelope({ seq: 42 }));
+    expect(gz[0]).toBe(0x1f);
+    expect(gz[1]).toBe(0x8b);
+    l.ingest(gz);
+    const s = l.getState();
+    expect(s.connected).toBe(true);
+    expect(s.snapshot?.seq).toBe(42);
+  });
+
+  it("ignores a datagram with the gzip magic byte but corrupt body", () => {
+    const l = new TelemetryListener(() => 1000 * 1000 + 100);
+    expect(() =>
+      l.ingest(Buffer.from([0x1f, 0x8b, 0x08, 0x00, 0xde, 0xad])),
+    ).not.toThrow();
     expect(l.getState().snapshot).toBeNull();
   });
 
