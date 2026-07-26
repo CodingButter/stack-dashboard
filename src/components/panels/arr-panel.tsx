@@ -133,6 +133,7 @@ function ArrAppCard({ name, app }: { name: string; app: Arr["sonarr"] }) {
         </p>
       ) : (
         <>
+          <StuckBanner queue={app.queue} />
           <dl className="grid grid-cols-3 gap-x-4 gap-y-2 text-base">
             <Stat label="Queue" value={app.queue.total} />
             <Stat label="Downloading" value={app.queue.downloading} />
@@ -172,6 +173,21 @@ function ArrAppCard({ name, app }: { name: string; app: Arr["sonarr"] }) {
         </>
       )}
     </PanelCard>
+  );
+}
+
+function StuckBanner({ queue }: { queue: NonNullable<Arr["sonarr"]>["queue"] }) {
+  const parts: string[] = [];
+  if (queue.importPending > 0) parts.push(`${queue.importPending} import-pending`);
+  if (queue.stalled > 0) parts.push(`${queue.stalled} stalled`);
+  if (queue.errored > 0) parts.push(`${queue.errored} failed`);
+  if (parts.length === 0) return null;
+  const stuck = queue.importPending + queue.stalled + queue.errored;
+  return (
+    <div className="mb-3 flex flex-wrap items-baseline gap-x-2 rounded-md border border-status-degraded/40 bg-status-degraded/10 px-2.5 py-1.5 text-sm">
+      <span className="stat-num font-bold text-status-degraded">{stuck} stuck</span>
+      <span className="text-muted-foreground">{parts.join(" · ")} — needs cleanup</span>
+    </div>
   );
 }
 
