@@ -462,3 +462,85 @@ export function buildStorage(
     },
   };
 }
+
+/** The bucket kinds the plex-recent poller emits, in carousel display order. */
+const RECENT_KINDS: Array<{ kind: string; title: string }> = [
+  { kind: "recent-movies", title: "Movies" },
+  { kind: "recent-tv", title: "TV Shows" },
+  { kind: "recent-anime-movies", title: "Anime Movies" },
+  { kind: "recent-anime-tv", title: "Anime TV" },
+];
+
+interface RecentSnapPayload {
+  machineId?: string;
+  items?: Array<{
+    ratingKey?: string;
+    title?: string;
+    thumb?: string;
+    addedAt?: number;
+    year?: number | null;
+    episodeCount?: number;
+  }>;
+}
+
+/** Plex web deep-link for a library item; "" when the server id is unknown. */
+function plexDeepLink(machineId: string, ratingKey: string): string {
+  if (!machineId || !ratingKey) return "";
+  const key = encodeURIComponent(`/library/metadata/${ratingKey}`);
+  return `https://app.plex.tv/desktop/#!/server/${machineId}/details?key=${key}`;
+}
+
+/** Route the token-bearing art fetch through our proxy; "" when no thumb. */
+function artProxyUrl(thumb: string): string {
+  if (!thumb) return "";
+  return `/api/plex/art?path=${encodeURIComponent(thumb)}`;
+}
+
+/**
+ * Map the plex-recent snapshots (one per library section) into the four
+ * carousels. Missing sections render as empty carousels rather than vanishing,
+ * so the page shape is stable. Items are sorted newest-first — a series with a
+ * fresh episode bubbles to the front because Plex stamps its addedAt with the
+ * newest leaf.
+ */
+export function buildRecentlyAdded(
+  snaps: SnapRow[],
+  now: Date = new Date(),
+): {
+  generatedAt: string;
+  sections: Array<{
+    kind: string;
+    title: string;
+    items: Array<{
+      ratingKey: string;
+      title: string;
+      year: number | null;
+      artUrl: string;
+      plexUrl: string;
+      episodeCount: number;
+      addedAt: number;
+    }>;
+  }>;
+} {
+  const sections = RECENT_KINDS.map(({ kind, title }) => {
+    const payload =
+      snap<RecentSnapPayload>(snaps, "plex-recent", kind)?.payload ?? null;
+    const machineId = payload?.machineId ?? "";
+    const items = (payload?.items ?? [])
+      .map((it) => {
+        const ratingKey = String(it.ratingKey ?? "");
+        return {
+          ratingKey,
+          title: String(it.title ?? "Untitled"),
+          year: it.year != null ? Number(it.year) : null,
+          artUrl: artProxyUrl(String(it.thumb ?? "")),
+          plexUrl: plexDeepLink(machineId, ratingKey),
+          episodeCount: Number(it.episodeCount ?? 0),
+          addedAt: Number(it.addedAt ?? 0),
+        };
+      })
+      .sort((a, b) => b.addedAt - a.addedAt);
+    return { kind, title, items };
+  });
+  return { generatedAt: now.toISOString(), sections };
+}

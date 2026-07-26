@@ -22,6 +22,7 @@ describe("poll interval tiers", () => {
     expect(POLL_INTERVALS_MS.tdarr).toBe(10_000);
     expect(POLL_INTERVALS_MS.sonarr).toBe(30_000);
     expect(POLL_INTERVALS_MS.radarr).toBe(30_000);
+    expect(POLL_INTERVALS_MS["plex-recent"]).toBe(300_000);
     expect(POLL_INTERVALS_MS["sonarr:library"]).toBe(300_000);
     expect(POLL_INTERVALS_MS.prowlarr).toBe(300_000);
     expect(POLL_INTERVALS_MS.smart).toBe(1_800_000);

@@ -395,3 +395,30 @@ export const storageSchema = z.object({
   }),
 });
 export type Storage = z.infer<typeof storageSchema>;
+
+export const recentItemSchema = z.object({
+  ratingKey: z.string(),
+  title: z.string(),
+  year: z.number().nullable(),
+  /** Server-side proxy path for the cover art; "" when Plex gave no thumb. */
+  artUrl: z.string(),
+  /** Plex web deep-link to the item; "" when the server identity was unknown. */
+  plexUrl: z.string(),
+  /** Newest episode add for shows; 0 for movies means "not a series". */
+  episodeCount: z.number(),
+  addedAt: z.number(),
+});
+export type RecentItem = z.infer<typeof recentItemSchema>;
+
+export const recentSectionSchema = z.object({
+  kind: z.string(),
+  title: z.string(),
+  items: z.array(recentItemSchema),
+});
+export type RecentSection = z.infer<typeof recentSectionSchema>;
+
+export const recentlyAddedSchema = z.object({
+  generatedAt: z.string(),
+  sections: z.array(recentSectionSchema),
+});
+export type RecentlyAdded = z.infer<typeof recentlyAddedSchema>;

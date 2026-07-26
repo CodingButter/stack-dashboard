@@ -12,6 +12,13 @@ import { parseSeerrRequests } from "../seerr";
 import { parseTdarrNodes, parseTdarrStats } from "../tdarr";
 import { parseQbitTorrents } from "../qbittorrent";
 import { parseAgentStats, parseAgentGpu, parseAgentGovernor } from "../agent";
+import {
+  parseRecentlyAdded,
+  parseSections,
+  parseMachineId,
+  resolveSections,
+  DEFAULT_SECTIONS,
+} from "../plex-recent";
 
 const FIX = join(__dirname, "..", "__fixtures__");
 const load = (name: string): unknown =>
@@ -426,5 +433,135 @@ describe("error shapes degrade cleanly (no throw)", () => {
   });
   it("tautulli reports error on a garbage body", () => {
     expect("error" in parseTautulliActivity("garbage")).toBe(true);
+  });
+});
+
+describe("plex-recent client", () => {
+  it("parses movie recently-added items (episodeCount 0)", () => {
+    const items = parseRecentlyAdded(load("plex_recent_movies.json"));
+    expect(items.length).toBe(2);
+    const [dune] = items;
+    expect(dune.ratingKey).toBe("50123");
+    expect(dune.type).toBe("movie");
+    expect(dune.title).toBe("Dune: Part Two");
+    expect(dune.year).toBe(2024);
+    expect(dune.thumb).toBe("/library/metadata/50123/thumb/1710000000");
+    expect(dune.addedAt).toBe(1710000900);
+    expect(dune.episodeCount).toBe(0);
+  });
+
+  it("reads a show's episode count from leafCount", () => {
+    const items = parseRecentlyAdded(load("plex_recent_tv.json"));
+    expect(items.length).toBe(1);
+    expect(items[0].type).toBe("show");
+    expect(items[0].episodeCount).toBe(8);
+  });
+
+  it("returns [] for an empty MediaContainer", () => {
+    expect(parseRecentlyAdded({ MediaContainer: {} })).toEqual([]);
+  });
+
+  it("returns [] (never throws) for a malformed body", () => {
+    expect(() => parseRecentlyAdded("nope")).not.toThrow();
+    expect(parseRecentlyAdded("nope")).toEqual([]);
+    expect(parseRecentlyAdded(null)).toEqual([]);
+  });
+
+  it("defaults missing item fields without throwing", () => {
+    const items = parseRecentlyAdded({
+      MediaContainer: { Metadata: [{ type: "movie" }] },
+    });
+    expect(items[0]).toEqual({
+      ratingKey: "",
+      title: "Untitled",
+      type: "movie",
+      thumb: "",
+      addedAt: 0,
+      year: null,
+      episodeCount: 0,
+    });
+  });
+
+  it("parses library sections to {key,title}", () => {
+    const secs = parseSections(load("plex_sections.json"));
+    expect(secs).toContainEqual({ key: "2", title: "TV Shows" });
+    expect(secs.length).toBe(4);
+  });
+
+  it("returns [] for sections when Directory is absent", () => {
+    expect(parseSections({ MediaContainer: {} })).toEqual([]);
+    expect(parseSections(null)).toEqual([]);
+  });
+
+  it("reads machineIdentifier from the identity endpoint", () => {
+    expect(
+      parseMachineId({ MediaContainer: { machineIdentifier: "abc123" } }),
+    ).toBe("abc123");
+  });
+
+  it("returns '' for machineId when absent", () => {
+    expect(parseMachineId({ MediaContainer: {} })).toBe("");
+    expect(parseMachineId(null)).toBe("");
+  });
+
+  it("resolves default sections without an env override", () => {
+    expect(resolveSections({})).toEqual(DEFAULT_SECTIONS);
+  });
+
+  it("overrides section titles positionally via PLEX_RECENT_SECTIONS", () => {
+    const secs = resolveSections({
+      PLEX_RECENT_SECTIONS: "Films|Series|Anime Films|Anime Series",
+    });
+    expect(secs[0]).toEqual({ kind: "recent-movies", title: "Films" });
+    expect(secs[3]).toEqual({ kind: "recent-anime-tv", title: "Anime Series" });
+  });
+
+  it("falls back per-slot when the override is short or blank", () => {
+    const secs = resolveSections({ PLEX_RECENT_SECTIONS: "Films||" });
+    expect(secs[0].title).toBe("Films");
+    expect(secs[1].title).toBe("TV Shows");
+    expect(secs[2].title).toBe("Anime Movies");
+    expect(secs[3].title).toBe("Anime TV Shows");
+  });
+
+  it("rolls episodes up to their series with episodeCount + newest addedAt", () => {
+    const items = parseRecentlyAdded({
+      MediaContainer: {
+        Metadata: [
+          {
+            type: "episode",
+            title: "Reese Drives",
+            grandparentRatingKey: "5664",
+            grandparentTitle: "Malcolm in the Middle",
+            grandparentThumb: "/library/metadata/5664/thumb/1",
+            addedAt: 1784950774,
+          },
+          {
+            type: "episode",
+            title: "Houseboat",
+            grandparentRatingKey: "5664",
+            grandparentTitle: "Malcolm in the Middle",
+            grandparentThumb: "/library/metadata/5664/thumb/1",
+            addedAt: 1784949843,
+          },
+          {
+            type: "episode",
+            title: "Pilot",
+            grandparentRatingKey: "9001",
+            grandparentTitle: "Another Show",
+            addedAt: 1784000000,
+          },
+        ],
+      },
+    });
+    // Two series, not three episodes.
+    expect(items.length).toBe(2);
+    const malcolm = items.find((i) => i.ratingKey === "5664")!;
+    expect(malcolm.type).toBe("show");
+    expect(malcolm.title).toBe("Malcolm in the Middle");
+    expect(malcolm.episodeCount).toBe(2);
+    // Newest episode's addedAt bubbles the series.
+    expect(malcolm.addedAt).toBe(1784950774);
+    expect(malcolm.thumb).toBe("/library/metadata/5664/thumb/1");
   });
 });
