@@ -39,9 +39,17 @@ echo ">> next build (standalone)"
 pnpm build
 
 # The standalone server needs the static assets and public/ beside it.
+# IMPORTANT: replace (don't nest). `cp -r src dst` when dst exists copies INTO
+# dst, producing .next/standalone/.next/static/static/... — the standalone
+# server then serves LAST deploy's chunks while the HTML references the NEW
+# hashes, which shows up in the browser as a ChunkLoadError ("This page
+# couldn't load") on every redeploy. Wipe the destination first so the fresh
+# chunk hashes are the only ones present.
 echo ">> assemble standalone tree"
+rm -rf .next/standalone/.next/static
+mkdir -p .next/standalone/.next
 cp -r .next/static .next/standalone/.next/static
-if [ -d public ]; then cp -r public .next/standalone/public; fi
+if [ -d public ]; then rm -rf .next/standalone/public && cp -r public .next/standalone/public; fi
 
 echo ">> drizzle migrate"
 pnpm exec drizzle-kit migrate
