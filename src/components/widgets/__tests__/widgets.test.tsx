@@ -130,6 +130,23 @@ describe("ProgressBar", () => {
     rerender(<ProgressBar value={0} />);
     expect(getByTestId("progress-fill").getAttribute("data-eased")).toBe("false");
   });
+
+  it("interpolate mode renders an interpolated fill clamped to 0–100", () => {
+    const { rerender, getByTestId } = render(<ProgressBar value={40} interpolate />);
+    const fill = getByTestId("progress-fill");
+    expect(fill.getAttribute("data-interpolated")).toBe("true");
+    // Starts exactly at the polled value.
+    expect(fill.style.width).toBe("40%");
+    rerender(<ProgressBar value={150} interpolate />);
+    expect(getByTestId("progress-fill").style.width).toBe("100%");
+  });
+
+  it("interpolate mode snaps instantly to a new polled value on reset", () => {
+    const { rerender, getByTestId } = render(<ProgressBar value={90} interpolate />);
+    // New file → percent resets; must snap down, not drain.
+    rerender(<ProgressBar value={4} interpolate />);
+    expect(getByTestId("progress-fill").style.width).toBe("4%");
+  });
 });
 
 describe("glossary integrity", () => {

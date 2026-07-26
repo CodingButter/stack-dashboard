@@ -185,11 +185,13 @@ export function TdarrPanel() {
                         {stage.bar === "none" ? null : replaceDeterminate ? (
                           <ProgressBar
                             value={rp!.pct!}
+                            interpolate
                             barClassName="bg-accent-tdarr"
                           />
                         ) : stage.bar === "determinate" ? (
                           <ProgressBar
                             value={w.percent}
+                            interpolate
                             barClassName="bg-accent-tdarr"
                           />
                         ) : (
