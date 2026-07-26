@@ -16,8 +16,8 @@ export const POLL_INTERVALS_MS: Record<string, number> = {
   agent: 10_000, // NAS agent hardware stats — cheap /proc reads
   plex: 15_000,
   tautulli: 15_000,
-  sabnzbd: 15_000,
-  qbittorrent: 15_000,
+  sabnzbd: 5_000, // download speed/progress moves fast; keep the page live
+  qbittorrent: 5_000,
   tdarr: 10_000, // transcode progress moves fast; keep the page lively (breaker still backs off on failure)
   sonarr: 30_000, // arr queue
   radarr: 30_000,
