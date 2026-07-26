@@ -18,7 +18,7 @@ const LABELS = {
 };
 
 export function ArrPanel() {
-  const { data, error } = usePanelData<Arr>("/api/panels/arr", 6_000);
+  const { data, error } = usePanelData<Arr>("/api/panels/arr");
 
   if (!data) {
     return (

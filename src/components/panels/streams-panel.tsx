@@ -14,7 +14,7 @@ import { ProgressBar } from '@/components/widgets/progress-bar';
 const LABELS = { plex: "Plex", tautulli: "Tautulli" };
 
 export function StreamsPanel() {
-  const { data, error } = usePanelData<Streams>("/api/panels/streams", 5_000);
+  const { data, error } = usePanelData<Streams>("/api/panels/streams");
 
   if (!data) {
     return (
