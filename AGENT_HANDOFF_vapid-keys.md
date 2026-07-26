@@ -32,10 +32,14 @@ VAPID_PUBLIC_KEY=<public key from the script>
 
 ### Set the private key (encrypted vault)
 
-Insert an encrypted `settings` row keyed `webpush.vapidPrivateKey`. Use the same
-mechanism as the service API keys (encrypted vault via `@/lib/crypto`). A seed
-script/one-off insert writes `{ key: "webpush.vapidPrivateKey", value:
-encryptSecret(privateKey), encrypted: true }`.
+Run the one-off seed script — it upserts an encrypted `settings` row keyed
+`webpush.vapidPrivateKey` via `encryptSecret` from `@/lib/crypto`:
+
+```bash
+VAPID_PRIVATE_KEY='<private key from the script>' pnpm exec tsx scripts/seed-vapid.ts
+```
+
+The key comes only from the env var; it is never hardcoded or committed.
 
 ## After setting keys
 
