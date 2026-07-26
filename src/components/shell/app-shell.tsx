@@ -3,15 +3,13 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Search, TerminalSquare } from "lucide-react";
-
-import { logout } from "@/app/login/actions";
+import { Bell, Menu, PanelLeftClose, PanelLeftOpen, Search, TerminalSquare } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { CommandPalette } from "@/components/shell/command-palette";
-import { AccountMenu } from "@/components/shell/account-menu";
+import { AccountMenu, AccountAvatarMenu } from "@/components/shell/account-menu";
 import { navItems } from "@/components/shell/nav";
 import { cn } from "@/lib/utils";
 import { ToastProvider } from '@/components/actions/toaster';
@@ -178,17 +176,6 @@ export function AppShell({
                 </SheetHeader>
                 <div className="py-2">
                   <NavLinks onNavigate={() => setDrawerOpen(false)} />
-                  <form action={logout} className="mt-2 border-t border-sidebar-border px-2 pt-2">
-                    <Button
-                      type="submit"
-                      variant="ghost"
-                      size="sm"
-                      className="w-full justify-start gap-2.5 text-muted-foreground"
-                    >
-                      <LogOut className="size-4" />
-                      Sign out
-                    </Button>
-                  </form>
                 </div>
               </SheetContent>
             </Sheet>
@@ -233,6 +220,7 @@ export function AppShell({
                   )}
                 </Link>
               </Button>
+              <AccountAvatarMenu />
             </div>
           </header>
 
