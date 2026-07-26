@@ -11,6 +11,7 @@ import { usePanelData } from "./use-panel-data";
 import { UptimeRow } from "./uptime-row";
 import { SparkLine } from '@/components/widgets/spark-line';
 import { ActionButton } from '@/components/actions/action-button';
+import { ProgressBar } from '@/components/widgets/progress-bar';
 
 const LABELS = { sabnzbd: "SABnzbd", qbittorrent: "qBittorrent" };
 
@@ -131,12 +132,10 @@ export function DownloadsPanel() {
                           {j.percent.toFixed(0)}% · {j.timeLeft}
                         </span>
                       </div>
-                      <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
-                        <div
-                          className="h-full rounded-full bg-accent-downloads"
-                          style={{ width: `${Math.min(100, j.percent)}%` }}
-                        />
-                      </div>
+                      <ProgressBar
+                        value={j.percent}
+                        barClassName="bg-accent-downloads"
+                      />
                     </div>
                   ))}
                 </div>

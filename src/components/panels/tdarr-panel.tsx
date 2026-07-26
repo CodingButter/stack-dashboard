@@ -11,7 +11,7 @@ import { GovernorCard } from "./governor-card";
 import { InfoDot } from "@/components/widgets/info-dot";
 import { ActionButton } from '@/components/actions/action-button';
 import { workerStage } from "@/lib/panels/tdarr-stage";
-import { cn } from "@/lib/utils";
+import { ProgressBar } from '@/components/widgets/progress-bar';
 
 const LABELS = { tdarr: "Tdarr server" };
 
@@ -180,22 +180,19 @@ export function TdarrPanel() {
                           {stage.label}
                           <InfoDot term="worker-stage" />
                         </div>
-                        {stage.bar === "none" ? null : (
+                        {stage.bar === "none" ? null : replaceDeterminate ? (
+                          <ProgressBar
+                            value={rp!.pct!}
+                            barClassName="bg-accent-tdarr"
+                          />
+                        ) : stage.bar === "determinate" ? (
+                          <ProgressBar
+                            value={w.percent}
+                            barClassName="bg-accent-tdarr"
+                          />
+                        ) : (
                           <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
-                            <div
-                              className={cn(
-                                "h-full rounded-full bg-accent-tdarr",
-                                (stage.bar === "indeterminate" && !replaceDeterminate) &&
-                                  "w-full animate-pulse",
-                              )}
-                              style={
-                                replaceDeterminate
-                                  ? { width: `${Math.min(100, rp!.pct!)}%` }
-                                  : stage.bar === "determinate"
-                                    ? { width: `${Math.min(100, w.percent)}%` }
-                                    : undefined
-                              }
-                            />
+                            <div className="h-full w-full animate-pulse rounded-full bg-accent-tdarr" />
                           </div>
                         )}
                       </div>

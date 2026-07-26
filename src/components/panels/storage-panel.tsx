@@ -7,6 +7,7 @@ import { formatBytes } from "@/lib/format";
 import type { Storage } from "@/lib/panels/schemas";
 import { usePanelData } from "./use-panel-data";
 import { UptimeRow } from "./uptime-row";
+import { ProgressBar } from '@/components/widgets/progress-bar';
 
 const LABELS = { agent: "NAS agent" };
 
@@ -89,18 +90,17 @@ export function StoragePanel() {
                 .map((d) => (
                   <div key={d.device} className="flex items-center gap-3">
                     <span className="stat-num w-20 shrink-0 text-sm">{d.device}</span>
-                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-                      <div
-                        className={
-                          d.utilPct > 80
-                            ? "h-full rounded-full bg-status-down"
-                            : d.utilPct > 50
-                              ? "h-full rounded-full bg-status-degraded"
-                              : "h-full rounded-full bg-accent-storage"
-                        }
-                        style={{ width: `${Math.min(100, d.utilPct)}%` }}
-                      />
-                    </div>
+                    <ProgressBar
+                      value={d.utilPct}
+                      className="h-1.5 flex-1"
+                      barClassName={
+                        d.utilPct > 80
+                          ? "bg-status-down"
+                          : d.utilPct > 50
+                            ? "bg-status-degraded"
+                            : "bg-accent-storage"
+                      }
+                    />
                     <span className="stat-num w-24 shrink-0 text-right text-sm text-muted-foreground">
                       {d.utilPct.toFixed(1)}% · {d.awaitMs.toFixed(1)} ms
                     </span>

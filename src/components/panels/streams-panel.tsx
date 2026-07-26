@@ -9,6 +9,7 @@ import type { Streams } from "@/lib/panels/schemas";
 import { usePanelData } from "./use-panel-data";
 import { UptimeRow } from "./uptime-row";
 import { ActionButton } from '@/components/actions/action-button';
+import { ProgressBar } from '@/components/widgets/progress-bar';
 
 const LABELS = { plex: "Plex", tautulli: "Tautulli" };
 
@@ -110,12 +111,10 @@ export function StreamsPanel() {
                     ) : null}
                   </span>
                 </div>
-                <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
-                  <div
-                    className="h-full rounded-full bg-accent-plex"
-                    style={{ width: `${Math.min(100, s.progressPct)}%` }}
-                  />
-                </div>
+                <ProgressBar
+                  value={s.progressPct}
+                  barClassName="bg-accent-plex"
+                />
               </div>
             ))}
           </div>

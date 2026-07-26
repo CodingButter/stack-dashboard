@@ -10,6 +10,7 @@ import { InfoDot } from "@/components/widgets/info-dot";
 import { formatAgo, formatBps, formatBytes } from "@/lib/format";
 import type { Overview, Point, ServiceHealth } from "@/lib/panels/schemas";
 import { usePanelData } from "./use-panel-data";
+import { ProgressBar } from '@/components/widgets/progress-bar';
 
 const SERVICE_LABELS: Record<string, string> = {
   agent: "NAS agent",
@@ -175,12 +176,11 @@ export function OverviewPanel() {
                 <span className="flex items-center gap-1 text-sm text-muted-foreground">Memory<InfoDot term="memory" /></span>
                 <span className="stat-num text-base">{v.memUsedPct.toFixed(1)}%</span>
               </div>
-              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full rounded-full bg-accent-machines"
-                  style={{ width: `${Math.min(100, v.memUsedPct)}%` }}
-                />
-              </div>
+              <ProgressBar
+                value={v.memUsedPct}
+                className="mt-2 h-1.5"
+                barClassName="bg-accent-machines"
+              />
               <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
                 swap {v.swapUsedPct.toFixed(1)}% · load {v.load1.toFixed(2)}
                 <InfoDot term="load" />

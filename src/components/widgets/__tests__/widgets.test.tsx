@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { DonutGauge } from "@/components/widgets/donut-gauge";
 import { InfoDot } from "@/components/widgets/info-dot";
@@ -8,6 +8,7 @@ import { PanelCard } from "@/components/widgets/panel-card";
 import { StatusPill } from "@/components/widgets/status-pill";
 import { TrackerStrip, type TrackerCell } from "@/components/widgets/tracker-strip";
 import { GLOSSARY } from "@/lib/glossary";
+import { ProgressBar } from '@/components/widgets/progress-bar';
 
 describe("KpiCard", () => {
   it("renders label, value, unit and delta", () => {
@@ -107,6 +108,27 @@ describe("InfoDot", () => {
   it("renders nothing when there is no text to show", () => {
     const { container } = render(<InfoDot />);
     expect(container.querySelector("button")).toBeNull();
+  });
+});
+
+describe("ProgressBar", () => {
+  afterEach(cleanup);
+
+  it("clamps the fill width to 0–100", () => {
+    const { rerender, getByTestId } = render(<ProgressBar value={150} />);
+    expect(getByTestId("progress-fill").style.width).toBe("100%");
+    rerender(<ProgressBar value={-20} />);
+    expect(getByTestId("progress-fill").style.width).toBe("0%");
+  });
+
+  it("eases forward motion but snaps a backward reset", () => {
+    const { rerender, getByTestId } = render(<ProgressBar value={20} />);
+    // Growing forward → transition on.
+    rerender(<ProgressBar value={60} />);
+    expect(getByTestId("progress-fill").getAttribute("data-eased")).toBe("true");
+    // A reset/scrub-back must snap, not drain.
+    rerender(<ProgressBar value={0} />);
+    expect(getByTestId("progress-fill").getAttribute("data-eased")).toBe("false");
   });
 });
 
