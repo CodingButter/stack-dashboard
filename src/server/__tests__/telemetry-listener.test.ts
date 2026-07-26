@@ -250,3 +250,89 @@ describe("TelemetryListener UDP loopback", () => {
     expect(listener.getState().snapshot?.seq).toBe(42);
   });
 });
+
+describe("TelemetryListener downloads block", () => {
+  it("is null when the envelope omits downloads", () => {
+    const l = new TelemetryListener(() => 1000 * 1000);
+    l.ingest(envelope({ seq: 1, sent_ts: 1000 }));
+    expect(l.getState().snapshot?.downloads).toBeNull();
+  });
+
+  it("normalizes SAB KB/s to bytes/s and keeps per-item progress", () => {
+    const l = new TelemetryListener(() => 1000 * 1000);
+    l.ingest(
+      envelope({
+        seq: 1,
+        sent_ts: 1000,
+        downloads: {
+          sab: {
+            status: "Downloading",
+            kbps: 100, // KB/s
+            mb_left: 8213.4,
+            eta: "1:42:11",
+            count: 3,
+            paused: false,
+            items: [
+              { name: "R", pct: 63.2, mb_left: 812.5, eta: "0:04:33", status: "Downloading" },
+            ],
+          },
+          qbit: null,
+        },
+      }),
+    );
+    const sab = l.getState().snapshot?.downloads?.sab;
+    expect(sab?.speedBps).toBe(100 * 1024);
+    expect(sab?.paused).toBe(false);
+    expect(sab?.items[0]).toMatchObject({ name: "R", pct: 63.2, mbLeft: 812.5 });
+  });
+
+  it("collapses qBit's infinity-eta sentinel to null", () => {
+    const l = new TelemetryListener(() => 1000 * 1000);
+    l.ingest(
+      envelope({
+        seq: 1,
+        sent_ts: 1000,
+        downloads: {
+          sab: null,
+          qbit: {
+            dl_bps: 27_000_000,
+            up_bps: 3_100_000,
+            connection: "connected",
+            count: 2,
+            items: [
+              { name: "A", pct: 12.4, dl_bps: 18_000_000, eta: 900, state: "downloading" },
+              { name: "B", pct: 1.0, dl_bps: 0, eta: 8_640_000, state: "stalledDL" },
+            ],
+          },
+        },
+      }),
+    );
+    const qbit = l.getState().snapshot?.downloads?.qbit;
+    expect(qbit?.dlBps).toBe(27_000_000);
+    expect(qbit?.items[0]?.etaSecs).toBe(900);
+    expect(qbit?.items[1]?.etaSecs).toBeNull(); // ∞ sentinel
+  });
+
+  it("keeps a sub-client independently null when it is down", () => {
+    const l = new TelemetryListener(() => 1000 * 1000);
+    l.ingest(
+      envelope({
+        seq: 1,
+        sent_ts: 1000,
+        downloads: {
+          sab: null,
+          qbit: {
+            dl_bps: 1,
+            up_bps: 0,
+            connection: "connected",
+            count: 1,
+            items: [],
+          },
+        },
+      }),
+    );
+    const dl = l.getState().snapshot?.downloads;
+    expect(dl?.sab).toBeNull();
+    expect(dl?.qbit).not.toBeNull();
+  });
+});

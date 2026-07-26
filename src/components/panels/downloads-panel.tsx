@@ -12,14 +12,21 @@ import { UptimeRow } from "./uptime-row";
 import { SparkLine } from '@/components/widgets/spark-line';
 import { ActionButton } from '@/components/actions/action-button';
 import { ProgressBar } from '@/components/widgets/progress-bar';
+import { useDownloadsTelemetry } from "@/components/telemetry/telemetry-provider";
+import { mergeDownloads } from "@/lib/panels/downloads-merge";
+import { LiveBadge } from "@/components/telemetry/live-badge";
 
 const LABELS = { sabnzbd: "SABnzbd", qbittorrent: "qBittorrent" };
 
 export function DownloadsPanel() {
-  const { data, error } = usePanelData<Downloads>(
+  // HTTP stays the structural source (queue counts, categories, series); the
+  // live feed overlays fast-moving speeds/progress when connected. HTTP interval
+  // relaxes back toward the default since the feed carries the live numbers.
+  const { data: httpData, error } = usePanelData<Downloads>(
     "/api/panels/downloads",
-    4_000,
   );
+  const { live, downloads } = useDownloadsTelemetry();
+  const data = mergeDownloads(live, downloads, httpData);
 
   if (!data) {
     return (
@@ -34,6 +41,9 @@ export function DownloadsPanel() {
 
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex justify-end">
+        <LiveBadge live={live} />
+      </div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <KpiCard
           label="Usenet speed"

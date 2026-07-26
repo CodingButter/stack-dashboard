@@ -158,6 +158,15 @@ export function useStreamsTelemetry() {
   };
 }
 
+/** Downloads slice (SAB + qBit live speed/queue/items). `null` when offline. */
+export function useDownloadsTelemetry() {
+  const { live, snapshot } = useTelemetry();
+  return {
+    live,
+    downloads: live ? snapshot?.downloads ?? null : null,
+  };
+}
+
 /** Per-box machine stats for the machines page (vitals + gpu). */
 export function useMachineTelemetry(box: string) {
   const { machines } = useTelemetry();

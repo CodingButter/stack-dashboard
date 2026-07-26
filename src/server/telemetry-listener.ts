@@ -52,6 +52,45 @@ const streamsSchema = z.object({
   kbps: z.number(),
 });
 
+/** Optional `downloads` block on nas-telemetry — SAB (usenet) + qBit (torrents).
+ * Both sub-clients are independently null when down; the whole block is null when
+ * both are unreachable. Units differ per client (SAB KB/s, qBit bytes/s) — we
+ * normalize to bytes/s in the projection so the UI never has to remember. */
+const sabItemSchema = z.object({
+  name: z.string(),
+  pct: z.number(),
+  mb_left: z.number(),
+  eta: z.string(),
+  status: z.string(),
+});
+const sabSchema = z.object({
+  status: z.string(),
+  kbps: z.number(),
+  mb_left: z.number(),
+  eta: z.string(),
+  count: z.number(),
+  paused: z.boolean(),
+  items: z.array(sabItemSchema).default([]),
+});
+const qbitItemSchema = z.object({
+  name: z.string(),
+  pct: z.number(),
+  dl_bps: z.number(),
+  eta: z.number(),
+  state: z.string(),
+});
+const qbitSchema = z.object({
+  dl_bps: z.number(),
+  up_bps: z.number(),
+  connection: z.string(),
+  count: z.number(),
+  items: z.array(qbitItemSchema).default([]),
+});
+const downloadsSchema = z.object({
+  sab: sabSchema.nullable().default(null),
+  qbit: qbitSchema.nullable().default(null),
+});
+
 /** kind:"nas-telemetry" — the NAS blaster (governor + NAS vitals + streams). */
 const nasEnvelopeSchema = z.object({
   schema: z.literal(1),
@@ -63,6 +102,7 @@ const nasEnvelopeSchema = z.object({
   governor: z.unknown().nullable(),
   vitals: vitalsSchema,
   streams: streamsSchema,
+  downloads: downloadsSchema.nullable().optional().default(null),
 });
 
 /** kind:"machine-stats" — a per-box blaster (any fleet machine). `box` keys the
@@ -105,6 +145,86 @@ export type TelemetryStreams = z.infer<typeof streamsSchema>;
 export type MachineVitals = z.infer<typeof machineVitalsSchema>;
 export type MachineGpu = z.infer<typeof machineGpuSchema>;
 
+/** qBit's sentinel for "infinity / stalled" (100 days in seconds). */
+const QBIT_ETA_INFINITY = 8_640_000;
+
+/** Downloads projection pushed to browsers — units normalized to bytes/s, and
+ * qBit's ∞ eta sentinel collapsed to null so the UI reasons in one system. */
+export interface TelemetrySabItem {
+  name: string;
+  pct: number;
+  mbLeft: number;
+  eta: string;
+  status: string;
+}
+export interface TelemetrySab {
+  status: string;
+  speedBps: number; // normalized from SAB KB/s
+  mbLeft: number;
+  eta: string;
+  count: number;
+  paused: boolean;
+  items: TelemetrySabItem[];
+}
+export interface TelemetryQbitItem {
+  name: string;
+  pct: number;
+  dlBps: number;
+  etaSecs: number | null; // null = ∞ / stalled
+  state: string;
+}
+export interface TelemetryQbit {
+  dlBps: number;
+  upBps: number;
+  connection: string;
+  count: number;
+  items: TelemetryQbitItem[];
+}
+export interface TelemetryDownloads {
+  sab: TelemetrySab | null;
+  qbit: TelemetryQbit | null;
+}
+
+/** Normalize the raw downloads block: SAB KB/s → bytes/s, qBit ∞-eta → null. */
+function projectDownloads(
+  d: z.infer<typeof downloadsSchema> | null | undefined,
+): TelemetryDownloads | null {
+  if (!d) return null;
+  const sab: TelemetrySab | null = d.sab
+    ? {
+        status: d.sab.status,
+        speedBps: d.sab.kbps * 1024,
+        mbLeft: d.sab.mb_left,
+        eta: d.sab.eta,
+        count: d.sab.count,
+        paused: d.sab.paused,
+        items: d.sab.items.map((i) => ({
+          name: i.name,
+          pct: i.pct,
+          mbLeft: i.mb_left,
+          eta: i.eta,
+          status: i.status,
+        })),
+      }
+    : null;
+  const qbit: TelemetryQbit | null = d.qbit
+    ? {
+        dlBps: d.qbit.dl_bps,
+        upBps: d.qbit.up_bps,
+        connection: d.qbit.connection,
+        count: d.qbit.count,
+        items: d.qbit.items.map((i) => ({
+          name: i.name,
+          pct: i.pct,
+          dlBps: i.dl_bps,
+          etaSecs: i.eta >= QBIT_ETA_INFINITY ? null : i.eta,
+          state: i.state,
+        })),
+      }
+    : null;
+  return { sab, qbit };
+}
+
 /** The projection pushed to browsers — governor already normalized. */
 export interface TelemetrySnapshot {
   seq: number;
@@ -114,6 +234,7 @@ export interface TelemetrySnapshot {
   governor: GovernorStatus | null;
   vitals: TelemetryVitals;
   streams: TelemetryStreams;
+  downloads: TelemetryDownloads | null;
 }
 
 /** Per-box push stats (kind:"machine-stats"). One of these per fleet machine. */
@@ -207,6 +328,7 @@ export class TelemetryListener {
       governor: parseAgentGovernor(p.governor ?? null, now),
       vitals: p.vitals,
       streams: p.streams,
+      downloads: projectDownloads(p.downloads),
     };
     this.connected = !this.isStale(p.sent_ts, p.interval_ms, now);
     this.emit();
