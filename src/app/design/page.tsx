@@ -5,6 +5,7 @@ import { DonutGauge } from "@/components/widgets/donut-gauge";
 import { KpiCard } from "@/components/widgets/kpi-card";
 import { LiveTicker } from "@/components/widgets/live-ticker";
 import { PanelCard } from "@/components/widgets/panel-card";
+import { PosterCarousel } from "@/components/widgets/poster-carousel";
 import { SparkLine } from "@/components/widgets/spark-line";
 import { StatusPill } from "@/components/widgets/status-pill";
 import { TrackerStrip, type TrackerCell } from "@/components/widgets/tracker-strip";
@@ -138,6 +139,19 @@ export default async function DesignPage() {
             />
           </PanelCard>
         </div>
+
+        {/* Poster carousel (Recently Added) */}
+        <PanelCard title="Recently Added — TV Shows" subsystem="plex">
+          <PosterCarousel
+            items={[
+              { ratingKey: "1", title: "The Bear", year: 2022, artUrl: "", plexUrl: "", episodeCount: 10, addedAt: 5 },
+              { ratingKey: "2", title: "Severance", year: 2022, artUrl: "", plexUrl: "https://app.plex.tv/", episodeCount: 3, addedAt: 4 },
+              { ratingKey: "3", title: "Andor", year: 2022, artUrl: "", plexUrl: "", episodeCount: 12, addedAt: 3 },
+              { ratingKey: "4", title: "Shogun", year: 2024, artUrl: "", plexUrl: "", episodeCount: 8, addedAt: 2 },
+              { ratingKey: "5", title: "Fallout", year: 2024, artUrl: "", plexUrl: "", episodeCount: 8, addedAt: 1 },
+            ]}
+          />
+        </PanelCard>
 
         {/* Accent swatches */}
         <PanelCard title="Subsystem accents">
