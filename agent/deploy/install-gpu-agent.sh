@@ -30,6 +30,12 @@ SRC="$(cd "${HERE}/.." && pwd)"   # the agent/ directory
 
 echo ">> Installing GPU-node agent to ${GPU_HOST}:${AGENT_DIR}"
 
+# 0. Ensure smartmontools is present (smartctl powers the /smart endpoint;
+#    NVMe SMART needs it + root, which this agent already has). Idempotent.
+ssh "${GPU_HOST}" "command -v smartctl >/dev/null 2>&1 \
+  || sudo -n apt-get install -y smartmontools >/dev/null 2>&1 \
+  || echo '>> WARN: could not install smartmontools; /smart will be empty'"
+
 # 1. Ensure target dirs.
 ssh "${GPU_HOST}" "sudo -n mkdir -p ${AGENT_DIR} ${TOKEN_DIR} && sudo -n chmod 700 ${TOKEN_DIR}"
 
