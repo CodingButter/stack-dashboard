@@ -13,6 +13,38 @@ function values(points: Point[]): number[] {
   return points.map((p) => Math.round(p.v * 10) / 10);
 }
 
+function lastVal(points: Point[]): number {
+  return points.length ? Math.round(points[points.length - 1].v * 10) / 10 : 0;
+}
+
+/** A single machine metric boxed on its own so the four graphs don't blur together. */
+function VitalTile({
+  label,
+  value,
+  info,
+  data,
+  color,
+}: {
+  label: string;
+  value: string;
+  info?: GlossaryTerm;
+  data: number[];
+  color: string;
+}) {
+  return (
+    <div className="rounded-lg border border-border bg-muted/20 p-3">
+      <div className="flex items-baseline justify-between">
+        <span className="flex items-center gap-1 text-sm text-muted-foreground">
+          {label}
+          {info ? <InfoDot term={info} /> : null}
+        </span>
+        <span className="stat-num text-base">{value}</span>
+      </div>
+      <SparkLine data={data} height={64} color={color} />
+    </div>
+  );
+}
+
 function Stat({
   label,
   value,
@@ -65,23 +97,33 @@ function MachineCard({ m }: { m: Machine }) {
             <Stat label="Uptime" value={formatUptime(s.uptimeS)} info="uptime" />
           </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div>
-              <span className="text-sm text-muted-foreground">cpu %</span>
-              <SparkLine data={values(m.series.cpu)} color="var(--accent-machines)" />
-            </div>
-            <div>
-              <span className="text-sm text-muted-foreground">mem %</span>
-              <SparkLine data={values(m.series.mem)} color="var(--accent-storage)" />
-            </div>
-            <div>
-              <span className="text-sm text-muted-foreground">net rx MB/s</span>
-              <SparkLine data={values(m.series.netRx)} color="var(--accent-downloads)" />
-            </div>
-            <div>
-              <span className="text-sm text-muted-foreground">net tx MB/s</span>
-              <SparkLine data={values(m.series.netTx)} color="var(--accent-plex)" />
-            </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <VitalTile
+              label="cpu %"
+              value={`${s.cpuBusy.toFixed(1)}%`}
+              info="cpu"
+              data={values(m.series.cpu)}
+              color="var(--accent-machines)"
+            />
+            <VitalTile
+              label="mem %"
+              value={`${s.memUsedPct.toFixed(1)}%`}
+              info="memory"
+              data={values(m.series.mem)}
+              color="var(--accent-storage)"
+            />
+            <VitalTile
+              label="net rx MB/s"
+              value={lastVal(m.series.netRx).toFixed(1)}
+              data={values(m.series.netRx)}
+              color="var(--accent-downloads)"
+            />
+            <VitalTile
+              label="net tx MB/s"
+              value={lastVal(m.series.netTx).toFixed(1)}
+              data={values(m.series.netTx)}
+              color="var(--accent-plex)"
+            />
           </div>
 
           {s.disks.length > 0 ? (
