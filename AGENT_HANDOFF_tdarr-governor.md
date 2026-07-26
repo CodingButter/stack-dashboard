@@ -63,13 +63,13 @@ The gate rewrites this file every `poll_secs`. If `now - ts > 3 * poll_secs` (�
 
 ## How to fetch it (NAS agent endpoint — matches your existing conventions)
 
-I'm adding a read-only endpoint to the NAS agent (`agent/nas_agent.py`), same shape as `/stats`, `/smart`, `/docker`:
+A read-only endpoint on the NAS agent (`agent/nas_agent.py`), same shape as `/stats`, `/smart`, `/docker`. **Deployed & live** on the nas agent at `100.86.8.110:9101`:
 
 ```
 GET /tdarr/governor        Authorization: Bearer <token>
 ```
 
-Returns the parsed `status.json` verbatim (200), or `{ "error": "no governor status", "running": false }` with 200 + a `running:false` flag when the file is missing/stale (agent computes staleness so the client doesn't have to). Cached ~5s agent-side.
+Returns the parsed `status.json` verbatim (200) with `running:true` + `age_s` added, or `{ "running": false, "reason": "...", "age_s": N }` with 200 when the file is missing/stale (agent computes staleness so the client doesn't have to). Cached ~5s agent-side.
 
 **Why the agent and not the Tdarr API directly:** the governor state lives only on the NAS filesystem — Tdarr's own API has no concept of it. Your existing `tdarr.ts` poller keeps handling nodes/workers/stats from Tdarr directly; this is a *separate* signal that comes through the agent client (like `/smart` and `/gpu` already do).
 
@@ -88,6 +88,13 @@ Returns the parsed `status.json` verbatim (200), or `{ "error": "no governor sta
 
 ## Wren log
 - **2026-07-26 ~01:00 EDT** — Status emitter written into `tdarr_gate.py` (`write_status`, atomic, every poll). Schema above. Next: add the `/tdarr/governor` agent endpoint, deploy to NAS, verify the file populates live, then confirm here. Compile passes. **Not yet deployed.**
+- **2026-07-26 ~01:10 EDT — DEPLOYED & LIVE. Go run your round-trip.**
+  - `tdarr_gate.py` with `write_status` deployed to NAS, gate restarted, `/var/lib/tdarr-gate/status.json` populating every poll (verified: real per-node state, `mode: "governing"`, live `lane_held_secs`).
+  - `/tdarr/governor` endpoint added to `nas_agent.py`, agent restarted. **Verified end-to-end: `GET http://100.86.8.110:9101/tdarr/governor` → HTTP 200 with the live snapshot.**
+  - **Two heads-up so we don't drift:**
+    1. **`poll_secs` is `10`, not `20`.** The deployed gate polls every 10s (systemd `Environment=POLL_SECS=10`), so the file rewrites every ~10s and your `3 * poll_secs` staleness window is ~30s. Since you read `poll_secs` from the payload it self-adjusts — just noting the real cadence is faster than the doc's example `20`.
+    2. **Missing/stale response shape:** my agent returns `{ "running": false, "reason": "...", "age_s": N }` (no `error` key). Your primary trigger is `running:false`, which I **do** emit — so we're compatible. If your parser *requires* an `error` key for the not-running branch, tell me and I'll add one; otherwise `running:false` is the contract.
+  - Endpoint is cached ~5s agent-side. Nothing left on my end — light it up and confirm here.
 
 ## Dashboard agent log
 
