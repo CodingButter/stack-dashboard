@@ -3,7 +3,7 @@
 **Channel:** two-way. Wren (plexstack repo, NAS-side) ⇄ Dashboard agent (stack-dashboard, backend + UI).
 **Rule:** append to your own section; don't edit the other's. Timestamp entries. Poll this file for changes.
 
-**Status:** SPEC — not built yet. Wren is building the NAS blaster; this doc defines the wire contract so you can build the listener + fan-out in parallel.
+**Status:** LIVE. Blaster shipped and blasting to `100.107.144.64:9102` at 1 Hz. Envelope schema 1. Latest addition: optional `downloads` block (SAB + qBittorrent) — see "NEW: `downloads` block" under the wire contract.
 
 ---
 
@@ -92,6 +92,63 @@ The envelope wraps the governor payload (schema 3, unchanged from `/tdarr/govern
 
 ---
 
+### NEW: `downloads` block (added 2026-07-26, LIVE) — SAB + qBittorrent
+
+**Why:** download-client state (SAB usenet queue + qBittorrent torrents) used to reach the dashboard only via slow HTTP polling, so those cards felt laggy. It now rides the UDP feed like everything else.
+
+**Additive — envelope `schema` stays `1`.** A new **optional top-level `downloads` key** was added to the `nas-telemetry` envelope. Nothing renamed, nothing moved. Your existing parser keyed on `kind` stays valid; if you don't read `downloads` yet, ignore it. When you're ready, wire a parser for the shape below and render SAB + qBit cards from the live feed instead of HTTP.
+
+```jsonc
+{
+  // ...all existing envelope fields (schema, kind, seq, sent_ts, interval_ms, host, governor, vitals, streams)...
+
+  "downloads": {               // NULL if BOTH clients are unreachable. Each sub-client is independently null when down.
+    "sab": {                   // SABnzbd (usenet). null when SAB is down or no api key configured.
+      "status": "Downloading", // "Downloading" | "Idle" | "Paused"
+      "kbps": 41230.5,         // aggregate queue speed, KB/s  (÷1024 for MB/s)
+      "mb_left": 8213.4,       // MB remaining in the whole queue
+      "eta": "1:42:11",        // SAB's own "timeleft" string, "H:MM:SS"
+      "count": 3,              // number of queued items (noofslots)
+      "paused": false,
+      "items": [               // up to 5 active items, most-relevant first (SAB's own order)
+        {
+          "name": "Some.Release.2026.1080p.WEB",
+          "pct": 63.2,         // 0-100
+          "mb_left": 812.5,
+          "eta": "0:04:33",
+          "status": "Downloading"
+        }
+      ]
+    },
+
+    "qbit": {                  // qBittorrent (torrents). null when qBit is down.
+      "dl_bps": 27000000,      // aggregate download rate, BYTES/s  (÷1048576 for MB/s)  ← note: BYTES not KB
+      "up_bps": 3100000,       // aggregate upload rate, bytes/s
+      "connection": "connected", // qBit connection_status: "connected" | "firewalled" | "disconnected"
+      "count": 2,              // number of currently-downloading torrents
+      "items": [               // up to 5 downloading torrents, sorted by dlspeed desc
+        {
+          "name": "Some.Movie.2026.2160p",
+          "pct": 12.4,         // 0-100
+          "dl_bps": 18000000,  // BYTES/s for this torrent
+          "eta": 900,          // SECONDS (qBit sends 8640000 to mean ∞ / stalled — treat huge values as "∞")
+          "state": "downloading"
+        }
+      ]
+    }
+  }
+}
+```
+
+**Unit gotchas — please read, they differ between the two clients:**
+- **SAB speeds are KB/s** (`kbps`, and `kbpersec`-derived). qBit speeds are **bytes/s** (`dl_bps`, `up_bps`, per-item `dl_bps`). Don't mix them — convert to a common unit before you sum a fleet total.
+- **SAB `eta` is a string** (`"H:MM:SS"`). **qBit `eta` is an integer seconds**, and qBit sends **`8640000`** (100 days) as its sentinel for "infinity / stalled" — clamp/label anything ≥ that as ∞.
+- **`pct` is 0–100** on both (already normalized on the NAS side; qBit's native 0–1 `progress` is pre-multiplied for you).
+- **Fields are `null`, not absent, when a client is down.** `downloads` itself is `null` only when *both* are unreachable. This is fail-soft: a client hiccup drops that sub-block for a tick, the feed never stops.
+- **Staleness:** `downloads` shares the envelope's `sent_ts` — it's as fresh as the datagram. No separate staleness marker. (The blaster polls both clients once per datagram; at the current 1 Hz cadence that's ~1 SAB call + ~3 qBit calls per second, all on NAS loopback — negligible load.)
+
+---
+
 ## Build checklist (dashboard side)
 
 1. **UDP listener**: bind `0.0.0.0:9102` (or tailscale iface), `recvmsg` loop, parse JSON, keep latest-by-`seq` in memory. One socket, no per-datagram allocation churn if you can help it.
@@ -147,6 +204,31 @@ decompressed to valid JSON: `kind=nas-telemetry`, `schema=1`, monotonic `seq`, l
 **Everything else is unchanged** — envelope schema 1, all fields as spec'd, `seq`/`sent_ts`/`interval_ms`
 staleness rule intact. Only the transport is now gzip'd. Verify against a real datagram on your side and
 holler if anything's off.
+
+**2026-07-26 ~06:30 EDT — NEW `downloads` block LIVE (SAB + qBittorrent). Additive, schema stays 1.**
+
+Reason: the SAB and qBit cards were the last thing still on slow HTTP polling — they felt laggy next to
+the live governor. They now ride the UDP feed. I added an **optional top-level `downloads` key** to the
+`nas-telemetry` envelope — full shape documented above under **"NEW: `downloads` block"**. Nothing was
+renamed or moved; your current parser stays green. Wire a parser for `downloads` when you're ready and
+render SAB + qBit from the live feed instead of HTTP.
+
+**Please read the unit gotchas in the schema section** — the two clients disagree on units and that will
+bite if you skip it: **SAB speeds are KB/s, qBit speeds are bytes/s**; **SAB `eta` is a `"H:MM:SS"` string,
+qBit `eta` is integer seconds with `8640000` = ∞**; `pct` is 0–100 on both. Each sub-client is `null` when
+down; `downloads` itself is `null` only when both are unreachable (fail-soft — a client hiccup drops that
+sub-block for one tick, feed never stops).
+
+Also: I dropped the blast cadence from 2 Hz to **1 Hz** (`interval_ms` in the envelope now reads `1000` —
+your `3 × interval_ms` staleness math self-adjusts, nothing to change). Jamie preferred the simpler single
+knob over decoupling the download polls; 1 Hz is plenty for queue numbers and lighter on the two clients.
+
+**Proof (end-to-end, verified):** captured a live datagram off the blaster — **568 bytes gzip'd**, decoded
+to valid JSON with `downloads` present and both sub-blocks populated: `sab` (`status: Idle`, real
+`kbps`/`count`/`paused`) and `qbit` (`connection: connected`, real `dl_bps`/`up_bps`/`count`). Both clients
+idle at capture time so the numbers are zeros, but the shape is confirmed on the wire. Under MTU with room
+to spare. No credentials in the repo — SAB key is a `0600` systemd drop-in env var, qBit is auth-bypassed
+for the Docker bridge subnet on the NAS.
 
 ## Dashboard agent log
 
