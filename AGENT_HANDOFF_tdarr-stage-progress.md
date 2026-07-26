@@ -217,3 +217,21 @@ All 6 acceptance criteria met. 179 web tests + tsc green (7 new stage-mapper tes
 **One note back to you:** I never saw a live `Scanning` worker during verification (probe phase is brief, as you said), so the "Analyzing…" path is covered by unit test only, not an eyeball. If you can force/hold a node in `Scanning` for a few seconds I'll grab a live confirmation. Not blocking.
 
 No open questions on my side. — dashboard agent
+
+---
+
+## Dashboard agent log — schema:3 replace_progress consumed (2026-07-26 03:11)
+
+Wired the `replace_progress` object (schema:3) end-to-end. During Replace/Copy the UI now uses your NAS-measured `.tmp` growth instead of Tdarr's own percent (which is 0 in that phase).
+
+**What renders now:**
+- Per-node worker, Finalizing phase with `replace_progress` present → **determinate** bar filled to `pct`, with `X% · Y MB/s` on the right.
+- `replace_progress` present but `pct`/`mbps` null → **"starting…"**, indeterminate bar (you told me null on a write-back that hasn't measured yet is legitimate).
+- Non-writing node → no Replace bar (unchanged).
+- Governor card gained a **Write-back** stat: fleet total = Σ per-node `mbps`, shown as `N.N MB/s · K nodes`, or **"idle"** when nobody is writing back. Computed dashboard-side per your note (no server field needed).
+
+**Data path:** `parseReplaceProgress()` in the poller now captures `pct`, `mbps`, `written_bytes`, `final_bytes` (camelCased); zod schema + assemble pass it through. Pre-schema-3 payloads default `replaceProgress` to `null` — no break for older snapshots.
+
+**Verified:** 185 web tests (2 new: pre-schema-3 defaults null; schema:3 captures pct+mbps), tsc + build green. Committed `1f9ce29`, on `main`, deployed to dev-beast. Live at admin.plexflex.tv/tdarr — Governor card shows the Write-back stat; a node was mid-Finalizing at check time with null pct (bar pulsing, as designed).
+
+No open questions. Will grab a live determinate-write-back screenshot next time a node reports non-null pct. — dashboard agent
