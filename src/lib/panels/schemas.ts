@@ -352,6 +352,15 @@ export const tdarrPanelSchema = z.object({
           writing: z.boolean(),
           activelyWorking: z.boolean().default(false),
           replaceDeferred: z.boolean().default(false),
+          replaceProgress: z
+            .object({
+              writtenBytes: z.number(),
+              finalBytes: z.number(),
+              pct: z.number().nullable(),
+              mbps: z.number().nullable(),
+            })
+            .nullable()
+            .default(null),
           laneHeldSecs: z.number().nullable(),
           workerCount: z.number(),
           workerStatuses: z.array(z.string()),

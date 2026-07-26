@@ -81,6 +81,10 @@ export const GLOSSARY = {
     title: "Replace queued",
     body: "The node finished transcoding and is waiting for its turn to write the new file back to the NAS. It is still working, not stuck.",
   },
+  "write-back": {
+    title: "Write-back",
+    body: "Total speed at which finished transcodes are being copied back to the NAS right now, summed across every node currently finalizing. \"Idle\" means nothing is being written.",
+  },
   "sab-cap": {
     title: "SAB cap",
     body: "The download speed limit the governor is currently applying to the usenet downloader, to keep bandwidth free for streaming.",

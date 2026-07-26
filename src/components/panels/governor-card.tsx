@@ -87,6 +87,14 @@ export function GovernorCard({ governor }: { governor: TdarrPanel["governor"] })
     (n) => n.pausedByGovernor && !n.replaceDeferred && !n.activelyWorking,
   );
 
+  // schema:3 — fleet write-back throughput is the sum of per-node replace mbps
+  // (Wren keeps it dashboard-side to avoid a redundant server field).
+  const writingBack = governor.nodes.filter((n) => n.replaceProgress != null);
+  const totalMbps = writingBack.reduce(
+    (sum, n) => sum + (n.replaceProgress?.mbps ?? 0),
+    0,
+  );
+
   return (
     <PanelCard title="I/O Governor" subsystem="tdarr" info="governor">
       <div className="flex flex-col gap-3">
@@ -143,6 +151,15 @@ export function GovernorCard({ governor }: { governor: TdarrPanel["governor"] })
             value={trulyPaused.length > 0 ? String(trulyPaused.length) : "none"}
           />
           <Stat label="Lane timeout" value={`${governor.laneMaxSecs}s`} info="lane-timeout" />
+          <Stat
+            label="Write-back"
+            info="write-back"
+            value={
+              writingBack.length > 0
+                ? `${totalMbps.toFixed(1)} MB/s · ${writingBack.length} node${writingBack.length > 1 ? "s" : ""}`
+                : "idle"
+            }
+          />
         </dl>
 
         {deferred.length > 0 ? (

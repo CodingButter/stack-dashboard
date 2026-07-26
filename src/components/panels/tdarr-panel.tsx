@@ -151,6 +151,12 @@ export function TdarrPanel() {
                 <div className="flex flex-col gap-2">
                   {n.workers.map((w, i) => {
                     const stage = workerStage(w.status);
+                    // schema:3 — during Replace/Copy, Tdarr's own percent is 0,
+                    // but the gate measures the growing .tmp on the NAS. Prefer
+                    // that real write-back progress + throughput when present.
+                    const rp = govNodes.get(n.nodeName)?.replaceProgress ?? null;
+                    const showReplace = stage.isFinalizing && rp != null;
+                    const replaceDeterminate = showReplace && rp!.pct != null;
                     return (
                       <div key={i} className="flex flex-col gap-1">
                         <div className="flex items-center justify-between gap-2 text-base">
@@ -159,6 +165,11 @@ export function TdarrPanel() {
                             <span className="stat-num shrink-0 text-muted-foreground">
                               {w.fps > 0 ? `${w.fps.toFixed(0)} fps · ` : ""}
                               {w.percent.toFixed(0)}%{w.eta ? ` · ${w.eta}` : ""}
+                            </span>
+                          ) : showReplace ? (
+                            <span className="stat-num shrink-0 text-muted-foreground">
+                              {rp!.pct != null ? `${rp!.pct.toFixed(0)}%` : "starting…"}
+                              {rp!.mbps != null ? ` · ${rp!.mbps.toFixed(1)} MB/s` : ""}
                             </span>
                           ) : null}
                         </div>
@@ -174,12 +185,15 @@ export function TdarrPanel() {
                             <div
                               className={cn(
                                 "h-full rounded-full bg-accent-tdarr",
-                                stage.bar === "indeterminate" && "w-full animate-pulse",
+                                (stage.bar === "indeterminate" && !replaceDeterminate) &&
+                                  "w-full animate-pulse",
                               )}
                               style={
-                                stage.bar === "determinate"
-                                  ? { width: `${Math.min(100, w.percent)}%` }
-                                  : undefined
+                                replaceDeterminate
+                                  ? { width: `${Math.min(100, rp!.pct!)}%` }
+                                  : stage.bar === "determinate"
+                                    ? { width: `${Math.min(100, w.percent)}%` }
+                                    : undefined
                               }
                             />
                           </div>

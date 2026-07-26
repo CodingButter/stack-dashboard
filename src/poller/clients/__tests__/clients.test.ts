@@ -328,6 +328,64 @@ describe("agent governor (tdarr-gate)", () => {
     expect(byName.DevBeastNode.replaceDeferred).toBe(false);
   });
 
+  it("defaults replaceProgress to null on pre-schema-3 payloads", () => {
+    const g = parseAgentGovernor(govStatus(), nowFresh)!;
+    expect(g.nodes[0].replaceProgress).toBeNull();
+  });
+
+  it("captures schema:3 per-node replace_progress (pct + mbps write-back)", () => {
+    const g = parseAgentGovernor(
+      govStatus({
+        schema: 3,
+        nodes: [
+          {
+            name: "ZenBeastNode",
+            exempt: false,
+            paused: false,
+            paused_by_governor: false,
+            heavy: false,
+            writing: true,
+            actively_working: true,
+            replace_deferred: false,
+            lane_held_secs: null,
+            worker_count: 1,
+            worker_statuses: ["Transcode Replace"],
+            replace_progress: {
+              pct: 61.3,
+              mbps: 0.8,
+              written_bytes: 123,
+              final_bytes: 456,
+            },
+          },
+          {
+            name: "DevBeastNode",
+            exempt: false,
+            paused: false,
+            paused_by_governor: false,
+            heavy: false,
+            writing: false,
+            actively_working: false,
+            replace_deferred: false,
+            lane_held_secs: null,
+            worker_count: 0,
+            worker_statuses: [],
+            replace_progress: null,
+          },
+        ],
+      }),
+      nowFresh,
+    )!;
+    const byName = Object.fromEntries(g.nodes.map((n) => [n.name, n]));
+    expect(byName.ZenBeastNode.replaceProgress).toMatchObject({
+      pct: 61.3,
+      mbps: 0.8,
+      writtenBytes: 123,
+      finalBytes: 456,
+    });
+    // A non-writing node carries no write-back progress.
+    expect(byName.DevBeastNode.replaceProgress).toBeNull();
+  });
+
   it("treats a stale ts (> 3x poll_secs) as NOT RUNNING even without a flag", () => {
     // 61s > 3 * 20s window — the whole reason this feature exists.
     const nowStale = TS * 1000 + 61_000;

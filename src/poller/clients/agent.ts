@@ -124,6 +124,17 @@ export function parseAgentGpu(raw: unknown): AgentGpu | null {
   };
 }
 
+/** schema:3 — live write-back progress while a node is in Replace/Copy. */
+export interface ReplaceProgress {
+  /** MB written to the NAS so far / final MB (for the caption). */
+  writtenBytes: number;
+  finalBytes: number;
+  /** 0–100 written/final. null when final size is momentarily unknown → indeterminate bar. */
+  pct: number | null;
+  /** MB/s to the NAS this poll. null on the first poll of a new Replace ("starting…"). */
+  mbps: number | null;
+}
+
 export interface GovernorNode {
   name: string;
   exempt: boolean;
@@ -135,6 +146,8 @@ export interface GovernorNode {
   activelyWorking: boolean;
   /** schema:2 — pausedByGovernor && activelyWorking && !writing: transcoding now, write-back queued behind the lane holder (NOT paused/stopped). */
   replaceDeferred: boolean;
+  /** schema:3 — non-null only while writing back to the NAS; carries pct + mbps. */
+  replaceProgress: ReplaceProgress | null;
   laneHeldSecs: number | null;
   workerCount: number;
   workerStatuses: string[];
@@ -169,6 +182,18 @@ export interface GovernorStatus {
  * payload at all (endpoint absent / unparseable), so the poll skips the snapshot
  * and the page falls back to "governor unavailable".
  */
+/** schema:3 replace_progress → ReplaceProgress, or null when absent/not writing. */
+function parseReplaceProgress(raw: unknown): ReplaceProgress | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, any>;
+  return {
+    writtenBytes: Number(r.written_bytes ?? 0),
+    finalBytes: Number(r.final_bytes ?? 0),
+    pct: r.pct == null ? null : Number(r.pct),
+    mbps: r.mbps == null ? null : Number(r.mbps),
+  };
+}
+
 export function parseAgentGovernor(
   raw: unknown,
   now: number = Date.now(),
@@ -200,6 +225,8 @@ export function parseAgentGovernor(
         // schema:2 fields — default false so v1 payloads parse unchanged.
         activelyWorking: Boolean(n.actively_working),
         replaceDeferred: Boolean(n.replace_deferred),
+        // schema:3 — null on <schema-3 payloads and whenever the node isn't writing.
+        replaceProgress: parseReplaceProgress(n.replace_progress),
         laneHeldSecs: n.lane_held_secs == null ? null : Number(n.lane_held_secs),
         workerCount: Number(n.worker_count ?? 0),
         workerStatuses: Array.isArray(n.worker_statuses)

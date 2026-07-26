@@ -23,24 +23,26 @@ export interface WorkerStage {
   bar: StageBar;
   /** True only for the live transcode (Execute) — show fps/eta and the % readout. */
   isTranscoding: boolean;
+  /** True for the Replace/Copy write-back family — where schema:3 replaceProgress applies. */
+  isFinalizing: boolean;
 }
 
 export function workerStage(status: string): WorkerStage {
   const s = status.trim().toLowerCase();
 
   if (!s || s === "idle") {
-    return { label: "Idle", bar: "none", isTranscoding: false };
+    return { label: "Idle", bar: "none", isTranscoding: false, isFinalizing: false };
   }
   if (s === "scanning") {
-    return { label: "Analyzing…", bar: "indeterminate", isTranscoding: false };
+    return { label: "Analyzing…", bar: "indeterminate", isTranscoding: false, isFinalizing: false };
   }
   if (s === "execute") {
-    return { label: "Transcoding", bar: "determinate", isTranscoding: true };
+    return { label: "Transcoding", bar: "determinate", isTranscoding: true, isFinalizing: false };
   }
   // "Replace Original" and any "Copy…" variant are the write-back/finalize family.
   if (s.startsWith("replace") || s.startsWith("copy")) {
-    return { label: "Finalizing · writing to NAS", bar: "indeterminate", isTranscoding: false };
+    return { label: "Finalizing · writing to NAS", bar: "indeterminate", isTranscoding: false, isFinalizing: true };
   }
   // Tolerate unseen/future status strings rather than hiding the worker.
-  return { label: "Working…", bar: "indeterminate", isTranscoding: false };
+  return { label: "Working…", bar: "indeterminate", isTranscoding: false, isFinalizing: false };
 }
