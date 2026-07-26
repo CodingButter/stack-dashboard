@@ -11,8 +11,14 @@ export default async function LoginPage() {
   if (session) redirect("/");
 
   return (
-    <div className="flex min-h-svh items-center justify-center p-4">
-      <LoginForm />
+    <div
+      className="relative flex min-h-svh items-center justify-center bg-background bg-cover bg-center bg-no-repeat p-4"
+      style={{ backgroundImage: "url('/login-background.png')" }}
+    >
+      <div className="absolute inset-0 bg-black/40" aria-hidden />
+      <div className="relative z-10 w-full max-w-sm">
+        <LoginForm />
+      </div>
     </div>
   );
 }

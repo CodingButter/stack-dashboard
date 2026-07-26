@@ -16,7 +16,7 @@ export function LoginForm() {
   return (
     <form
       action={action}
-      className="w-full max-w-sm space-y-6 rounded-lg border border-border bg-card p-8"
+      className="w-full space-y-6 rounded-lg border border-border bg-card p-8 shadow-2xl"
     >
       <div className="flex flex-col items-center gap-2 text-center">
         <TerminalSquare className="size-8 text-primary" />
