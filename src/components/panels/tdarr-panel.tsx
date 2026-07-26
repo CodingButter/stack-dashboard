@@ -7,6 +7,7 @@ import { StatusPill } from "@/components/widgets/status-pill";
 import type { TdarrPanel as TdarrData } from "@/lib/panels/schemas";
 import { usePanelData } from "./use-panel-data";
 import { UptimeRow } from "./uptime-row";
+import { GovernorCard } from "./governor-card";
 import { ActionButton } from '@/components/actions/action-button';
 
 const LABELS = { tdarr: "Tdarr server" };
@@ -23,6 +24,9 @@ export function TdarrPanel() {
   }
 
   const s = data.stats;
+  const govNodes = new Map(
+    (data.governor?.running ? data.governor.nodes : []).map((n) => [n.name, n]),
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -51,6 +55,8 @@ export function TdarrPanel() {
         />
       </div>
 
+      <GovernorCard governor={data.governor} />
+
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {data.nodes.length === 0 ? (
           <PanelCard title="Nodes" subsystem="tdarr">
@@ -62,11 +68,41 @@ export function TdarrPanel() {
           data.nodes.map((n) => (
             <PanelCard key={n.nodeName} title={n.nodeName} subsystem="tdarr">
               <div className="mb-2 flex items-center justify-between">
-                <StatusPill
-                  status={n.paused ? "degraded" : "up"}
-                  label={n.paused ? "paused" : "active"}
-                  className="border-0 bg-transparent px-0"
-                />
+                <div className="flex items-center gap-2">
+                  <StatusPill
+                    status={n.paused ? "degraded" : "up"}
+                    label={n.paused ? "paused" : "active"}
+                    className="border-0 bg-transparent px-0"
+                  />
+                  {(() => {
+                    const g = govNodes.get(n.nodeName);
+                    if (!g) return null;
+                    if (g.pausedByGovernor) {
+                      return (
+                        <span className="rounded bg-status-degraded/15 px-1.5 py-0.5 text-[11px] font-medium text-status-degraded">
+                          gov-paused
+                        </span>
+                      );
+                    }
+                    if (g.writing) {
+                      return (
+                        <span className="rounded bg-accent-tdarr/20 px-1.5 py-0.5 text-[11px] font-medium text-accent-tdarr">
+                          writing
+                          {g.laneHeldSecs != null ? ` · ${g.laneHeldSecs}s` : ""}
+                        </span>
+                      );
+                    }
+                    if (g.heavy) {
+                      return (
+                        <span className="rounded bg-accent-tdarr/15 px-1.5 py-0.5 text-[11px] font-medium text-accent-tdarr">
+                          heavy I/O
+                          {g.laneHeldSecs != null ? ` · ${g.laneHeldSecs}s` : ""}
+                        </span>
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-muted-foreground">
                     limits: {n.limits.transcodeGpu} GPU · {n.limits.transcodeCpu} CPU

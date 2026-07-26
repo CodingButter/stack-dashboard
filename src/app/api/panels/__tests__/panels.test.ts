@@ -3,12 +3,17 @@ import { describe, expect, it } from "vitest";
 import {
   buildMachine,
   buildOverview,
+  buildTdarrPanel,
   deriveAlertCount,
   FLEET,
   type SnapRow,
   type StatusRow,
 } from "@/lib/panels/assemble";
-import { machineSchema, overviewSchema } from "@/lib/panels/schemas";
+import {
+  machineSchema,
+  overviewSchema,
+  tdarrPanelSchema,
+} from "@/lib/panels/schemas";
 
 const NOW = new Date("2026-07-24T12:00:00Z");
 const FRESH = new Date("2026-07-24T11:59:30Z");
@@ -194,5 +199,53 @@ describe("buildMachine", () => {
     expect(m.stats).toBeNull();
     expect(m.smart).toBeNull();
     expect(() => machineSchema.parse(m)).not.toThrow();
+  });
+});
+
+describe("buildTdarrPanel governor block", () => {
+  // camelCased payload, as parseAgentGovernor produces it.
+  const governorPayload = (over: Record<string, unknown> = {}) => ({
+    running: true,
+    ts: Math.round(FRESH.getTime() / 1000),
+    pollSecs: 20,
+    mode: "governing",
+    frozen: false,
+    activeStreams: 0,
+    streamKbps: 0,
+    sabLimitMbps: null,
+    laneMaxSecs: 600,
+    laneHolder: "BigBeastNode",
+    heavyNodes: ["BigBeastNode"],
+    governorPausedNodes: ["DevBeastNode"],
+    nodes: [],
+    ...over,
+  });
+
+  it("is null when no governor snapshot has ever landed", () => {
+    const panel = buildTdarrPanel([], {}, {}, NOW);
+    expect(panel.governor).toBeNull();
+    expect(() => tdarrPanelSchema.parse(panel)).not.toThrow();
+  });
+
+  it("passes a fresh running snapshot through with a computed ageSecs", () => {
+    const snaps: SnapRow[] = [
+      { service: "agent", kind: "governor", payload: governorPayload(), polledAt: FRESH },
+    ];
+    const panel = buildTdarrPanel(snaps, {}, {}, NOW);
+    expect(panel.governor?.running).toBe(true);
+    expect(panel.governor?.mode).toBe("governing");
+    // NOW - FRESH = 30s.
+    expect(panel.governor?.ageSecs).toBe(30);
+    expect(() => tdarrPanelSchema.parse(panel)).not.toThrow();
+  });
+
+  it("forces running:false when the snapshot row itself is stale", () => {
+    // Poller stopped persisting governor rows — must not render as live.
+    const snaps: SnapRow[] = [
+      { service: "agent", kind: "governor", payload: governorPayload(), polledAt: STALE },
+    ];
+    const panel = buildTdarrPanel(snaps, {}, {}, NOW);
+    expect(panel.governor).not.toBeNull();
+    expect(panel.governor?.running).toBe(false);
   });
 });

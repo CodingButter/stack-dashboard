@@ -124,6 +124,120 @@ export function parseAgentGpu(raw: unknown): AgentGpu | null {
   };
 }
 
+export interface GovernorNode {
+  name: string;
+  exempt: boolean;
+  paused: boolean;
+  pausedByGovernor: boolean;
+  heavy: boolean;
+  writing: boolean;
+  laneHeldSecs: number | null;
+  workerCount: number;
+  workerStatuses: string[];
+}
+
+export interface GovernorStatus {
+  /** false = tdarr-gate service missing/dead/wedged; render as NOT RUNNING. */
+  running: boolean;
+  ts: number | null;
+  pollSecs: number;
+  mode: "streaming" | "governing" | "idle";
+  frozen: boolean;
+  activeStreams: number;
+  streamKbps: number;
+  sabLimitMbps: number | null;
+  laneMaxSecs: number;
+  laneHolder: string | null;
+  heavyNodes: string[];
+  governorPausedNodes: string[];
+  nodes: GovernorNode[];
+}
+
+/**
+ * Normalize the NAS agent's /tdarr/governor snapshot (the tdarr-gate I/O
+ * governor state — see AGENT_HANDOFF_tdarr-governor.md). The agent returns the
+ * status.json verbatim, or `{ running: false }` when the file is missing/stale.
+ *
+ * We recompute staleness client-side as defense-in-depth: if `now - ts` exceeds
+ * 3x poll_secs (the contract's staleness window), treat the governor as NOT
+ * RUNNING even if the agent didn't flag it — a silently-stopped gate must never
+ * render as a healthy idle one. Returns null only when there is no usable
+ * payload at all (endpoint absent / unparseable), so the poll skips the snapshot
+ * and the page falls back to "governor unavailable".
+ */
+export function parseAgentGovernor(
+  raw: unknown,
+  now: number = Date.now(),
+): GovernorStatus | null {
+  const g = raw as Record<string, any> | null;
+  if (!g || typeof g !== "object") return null;
+
+  // Agent-signalled not-running (file missing/stale) — a first-class state.
+  if (g.running === false || g.error) {
+    return { ...NOT_RUNNING };
+  }
+  if (g.ts == null || !g.mode) return null; // not a governor payload at all
+
+  const pollSecs = Number(g.poll_secs ?? 20) || 20;
+  const tsMs = Number(g.ts) * 1000;
+  const stale = now - tsMs > 3 * pollSecs * 1000;
+  if (stale) return { ...NOT_RUNNING, ts: Number(g.ts), pollSecs };
+
+  const mode =
+    g.mode === "streaming" || g.mode === "governing" ? g.mode : "idle";
+  const nodes: GovernorNode[] = Array.isArray(g.nodes)
+    ? g.nodes.map((n: Record<string, any>) => ({
+        name: String(n.name ?? ""),
+        exempt: Boolean(n.exempt),
+        paused: Boolean(n.paused),
+        pausedByGovernor: Boolean(n.paused_by_governor),
+        heavy: Boolean(n.heavy),
+        writing: Boolean(n.writing),
+        laneHeldSecs: n.lane_held_secs == null ? null : Number(n.lane_held_secs),
+        workerCount: Number(n.worker_count ?? 0),
+        workerStatuses: Array.isArray(n.worker_statuses)
+          ? n.worker_statuses.map((s: unknown) => String(s ?? ""))
+          : [],
+      }))
+    : [];
+
+  return {
+    running: true,
+    ts: Number(g.ts),
+    pollSecs,
+    mode,
+    frozen: Boolean(g.frozen),
+    activeStreams: Number(g.active_streams ?? 0),
+    streamKbps: Number(g.stream_kbps ?? 0),
+    sabLimitMbps: g.sab_limit_mbps == null ? null : Number(g.sab_limit_mbps),
+    laneMaxSecs: Number(g.lane_max_secs ?? 600),
+    laneHolder: g.lane_holder == null ? null : String(g.lane_holder),
+    heavyNodes: Array.isArray(g.heavy_nodes)
+      ? g.heavy_nodes.map((s: unknown) => String(s ?? ""))
+      : [],
+    governorPausedNodes: Array.isArray(g.governor_paused_nodes)
+      ? g.governor_paused_nodes.map((s: unknown) => String(s ?? ""))
+      : [],
+    nodes,
+  };
+}
+
+const NOT_RUNNING: GovernorStatus = {
+  running: false,
+  ts: null,
+  pollSecs: 20,
+  mode: "idle",
+  frozen: false,
+  activeStreams: 0,
+  streamKbps: 0,
+  sabLimitMbps: null,
+  laneMaxSecs: 600,
+  laneHolder: null,
+  heavyNodes: [],
+  governorPausedNodes: [],
+  nodes: [],
+};
+
 /** Build an agent poller for a given box (nas, bigbeast, ...). */
 export function makeAgentPoller(service: string, box: string): Poller {
   return {
@@ -144,6 +258,13 @@ export function makeAgentPoller(service: string, box: string): Poller {
       // GPU telemetry (nvidia on the fleet Tdarr boxes; "none" on the NAS —
       // harmless, yields no gpu metrics). Cached 10 s agent-side; cheap.
       const gpuRes = await httpFetch(`${base}/gpu`, { headers });
+      // Tdarr I/O governor state — NAS box only (the governor lives on the NAS
+      // filesystem). Best-effort: a missing endpoint or error never fails the
+      // stats poll (same contract as smart/docker/gpu).
+      const governorRes =
+        box === "nas"
+          ? await httpFetch(`${base}/tdarr/governor`, { headers })
+          : null;
 
       const stats = parseAgentStats(res.data, box);
       const metrics = [
@@ -194,6 +315,12 @@ export function makeAgentPoller(service: string, box: string): Poller {
             ...gpuMetric("gpu.temp_c", gpu.tempC),
             ...gpuMetric("gpu.power_w", gpu.powerW),
           );
+        }
+      }
+      if (governorRes?.ok) {
+        const governor = parseAgentGovernor(governorRes.data);
+        if (governor) {
+          snapshotRows.push({ kind: "governor", payload: governor });
         }
       }
       return { ok: true, snapshots: snapshotRows, metrics };

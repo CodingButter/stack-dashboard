@@ -3,7 +3,11 @@
  * contracts are testable against seeded rows (see __tests__/panels.test.ts);
  * the API routes do the querying and call these.
  */
-import type { AgentStats, SmartDrive } from "@/poller/clients/agent";
+import type {
+  AgentStats,
+  GovernorStatus,
+  SmartDrive,
+} from "@/poller/clients/agent";
 import type { PlexSessions } from "@/poller/clients/plex";
 import type { QbitParsed } from "@/poller/clients/qbittorrent";
 import type { SabParsed, SabTotals } from "@/poller/clients/sabnzbd";
@@ -381,6 +385,44 @@ export function buildTdarrPanel(
       queueDepth: series["tdarr.queue.depth"] ?? [],
       workersActive: series["tdarr.workers.active"] ?? [],
     },
+    governor: buildGovernor(snaps, now),
+  };
+}
+
+/**
+ * Governor block for the Tdarr panel. `null` = never received a snapshot
+ * (endpoint not deployed / never polled) → UI shows "governor unavailable".
+ * Otherwise carry `running` through (false = gate dead/stale). `ageSecs` is the
+ * live age of the emitter's `ts` for the UI's staleness readout. As a second
+ * guard, if the *snapshot row itself* is older than the agent-stale window (the
+ * poller stopped persisting governor rows), force running:false — a wedged
+ * poller must not render a frozen "running" governor as live.
+ */
+function buildGovernor(
+  snaps: SnapRow[],
+  now: Date,
+): TdarrPanel["governor"] {
+  const row = snap<GovernorStatus>(snaps, "agent", "governor");
+  if (!row) return null;
+  const g = row.payload;
+  const ageSecs = g.ts == null ? null : Math.round(now.getTime() / 1000 - g.ts);
+  const rowStale = now.getTime() - row.polledAt.getTime() > AGENT_STALE_MS;
+  const running = g.running && !rowStale;
+  return {
+    running,
+    ts: g.ts,
+    ageSecs,
+    pollSecs: g.pollSecs,
+    mode: g.mode,
+    frozen: g.frozen,
+    activeStreams: g.activeStreams,
+    streamKbps: g.streamKbps,
+    sabLimitMbps: g.sabLimitMbps,
+    laneMaxSecs: g.laneMaxSecs,
+    laneHolder: g.laneHolder,
+    heavyNodes: g.heavyNodes,
+    governorPausedNodes: g.governorPausedNodes,
+    nodes: g.nodes,
   };
 }
 

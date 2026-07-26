@@ -321,6 +321,42 @@ export const tdarrPanelSchema = z.object({
     queueDepth: z.array(pointSchema),
     workersActive: z.array(pointSchema),
   }),
+  /**
+   * Tdarr I/O governor state (from the NAS tdarr-gate service via the agent).
+   * `null` = the dashboard has never received a governor snapshot (endpoint not
+   * deployed yet / never polled). `running:false` = the snapshot exists but the
+   * gate service is dead/stale — a distinct, first-class UI state.
+   */
+  governor: z
+    .object({
+      running: z.boolean(),
+      ts: z.number().nullable(),
+      ageSecs: z.number().nullable(),
+      pollSecs: z.number(),
+      mode: z.enum(["streaming", "governing", "idle"]),
+      frozen: z.boolean(),
+      activeStreams: z.number(),
+      streamKbps: z.number(),
+      sabLimitMbps: z.number().nullable(),
+      laneMaxSecs: z.number(),
+      laneHolder: z.string().nullable(),
+      heavyNodes: z.array(z.string()),
+      governorPausedNodes: z.array(z.string()),
+      nodes: z.array(
+        z.object({
+          name: z.string(),
+          exempt: z.boolean(),
+          paused: z.boolean(),
+          pausedByGovernor: z.boolean(),
+          heavy: z.boolean(),
+          writing: z.boolean(),
+          laneHeldSecs: z.number().nullable(),
+          workerCount: z.number(),
+          workerStatuses: z.array(z.string()),
+        }),
+      ),
+    })
+    .nullable(),
 });
 export type TdarrPanel = z.infer<typeof tdarrPanelSchema>;
 

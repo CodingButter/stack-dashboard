@@ -7,6 +7,7 @@ Endpoints (all require Authorization: Bearer <token>):
   GET  /smart         smartctl JSON per device, cached 30 min
   GET  /gpu           intel_gpu_top / nvidia-smi snapshot, cached 10 s
   GET  /docker        mediastack container states + one-shot stats, cached 10 s
+  GET  /tdarr/governor  tdarr-gate live snapshot + liveness, cached 5 s (nas role)
   GET  /logs/journal  ?unit=&cursor=&lines=   cursor-based journal pull (allowlisted units)
   GET  /logs/docker   ?container=&since=&tail=  docker logs via unix socket
   GET  /logs/auth     ?cursor=&lines=          sshd journal entries
@@ -63,6 +64,7 @@ GPU_CACHE_S = 10
 FAILED_UNITS_CACHE_S = 30
 DOCKER_CACHE_S = 10
 CONTAINER_LIST_CACHE_S = 30
+GOVERNOR_CACHE_S = 5
 
 
 def log(msg):
@@ -159,6 +161,38 @@ def bcache_stats():
         return None
     return {"hits": hits, "misses": misses,
             "hit_ratio_pct": statlib.bcache_hit_ratio(hits, misses)}
+
+
+GOVERNOR_STATUS_FILE = os.environ.get(
+    "GOVERNOR_STATUS_FILE", "/var/lib/tdarr-gate/status.json")
+# Consider the gate dead if its snapshot is older than this many seconds.
+# tdarr-gate rewrites the file every POLL_SECS (default 20); allow ~3 cycles.
+GOVERNOR_STALE_S = int(os.environ.get("GOVERNOR_STALE_S", "70"))
+
+
+def collect_governor():
+    """Return the tdarr-gate live snapshot, with agent-computed liveness.
+
+    The gate rewrites status.json every poll. If it's missing or stale the
+    gate service is dead/wedged — surface running:false so the dashboard
+    never renders a stopped governor as a healthy idle one.
+    """
+    try:
+        with open(GOVERNOR_STATUS_FILE) as f:
+            snap = json.load(f)
+    except FileNotFoundError:
+        return {"running": False, "reason": "no status file"}
+    except (OSError, ValueError) as e:
+        return {"running": False, "reason": "unreadable: %s" % e}
+    ts = snap.get("ts")
+    age = time.time() - ts if isinstance(ts, (int, float)) else None
+    running = age is not None and age <= GOVERNOR_STALE_S
+    snap["running"] = running
+    snap["age_s"] = round(age, 1) if age is not None else None
+    if not running:
+        snap["reason"] = "stale (%.0fs old)" % age if age is not None \
+            else "no timestamp"
+    return snap
 
 
 def list_smart_devices():
@@ -389,6 +423,7 @@ GPU_CACHE = TimedCache(GPU_CACHE_S, collect_gpu)
 FAILED_UNITS_CACHE = TimedCache(FAILED_UNITS_CACHE_S, collect_failed_units)
 DOCKER_CACHE = TimedCache(DOCKER_CACHE_S, collect_docker)
 CONTAINERS_CACHE = TimedCache(CONTAINER_LIST_CACHE_S, list_mediastack_containers)
+GOVERNOR_CACHE = TimedCache(GOVERNOR_CACHE_S, collect_governor)
 STARTED_AT = time.time()
 
 
@@ -463,6 +498,8 @@ class Handler(BaseHTTPRequestHandler):
             elif ROLE == "gpu-node":
                 # gpu-node role serves stats + its own journal only
                 self._send_json(404, {"error": "not found"})
+            elif path == "/tdarr/governor":
+                self._send_json(200, GOVERNOR_CACHE.get())
             elif path == "/docker":
                 self._send_json(200, DOCKER_CACHE.get())
             elif path == "/logs/docker":

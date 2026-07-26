@@ -11,7 +11,7 @@ import { parsePlexSessions } from "../plex";
 import { parseSeerrRequests } from "../seerr";
 import { parseTdarrNodes, parseTdarrStats } from "../tdarr";
 import { parseQbitTorrents } from "../qbittorrent";
-import { parseAgentStats, parseAgentGpu } from "../agent";
+import { parseAgentStats, parseAgentGpu, parseAgentGovernor } from "../agent";
 
 const FIX = join(__dirname, "..", "__fixtures__");
 const load = (name: string): unknown =>
@@ -195,6 +195,90 @@ describe("agent client", () => {
     expect(parseAgentGpu({ mode: "nvidia", error: "nvidia-smi failed" })).toBeNull();
     expect(parseAgentGpu(null)).toBeNull();
     expect(parseAgentGpu("garbage")).toBeNull();
+  });
+});
+
+describe("agent governor (tdarr-gate)", () => {
+  const TS = 1_785_000_000; // unix seconds — the emitter's `ts`
+  const nowFresh = TS * 1000 + 10_000; // 10s after emit — fresh
+  const govStatus = (over: Record<string, unknown> = {}) => ({
+    schema: 1,
+    ts: TS,
+    poll_secs: 20,
+    mode: "governing",
+    frozen: false,
+    active_streams: 0,
+    stream_kbps: 0,
+    sab_limit_mbps: null,
+    lane_max_secs: 600,
+    lane_holder: "BigBeastNode",
+    heavy_nodes: ["BigBeastNode"],
+    governor_paused_nodes: ["DevBeastNode", "ZenBeastNode"],
+    stream_paused_node_ids: [],
+    nodes: [
+      {
+        name: "BigBeastNode",
+        exempt: false,
+        paused: false,
+        paused_by_governor: false,
+        heavy: true,
+        writing: true,
+        lane_held_secs: 42,
+        worker_count: 1,
+        worker_statuses: ["Transcode Replace"],
+      },
+      {
+        name: "DevBeastNode",
+        exempt: false,
+        paused: true,
+        paused_by_governor: true,
+        heavy: false,
+        writing: false,
+        lane_held_secs: null,
+        worker_count: 0,
+        worker_statuses: [],
+      },
+    ],
+    ...over,
+  });
+
+  it("normalizes a fresh governing snapshot into camelCase", () => {
+    const g = parseAgentGovernor(govStatus(), nowFresh)!;
+    expect(g.running).toBe(true);
+    expect(g.mode).toBe("governing");
+    expect(g.laneHolder).toBe("BigBeastNode");
+    expect(g.governorPausedNodes).toEqual(["DevBeastNode", "ZenBeastNode"]);
+    expect(g.nodes[0]).toMatchObject({
+      name: "BigBeastNode",
+      writing: true,
+      laneHeldSecs: 42,
+    });
+    expect(g.nodes[1]).toMatchObject({
+      pausedByGovernor: true,
+      laneHeldSecs: null,
+    });
+  });
+
+  it("treats a stale ts (> 3x poll_secs) as NOT RUNNING even without a flag", () => {
+    // 61s > 3 * 20s window — the whole reason this feature exists.
+    const nowStale = TS * 1000 + 61_000;
+    const g = parseAgentGovernor(govStatus(), nowStale)!;
+    expect(g.running).toBe(false);
+    expect(g.ts).toBe(TS);
+  });
+
+  it("honors the agent's running:false / error signal", () => {
+    expect(parseAgentGovernor({ running: false })!.running).toBe(false);
+    expect(
+      parseAgentGovernor({ error: "no governor status", running: false })!
+        .running,
+    ).toBe(false);
+  });
+
+  it("returns null for a body that is not a governor payload at all", () => {
+    expect(parseAgentGovernor(null)).toBeNull();
+    expect(parseAgentGovernor("garbage")).toBeNull();
+    expect(parseAgentGovernor({ some: "other json" })).toBeNull();
   });
 });
 
