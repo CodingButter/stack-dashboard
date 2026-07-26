@@ -5,6 +5,7 @@ import {
   index,
   integer,
   jsonb,
+  uniqueIndex,
   pgEnum,
   pgTable,
   text,
@@ -192,6 +193,40 @@ export const alerts = pgTable(
   ],
 );
 
+/**
+ * One row per (user, browser/device) Web Push subscription. `endpoint` is the
+ * push-service URL; `auth`/`p256dh` are the subscription's encryption keys.
+ * Unique on (userId, endpoint) so re-subscribing the same device upserts.
+ */
+export const pushSubscriptions = pgTable(
+  "push_subscriptions",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    endpoint: text("endpoint").notNull(),
+    auth: text("auth").notNull(),
+    p256dh: text("p256dh").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("push_subscriptions_user_endpoint_idx").on(t.userId, t.endpoint)],
+);
+
+/**
+ * Per-user notification event-type toggles. `preferences` is a JSON object of
+ * `{ eventType: boolean }`; missing keys default to enabled at read time.
+ */
+export const notificationPreferences = pgTable("notification_preferences", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .unique()
+    .references(() => users.id, { onDelete: "cascade" }),
+  preferences: jsonb("preferences").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export type User = typeof users.$inferSelect;
 export type Session = typeof sessions.$inferSelect;
 export type AuditEntry = typeof auditLog.$inferSelect;
@@ -203,3 +238,5 @@ export type PollState = typeof pollState.$inferSelect;
 export type LogLine = typeof logLines.$inferSelect;
 export type LogCursor = typeof logCursors.$inferSelect;
 export type Alert = typeof alerts.$inferSelect;
+export type PushSubscription = typeof pushSubscriptions.$inferSelect;
+export type NotificationPreferenceRow = typeof notificationPreferences.$inferSelect;
