@@ -36,7 +36,7 @@ function NavLinks({
             href={item.href}
             onClick={onNavigate}
             className={cn(
-              "flex min-h-11 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground md:min-h-0",
+              "flex min-h-11 items-center gap-2.5 rounded-md px-2.5 py-2 text-base text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground md:min-h-0",
               active && "bg-sidebar-accent text-sidebar-primary",
               collapsed && "justify-center px-2",
             )}
@@ -123,7 +123,7 @@ export function AppShell({
           >
             <TerminalSquare className="size-5 text-sidebar-primary" />
             {!collapsed && (
-              <span className="text-sm font-semibold tracking-tight">
+              <span className="text-base font-semibold tracking-tight">
                 stack<span className="text-sidebar-primary">dash</span>
               </span>
             )}
@@ -181,7 +181,7 @@ export function AppShell({
               </SheetTrigger>
               <SheetContent side="left" className="w-64 bg-sidebar p-0">
                 <SheetHeader className="border-b border-sidebar-border">
-                  <SheetTitle className="flex items-center gap-2 text-sm">
+                  <SheetTitle className="flex items-center gap-2 text-base">
                     <TerminalSquare className="size-5 text-sidebar-primary" />
                     stack<span className="text-sidebar-primary">dash</span>
                   </SheetTitle>
@@ -203,7 +203,7 @@ export function AppShell({
               </SheetContent>
             </Sheet>
 
-            <h1 className="truncate text-sm font-semibold">{title}</h1>
+            <h1 className="truncate text-base font-semibold">{title}</h1>
 
             <div className="ml-auto flex items-center gap-1">
               <Button
@@ -213,8 +213,8 @@ export function AppShell({
                 onClick={() => setPaletteOpen(true)}
               >
                 <Search className="size-3.5" />
-                <span className="text-xs">Search…</span>
-                <kbd className="pointer-events-none rounded border border-border bg-muted px-1 font-mono text-[10px]">
+                <span className="text-sm">Search…</span>
+                <kbd className="pointer-events-none rounded border border-border bg-muted px-1 font-mono text-sm">
                   ⌘K
                 </kbd>
               </Button>

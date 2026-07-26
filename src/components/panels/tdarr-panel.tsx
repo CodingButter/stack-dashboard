@@ -17,7 +17,7 @@ export function TdarrPanel() {
 
   if (!data) {
     return (
-      <div className="flex flex-1 items-center justify-center py-24 text-sm text-muted-foreground">
+      <div className="flex flex-1 items-center justify-center py-24 text-base text-muted-foreground">
         {error ? `Failed to load: ${error}` : "Loading Tdarr…"}
       </div>
     );
@@ -60,7 +60,7 @@ export function TdarrPanel() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {data.nodes.length === 0 ? (
           <PanelCard title="Nodes" subsystem="tdarr">
-            <p className="py-6 text-center text-sm text-muted-foreground">
+            <p className="py-6 text-center text-base text-muted-foreground">
               No nodes connected
             </p>
           </PanelCard>
@@ -79,14 +79,14 @@ export function TdarrPanel() {
                     if (!g) return null;
                     if (g.pausedByGovernor) {
                       return (
-                        <span className="rounded bg-status-degraded/15 px-1.5 py-0.5 text-[11px] font-medium text-status-degraded">
+                        <span className="rounded bg-status-degraded/15 px-1.5 py-0.5 text-sm font-medium text-status-degraded">
                           gov-paused
                         </span>
                       );
                     }
                     if (g.writing) {
                       return (
-                        <span className="rounded bg-accent-tdarr/20 px-1.5 py-0.5 text-[11px] font-medium text-accent-tdarr">
+                        <span className="rounded bg-accent-tdarr/20 px-1.5 py-0.5 text-sm font-medium text-accent-tdarr">
                           writing
                           {g.laneHeldSecs != null ? ` · ${g.laneHeldSecs}s` : ""}
                         </span>
@@ -94,7 +94,7 @@ export function TdarrPanel() {
                     }
                     if (g.heavy) {
                       return (
-                        <span className="rounded bg-accent-tdarr/15 px-1.5 py-0.5 text-[11px] font-medium text-accent-tdarr">
+                        <span className="rounded bg-accent-tdarr/15 px-1.5 py-0.5 text-sm font-medium text-accent-tdarr">
                           heavy I/O
                           {g.laneHeldSecs != null ? ` · ${g.laneHeldSecs}s` : ""}
                         </span>
@@ -104,7 +104,7 @@ export function TdarrPanel() {
                   })()}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-sm text-muted-foreground">
                     limits: {n.limits.transcodeGpu} GPU · {n.limits.transcodeCpu} CPU
                   </span>
                   <ActionButton
@@ -112,29 +112,29 @@ export function TdarrPanel() {
                     params={{ nodeName: n.nodeName }}
                     target={n.nodeName}
                     size="sm"
-                    className="h-7 px-2 text-xs"
+                    className="h-7 px-2 text-sm"
                   >
                     {n.paused ? "Resume" : "Pause"}
                   </ActionButton>
                 </div>
               </div>
               {n.limitViolation ? (
-                <p className="mb-2 rounded-md border border-status-down/40 bg-status-down/10 px-2 py-1.5 text-xs font-semibold text-status-down">
+                <p className="mb-2 rounded-md border border-status-down/40 bg-status-down/10 px-2 py-1.5 text-sm font-semibold text-status-down">
                   ⚠ NAS node worker limit violated — must stay ≤1 GPU / 0 CPU
                 </p>
               ) : null}
-              <p className="mb-2 text-xs text-muted-foreground">
+              <p className="mb-2 text-sm text-muted-foreground">
                 queue: {n.queue.transcode} transcode · {n.queue.healthcheck} healthcheck
               </p>
               {n.workers.length === 0 ? (
-                <p className="py-3 text-center text-xs text-muted-foreground">
+                <p className="py-3 text-center text-sm text-muted-foreground">
                   No active workers
                 </p>
               ) : (
                 <div className="flex flex-col gap-2">
                   {n.workers.map((w, i) => (
                     <div key={i} className="flex flex-col gap-1">
-                      <div className="flex items-center justify-between gap-2 text-sm">
+                      <div className="flex items-center justify-between gap-2 text-base">
                         <span className="truncate">{w.file.split("/").pop() || w.status}</span>
                         <span className="stat-num shrink-0 text-muted-foreground">
                           {w.fps > 0 ? `${w.fps.toFixed(0)} fps · ` : ""}

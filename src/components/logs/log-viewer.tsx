@@ -209,10 +209,10 @@ export function LogViewer({ initialUnit }: { initialUnit?: string }) {
 
   const controls = (
     <div className="flex flex-wrap items-end gap-2">
-      <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+      <label className="flex flex-col gap-1 text-sm text-muted-foreground">
         Box
         <select
-          className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm"
+          className="h-8 rounded-lg border border-input bg-transparent px-2 text-base"
           value={filters.box}
           onChange={(e) => setFilter({ box: e.target.value })}
         >
@@ -224,10 +224,10 @@ export function LogViewer({ initialUnit }: { initialUnit?: string }) {
           ))}
         </select>
       </label>
-      <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+      <label className="flex flex-col gap-1 text-sm text-muted-foreground">
         Source
         <select
-          className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm"
+          className="h-8 rounded-lg border border-input bg-transparent px-2 text-base"
           value={filters.source}
           onChange={(e) => setFilter({ source: e.target.value })}
         >
@@ -239,10 +239,10 @@ export function LogViewer({ initialUnit }: { initialUnit?: string }) {
           ))}
         </select>
       </label>
-      <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+      <label className="flex flex-col gap-1 text-sm text-muted-foreground">
         Unit
         <select
-          className="h-8 max-w-40 rounded-lg border border-input bg-transparent px-2 text-sm"
+          className="h-8 max-w-40 rounded-lg border border-input bg-transparent px-2 text-base"
           value={filters.unit}
           onChange={(e) => setFilter({ unit: e.target.value })}
         >
@@ -254,10 +254,10 @@ export function LogViewer({ initialUnit }: { initialUnit?: string }) {
           ))}
         </select>
       </label>
-      <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+      <label className="flex flex-col gap-1 text-sm text-muted-foreground">
         Severity ≤
         <select
-          className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm"
+          className="h-8 rounded-lg border border-input bg-transparent px-2 text-base"
           value={filters.maxSeverity}
           onChange={(e) => setFilter({ maxSeverity: e.target.value })}
         >
@@ -316,13 +316,13 @@ export function LogViewer({ initialUnit }: { initialUnit?: string }) {
       </div>
 
       {error && (
-        <p className="text-xs text-status-down">Log query failed: {error}</p>
+        <p className="text-sm text-status-down">Log query failed: {error}</p>
       )}
 
       <div
         ref={scrollRef}
         onScroll={onScroll}
-        className="flex-1 overflow-auto rounded-xl border border-border/60 bg-background/60 font-mono text-xs"
+        className="flex-1 overflow-auto rounded-xl border border-border/60 bg-background/60 font-mono text-sm"
       >
         {rows.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 py-24 text-center text-muted-foreground">

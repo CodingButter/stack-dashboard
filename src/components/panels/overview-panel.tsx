@@ -41,7 +41,7 @@ export function OverviewPanel() {
 
   if (!data) {
     return (
-      <div className="flex flex-1 items-center justify-center py-24 text-sm text-muted-foreground">
+      <div className="flex flex-1 items-center justify-center py-24 text-base text-muted-foreground">
         {error ? `Failed to load: ${error}` : "Loading panels…"}
       </div>
     );
@@ -70,7 +70,7 @@ export function OverviewPanel() {
         {/* Storage tiers */}
         <PanelCard title="Storage tiers" subsystem="storage">
           {data.tiers.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">
+            <p className="py-6 text-center text-base text-muted-foreground">
               No agent data yet
             </p>
           ) : (
@@ -86,7 +86,7 @@ export function OverviewPanel() {
               ))}
             </div>
           )}
-          <p className="mt-3 text-center text-xs text-muted-foreground">
+          <p className="mt-3 text-center text-sm text-muted-foreground">
             valve thresholds 80% / 90% · tier-mover runs nightly 05:30
           </p>
         </PanelCard>
@@ -94,7 +94,7 @@ export function OverviewPanel() {
         {/* Service health grid */}
         <PanelCard title="Service health" subsystem="alerts">
           {data.services.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">
+            <p className="py-6 text-center text-base text-muted-foreground">
               No polls recorded yet
             </p>
           ) : (
@@ -109,7 +109,7 @@ export function OverviewPanel() {
                     label={SERVICE_LABELS[s.service] ?? s.service}
                     className="border-0 bg-transparent px-0"
                   />
-                  <span className="stat-num text-xs text-muted-foreground">
+                  <span className="stat-num text-sm text-muted-foreground">
                     {s.ok ? `${s.latencyMs ?? 0} ms` : `down · ${formatAgo(s.polledAt)}`}
                   </span>
                 </div>
@@ -122,26 +122,26 @@ export function OverviewPanel() {
       {/* NAS vitals */}
       <PanelCard title="NAS vitals" subsystem="machines">
         {!v ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">
+          <p className="py-6 text-center text-base text-muted-foreground">
             NAS agent unreachable — no vitals snapshot
           </p>
         ) : (
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             <div>
               <div className="flex items-baseline justify-between">
-                <span className="text-xs text-muted-foreground">CPU</span>
-                <span className="stat-num text-sm">{v.cpuBusy.toFixed(1)}%</span>
+                <span className="text-sm text-muted-foreground">CPU</span>
+                <span className="stat-num text-base">{v.cpuBusy.toFixed(1)}%</span>
               </div>
               <SparkLine data={values(v.cpuSeries)} color="var(--accent-machines)" />
             </div>
             <div data-warn={v.iowait > IOWAIT_WARN_PCT}>
               <div className="flex items-baseline justify-between">
-                <span className="text-xs text-muted-foreground">iowait</span>
+                <span className="text-sm text-muted-foreground">iowait</span>
                 <span
                   className={
                     v.iowait > IOWAIT_WARN_PCT
-                      ? "stat-num text-sm font-bold text-status-down"
-                      : "stat-num text-sm"
+                      ? "stat-num text-base font-bold text-status-down"
+                      : "stat-num text-base"
                   }
                 >
                   {v.iowait.toFixed(1)}%
@@ -154,8 +154,8 @@ export function OverviewPanel() {
             </div>
             <div>
               <div className="flex items-baseline justify-between">
-                <span className="text-xs text-muted-foreground">Memory</span>
-                <span className="stat-num text-sm">{v.memUsedPct.toFixed(1)}%</span>
+                <span className="text-sm text-muted-foreground">Memory</span>
+                <span className="stat-num text-base">{v.memUsedPct.toFixed(1)}%</span>
               </div>
               <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
                 <div
@@ -163,7 +163,7 @@ export function OverviewPanel() {
                   style={{ width: `${Math.min(100, v.memUsedPct)}%` }}
                 />
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-1 text-sm text-muted-foreground">
                 swap {v.swapUsedPct.toFixed(1)}% · load {v.load1.toFixed(2)}
               </p>
             </div>
@@ -180,7 +180,7 @@ export function OverviewPanel() {
           </div>
         )}
         {v ? (
-          <p className="mt-3 text-right text-xs text-muted-foreground">
+          <p className="mt-3 text-right text-sm text-muted-foreground">
             bcache hit {v.bcacheHitPct.toFixed(1)}% · D-state {v.dstate} ·{" "}
             {v.failedUnits} failed units · updated {formatAgo(v.polledAt)}
           </p>

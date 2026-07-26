@@ -17,7 +17,7 @@ export function DownloadsPanel() {
 
   if (!data) {
     return (
-      <div className="flex flex-1 items-center justify-center py-24 text-sm text-muted-foreground">
+      <div className="flex flex-1 items-center justify-center py-24 text-base text-muted-foreground">
         {error ? `Failed to load: ${error}` : "Loading downloads…"}
       </div>
     );
@@ -81,7 +81,7 @@ export function DownloadsPanel() {
                 actionId={sab.paused ? "sab.resume-queue" : "sab.pause-queue"}
                 target="queue"
                 size="sm"
-                className="h-7 px-2 text-xs"
+                className="h-7 px-2 text-sm"
               >
                 {sab.paused ? "Resume" : "Pause"}
               </ActionButton>
@@ -89,10 +89,10 @@ export function DownloadsPanel() {
           }
         >
           {!sab ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">No SAB data</p>
+            <p className="py-6 text-center text-base text-muted-foreground">No SAB data</p>
           ) : (
             <>
-              <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+              <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                 <span>
                   status <span className="stat-num text-foreground">{sab.status}</span>
                 </span>
@@ -111,14 +111,14 @@ export function DownloadsPanel() {
                 </span>
               </div>
               {sab.jobs.length === 0 ? (
-                <p className="py-4 text-center text-sm text-muted-foreground">
+                <p className="py-4 text-center text-base text-muted-foreground">
                   Queue empty
                 </p>
               ) : (
                 <div className="flex flex-col gap-2">
                   {sab.jobs.slice(0, 8).map((j, i) => (
                     <div key={i} className="flex flex-col gap-1">
-                      <div className="flex items-center justify-between gap-2 text-xs">
+                      <div className="flex items-center justify-between gap-2 text-sm">
                         <span className="truncate">{j.name}</span>
                         <span className="stat-num shrink-0 text-muted-foreground">
                           {j.percent.toFixed(0)}% · {j.timeLeft}
@@ -135,7 +135,7 @@ export function DownloadsPanel() {
                 </div>
               )}
               {sab.totals ? (
-                <p className="mt-3 text-right text-xs text-muted-foreground">
+                <p className="mt-3 text-right text-sm text-muted-foreground">
                   today {formatBytes(sab.totals.day)} · week {formatBytes(sab.totals.week)}{" "}
                   · month {formatBytes(sab.totals.month)}
                 </p>
@@ -150,10 +150,10 @@ export function DownloadsPanel() {
           actions={
             qb ? (
               <div className="flex gap-1.5">
-                <ActionButton actionId="qbit.pause-all" target="all" size="sm" className="h-7 px-2 text-xs">
+                <ActionButton actionId="qbit.pause-all" target="all" size="sm" className="h-7 px-2 text-sm">
                   Pause all
                 </ActionButton>
-                <ActionButton actionId="qbit.resume-all" target="all" size="sm" className="h-7 px-2 text-xs">
+                <ActionButton actionId="qbit.resume-all" target="all" size="sm" className="h-7 px-2 text-sm">
                   Resume all
                 </ActionButton>
               </div>
@@ -161,12 +161,12 @@ export function DownloadsPanel() {
           }
         >
           {!qb ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">
+            <p className="py-6 text-center text-base text-muted-foreground">
               qBittorrent unreachable
             </p>
           ) : (
             <>
-              <dl className="grid grid-cols-3 gap-x-4 gap-y-2 text-sm">
+              <dl className="grid grid-cols-3 gap-x-4 gap-y-2 text-base">
                 <Stat label="Total" value={qb.total} />
                 <Stat label="Downloading" value={qb.downloading} />
                 <Stat label="Seeding" value={qb.seeding} />
@@ -181,7 +181,7 @@ export function DownloadsPanel() {
                     .map(([cat, n]) => (
                       <span
                         key={cat || "(none)"}
-                        className="rounded-full border border-border/60 bg-background/40 px-2 py-0.5 text-xs text-muted-foreground"
+                        className="rounded-full border border-border/60 bg-background/40 px-2 py-0.5 text-sm text-muted-foreground"
                       >
                         {cat || "uncategorized"}{" "}
                         <span className="stat-num text-foreground">{n}</span>
@@ -236,8 +236,8 @@ function Stat({
 }) {
   return (
     <div className="flex items-baseline justify-between gap-2">
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className={warn ? "stat-num text-sm font-bold text-status-down" : "stat-num text-sm"}>
+      <dt className="text-sm text-muted-foreground">{label}</dt>
+      <dd className={warn ? "stat-num text-base font-bold text-status-down" : "stat-num text-base"}>
         {value}
       </dd>
     </div>

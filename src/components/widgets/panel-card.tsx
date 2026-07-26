@@ -44,7 +44,7 @@ export function PanelCard({
         />
       ) : null}
       <header className="flex items-center justify-between gap-2 border-b border-border px-4 py-2.5">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           {title}
         </h3>
         {actions}

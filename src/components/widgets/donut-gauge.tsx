@@ -91,11 +91,11 @@ export function DonutGauge({
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="stat-num text-xl font-semibold">{Math.round(clamped)}%</span>
         {sublabel ? (
-          <span className="text-[10px] text-muted-foreground">{sublabel}</span>
+          <span className="text-sm text-muted-foreground">{sublabel}</span>
         ) : null}
       </div>
       {label ? (
-        <span className="mt-1.5 text-xs text-muted-foreground">{label}</span>
+        <span className="mt-1.5 text-sm text-muted-foreground">{label}</span>
       ) : null}
     </div>
   );

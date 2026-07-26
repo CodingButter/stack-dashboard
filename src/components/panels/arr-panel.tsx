@@ -20,7 +20,7 @@ export function ArrPanel() {
 
   if (!data) {
     return (
-      <div className="flex flex-1 items-center justify-center py-24 text-sm text-muted-foreground">
+      <div className="flex flex-1 items-center justify-center py-24 text-base text-muted-foreground">
         {error ? `Failed to load: ${error}` : "Loading arr stack…"}
       </div>
     );
@@ -35,12 +35,12 @@ export function ArrPanel() {
 
       <PanelCard title="Prowlarr indexers" subsystem="downloads">
         {!data.prowlarr ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">
+          <p className="py-6 text-center text-base text-muted-foreground">
             No Prowlarr data
           </p>
         ) : (
           <>
-            <p className="mb-3 text-xs text-muted-foreground">
+            <p className="mb-3 text-sm text-muted-foreground">
               {data.prowlarr.enabled} of {data.prowlarr.total} enabled
             </p>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -58,7 +58,7 @@ export function ArrPanel() {
                         className="border-0 bg-transparent px-0"
                       />
                       <span className="flex items-center gap-1.5">
-                        <span className="text-xs uppercase text-muted-foreground">
+                        <span className="text-sm uppercase text-muted-foreground">
                           {ix.protocol} · {ix.privacy}
                         </span>
                         <ActionButton
@@ -66,14 +66,14 @@ export function ArrPanel() {
                           params={{ indexerId: ix.id }}
                           target={`indexer-${ix.id}`}
                           size="sm"
-                          className="h-6 px-1.5 text-xs"
+                          className="h-6 px-1.5 text-sm"
                         >
                           Test
                         </ActionButton>
                       </span>
                     </div>
                     {limited ? (
-                      <span className="text-xs text-status-degraded">
+                      <span className="text-sm text-status-degraded">
                         rate-limited until {formatAgo(ix.disabledTill).replace(" ago", "")}{" "}
                         from now{ix.failure ? ` · ${ix.failure}` : ""}
                       </span>
@@ -88,11 +88,11 @@ export function ArrPanel() {
 
       <PanelCard title="Seerr requests" subsystem="plex">
         {!data.seerr ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">
+          <p className="py-6 text-center text-base text-muted-foreground">
             No Seerr data
           </p>
         ) : (
-          <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-3 lg:grid-cols-6">
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-base sm:grid-cols-3 lg:grid-cols-6">
             <Stat label="Total" value={data.seerr.total} />
             <Stat label="Pending" value={data.seerr.pending} warn={data.seerr.pending > 0} />
             <Stat label="Approved" value={data.seerr.approved} />
@@ -121,19 +121,19 @@ function ArrAppCard({ name, app }: { name: string; app: Arr["sonarr"] }) {
           actionId={`${service}.search-missing`}
           target="missing"
           size="sm"
-          className="h-7 px-2 text-xs"
+          className="h-7 px-2 text-sm"
         >
           Search missing
         </ActionButton>
       }
     >
       {!app ? (
-        <p className="py-6 text-center text-sm text-muted-foreground">
+        <p className="py-6 text-center text-base text-muted-foreground">
           No {name} data
         </p>
       ) : (
         <>
-          <dl className="grid grid-cols-3 gap-x-4 gap-y-2 text-sm">
+          <dl className="grid grid-cols-3 gap-x-4 gap-y-2 text-base">
             <Stat label="Queue" value={app.queue.total} />
             <Stat label="Downloading" value={app.queue.downloading} />
             <Stat label="Queued" value={app.queue.queued} />
@@ -145,7 +145,7 @@ function ArrAppCard({ name, app }: { name: string; app: Arr["sonarr"] }) {
             />
             <Stat label="Errored" value={app.queue.errored} warn={app.queue.errored > 0} />
           </dl>
-          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
             <span>
               health:{" "}
               <span
@@ -186,8 +186,8 @@ function Stat({
 }) {
   return (
     <div className="flex items-baseline justify-between gap-2">
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className={warn ? "stat-num text-sm font-bold text-status-degraded" : "stat-num text-sm"}>
+      <dt className="text-sm text-muted-foreground">{label}</dt>
+      <dd className={warn ? "stat-num text-base font-bold text-status-degraded" : "stat-num text-base"}>
         {value}
       </dd>
     </div>

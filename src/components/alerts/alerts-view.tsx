@@ -89,7 +89,7 @@ export function AlertsView({
         {active.length === 0 ? (
           <div className="flex flex-col items-center gap-2 py-10 text-center">
             <CheckCircle2 className="size-7 text-status-up" />
-            <p className="text-sm text-muted-foreground">
+            <p className="text-base text-muted-foreground">
               All clear — nothing is breaching.
             </p>
           </div>
@@ -116,20 +116,20 @@ export function AlertsView({
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     {severityBadge(a.severity)}
-                    <span className="font-mono text-xs text-muted-foreground">
+                    <span className="font-mono text-sm text-muted-foreground">
                       {a.ruleId}
                     </span>
-                    <span className="font-mono text-xs text-foreground">
+                    <span className="font-mono text-sm text-foreground">
                       {a.target}
                     </span>
                     {a.acked && (
-                      <Badge variant="outline" className="gap-1 text-[10px]">
+                      <Badge variant="outline" className="gap-1 text-sm">
                         <BellOff className="size-3" /> acked
                       </Badge>
                     )}
                   </div>
-                  <p className="mt-1 text-sm">{a.message}</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground/70">
+                  <p className="mt-1 text-base">{a.message}</p>
+                  <p className="mt-0.5 text-sm text-muted-foreground/70">
                     first seen {ago(a.firstSeen, now)} ago · last {ago(a.lastSeen, now)} ago
                   </p>
                 </div>
@@ -151,12 +151,12 @@ export function AlertsView({
 
       <PanelCard title={`Recently resolved (${resolved.length})`} subsystem="machines">
         {resolved.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">
+          <p className="py-6 text-center text-base text-muted-foreground">
             No resolved alerts yet.
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-border text-muted-foreground">
                   <th className="py-2 pr-3 font-medium">severity</th>

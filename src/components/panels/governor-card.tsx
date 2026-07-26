@@ -45,7 +45,7 @@ export function GovernorCard({ governor }: { governor: TdarrPanel["governor"] })
   if (!governor) {
     return (
       <PanelCard title="I/O Governor" subsystem="tdarr">
-        <p className="py-4 text-center text-sm text-muted-foreground">
+        <p className="py-4 text-center text-base text-muted-foreground">
           Governor status unavailable — the NAS gate hasn&apos;t reported yet.
         </p>
       </PanelCard>
@@ -59,11 +59,11 @@ export function GovernorCard({ governor }: { governor: TdarrPanel["governor"] })
         <div className="rounded-md border border-status-down/40 bg-status-down/10 px-3 py-3">
           <div className="flex items-center gap-2">
             <span className="size-2 rounded-full bg-status-down" />
-            <span className="text-sm font-semibold text-status-down">
+            <span className="text-base font-semibold text-status-down">
               NOT RUNNING
             </span>
           </div>
-          <p className="mt-1.5 text-xs text-muted-foreground">
+          <p className="mt-1.5 text-sm text-muted-foreground">
             The tdarr-gate service is stopped or wedged (last report{" "}
             {ageLabel(governor.ageSecs)}). Transcodes may collide with Plex
             streams until it recovers.
@@ -83,23 +83,23 @@ export function GovernorCard({ governor }: { governor: TdarrPanel["governor"] })
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className={cn("size-2 rounded-full", m.dot, "animate-pulse")} />
-              <span className={cn("text-sm font-semibold", m.text)}>
+              <span className={cn("text-base font-semibold", m.text)}>
                 {m.label}
               </span>
               {governor.frozen ? (
-                <span className="rounded bg-accent-streams/20 px-1.5 py-0.5 text-[11px] font-medium text-accent-streams">
+                <span className="rounded bg-accent-streams/20 px-1.5 py-0.5 text-sm font-medium text-accent-streams">
                   ❄ frozen
                 </span>
               ) : null}
             </div>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-sm text-muted-foreground">
               updated {ageLabel(governor.ageSecs)}
             </span>
           </div>
-          <p className="mt-1.5 text-xs text-muted-foreground">{m.blurb}</p>
+          <p className="mt-1.5 text-sm text-muted-foreground">{m.blurb}</p>
         </div>
 
-        <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
+        <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-base sm:grid-cols-3">
           <Stat label="Active streams" value={String(governor.activeStreams)} />
           <Stat
             label="Stream bandwidth"
@@ -126,7 +126,7 @@ export function GovernorCard({ governor }: { governor: TdarrPanel["governor"] })
         </dl>
 
         {paused.length > 0 ? (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Paused by governor:{" "}
             <span className="font-medium text-status-degraded">
               {paused.join(", ")}
@@ -141,7 +141,7 @@ export function GovernorCard({ governor }: { governor: TdarrPanel["governor"] })
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col">
-      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dt className="text-sm text-muted-foreground">{label}</dt>
       <dd className="stat-num truncate font-medium">{value}</dd>
     </div>
   );

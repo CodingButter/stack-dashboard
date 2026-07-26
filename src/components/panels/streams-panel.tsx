@@ -15,7 +15,7 @@ export function StreamsPanel() {
 
   if (!data) {
     return (
-      <div className="flex flex-1 items-center justify-center py-24 text-sm text-muted-foreground">
+      <div className="flex flex-1 items-center justify-center py-24 text-base text-muted-foreground">
         {error ? `Failed to load: ${error}` : "Loading streams…"}
       </div>
     );
@@ -61,7 +61,7 @@ export function StreamsPanel() {
 
       <PanelCard title="Now playing" subsystem="plex">
         {!p || p.sessions.length === 0 ? (
-          <p className="py-8 text-center text-sm text-muted-foreground">
+          <p className="py-8 text-center text-base text-muted-foreground">
             Nothing playing right now
           </p>
         ) : (
@@ -72,18 +72,18 @@ export function StreamsPanel() {
                 className="flex flex-col gap-1.5 rounded-md border border-border/60 bg-background/40 px-3 py-2"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="truncate text-sm font-medium">{s.title}</span>
+                  <span className="truncate text-base font-medium">{s.title}</span>
                   <span
                     className={
                       s.decision === "transcode"
-                        ? "shrink-0 rounded bg-status-degraded/15 px-1.5 py-0.5 text-xs font-semibold uppercase text-status-degraded"
-                        : "shrink-0 rounded bg-status-up/15 px-1.5 py-0.5 text-xs font-semibold uppercase text-status-up"
+                        ? "shrink-0 rounded bg-status-degraded/15 px-1.5 py-0.5 text-sm font-semibold uppercase text-status-degraded"
+                        : "shrink-0 rounded bg-status-up/15 px-1.5 py-0.5 text-sm font-semibold uppercase text-status-up"
                     }
                   >
                     {s.decision === "transcode" ? "transcode" : "direct"}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
                   <span className="truncate">
                     {s.user} · {s.player} · {s.state}
                   </span>
@@ -98,7 +98,7 @@ export function StreamsPanel() {
                         target={s.sessionId}
                         variant="destructive"
                         size="sm"
-                        className="h-6 px-1.5 text-xs"
+                        className="h-6 px-1.5 text-sm"
                       >
                         Terminate
                       </ActionButton>
@@ -120,11 +120,11 @@ export function StreamsPanel() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <PanelCard title="Tautulli breakdown" subsystem="plex">
           {!t ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">
+            <p className="py-6 text-center text-base text-muted-foreground">
               No Tautulli data
             </p>
           ) : (
-            <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
+            <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-base sm:grid-cols-3">
               <Stat label="Streams" value={t.streamCount} />
               <Stat label="Direct play" value={t.directPlay} />
               <Stat label="Direct stream" value={t.directStream} />
@@ -141,7 +141,7 @@ export function StreamsPanel() {
             color="var(--accent-plex)"
             height={96}
           />
-          <p className="mt-2 text-right text-xs text-muted-foreground">
+          <p className="mt-2 text-right text-sm text-muted-foreground">
             sessions · last hour
           </p>
         </PanelCard>
@@ -157,8 +157,8 @@ export function StreamsPanel() {
 function Stat({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="flex items-baseline justify-between gap-2">
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="stat-num text-sm">{value}</dd>
+      <dt className="text-sm text-muted-foreground">{label}</dt>
+      <dd className="stat-num text-base">{value}</dd>
     </div>
   );
 }

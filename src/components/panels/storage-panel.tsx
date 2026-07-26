@@ -15,7 +15,7 @@ export function StoragePanel() {
 
   if (!data) {
     return (
-      <div className="flex flex-1 items-center justify-center py-24 text-sm text-muted-foreground">
+      <div className="flex flex-1 items-center justify-center py-24 text-base text-muted-foreground">
         {error ? `Failed to load: ${error}` : "Loading storage…"}
       </div>
     );
@@ -25,7 +25,7 @@ export function StoragePanel() {
     <div className="flex flex-col gap-4">
       <PanelCard title="Tiers" subsystem="storage">
         {data.tiers.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">
+          <p className="py-6 text-center text-base text-muted-foreground">
             No agent data yet
           </p>
         ) : (
@@ -41,7 +41,7 @@ export function StoragePanel() {
             ))}
           </div>
         )}
-        <p className="mt-3 text-center text-xs text-muted-foreground">
+        <p className="mt-3 text-center text-sm text-muted-foreground">
           hot NVMe /volume2 → cold RAID5+bcache /volume1 · valve 80% / 90% ·
           tier-mover nightly 05:30
         </p>
@@ -68,7 +68,7 @@ export function StoragePanel() {
             color="var(--accent-machines)"
             height={72}
           />
-          <p className="mt-1 text-right text-xs text-muted-foreground">
+          <p className="mt-1 text-right text-sm text-muted-foreground">
             now{" "}
             <span className="stat-num text-foreground">
               {data.bcacheHitPct === null ? "—" : `${data.bcacheHitPct.toFixed(1)}%`}
@@ -80,7 +80,7 @@ export function StoragePanel() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <PanelCard title="Disk utilization" subsystem="storage">
           {data.disks.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">No disk data</p>
+            <p className="py-6 text-center text-base text-muted-foreground">No disk data</p>
           ) : (
             <div className="flex flex-col gap-2">
               {data.disks
@@ -88,7 +88,7 @@ export function StoragePanel() {
                 .sort((a, b) => b.utilPct - a.utilPct)
                 .map((d) => (
                   <div key={d.device} className="flex items-center gap-3">
-                    <span className="stat-num w-20 shrink-0 text-xs">{d.device}</span>
+                    <span className="stat-num w-20 shrink-0 text-sm">{d.device}</span>
                     <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
                       <div
                         className={
@@ -101,7 +101,7 @@ export function StoragePanel() {
                         style={{ width: `${Math.min(100, d.utilPct)}%` }}
                       />
                     </div>
-                    <span className="stat-num w-24 shrink-0 text-right text-xs text-muted-foreground">
+                    <span className="stat-num w-24 shrink-0 text-right text-sm text-muted-foreground">
                       {d.utilPct.toFixed(1)}% · {d.awaitMs.toFixed(1)} ms
                     </span>
                   </div>
@@ -112,7 +112,7 @@ export function StoragePanel() {
 
         <PanelCard title="SMART" subsystem="storage">
           {data.smart.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">
+            <p className="py-6 text-center text-base text-muted-foreground">
               No SMART data
             </p>
           ) : (
@@ -120,11 +120,11 @@ export function StoragePanel() {
               {data.smart.map((d) => (
                 <div
                   key={d.device}
-                  className="flex items-center justify-between gap-2 rounded-md border border-border/60 bg-background/40 px-2.5 py-2 text-xs"
+                  className="flex items-center justify-between gap-2 rounded-md border border-border/60 bg-background/40 px-2.5 py-2 text-sm"
                 >
                   <div className="min-w-0">
                     <p className="stat-num truncate">{d.device}</p>
-                    <p className="truncate text-xs text-muted-foreground">{d.model}</p>
+                    <p className="truncate text-sm text-muted-foreground">{d.model}</p>
                   </div>
                   <div className="shrink-0 text-right">
                     <p
@@ -138,7 +138,7 @@ export function StoragePanel() {
                     >
                       {d.healthy === null ? "unknown" : d.healthy ? "healthy" : "FAILING"}
                     </p>
-                    <p className="stat-num text-xs text-muted-foreground">
+                    <p className="stat-num text-sm text-muted-foreground">
                       {d.temperatureC !== null ? `${d.temperatureC}°C · ` : ""}
                       {d.powerOnHours !== null
                         ? `${Math.round(d.powerOnHours / 24)}d on`
@@ -161,7 +161,7 @@ export function StoragePanel() {
             {data.rootFolders.map((rf) => (
               <div
                 key={`${rf.app}:${rf.path}`}
-                className="flex items-center justify-between gap-2 rounded-md border border-border/60 bg-background/40 px-2.5 py-2 text-xs"
+                className="flex items-center justify-between gap-2 rounded-md border border-border/60 bg-background/40 px-2.5 py-2 text-sm"
               >
                 <span className="truncate">
                   <span className="uppercase text-muted-foreground">{rf.app}</span>{" "}

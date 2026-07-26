@@ -30,7 +30,7 @@ export function TrackerStrip({
   return (
     <div className={cn("space-y-1.5", className)}>
       {label ? (
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
           <span>{label}</span>
           <span className="stat-num">
             {data.length > 0

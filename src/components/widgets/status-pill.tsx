@@ -23,7 +23,7 @@ export function StatusPill({
     <span
       data-status={status}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2 py-0.5 text-xs font-medium",
+        "inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2 py-0.5 text-sm font-medium",
         s.text,
         className,
       )}

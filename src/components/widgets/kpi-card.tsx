@@ -35,12 +35,12 @@ export function KpiCard({
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        <span className="text-xs font-medium text-muted-foreground">{label}</span>
+        <span className="text-sm font-medium text-muted-foreground">{label}</span>
         {delta ? (
           <span
             data-direction={deltaDirection}
             className={cn(
-              "rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
+              "rounded-full px-1.5 py-0.5 text-sm font-semibold",
               deltaColor,
             )}
           >
@@ -50,7 +50,7 @@ export function KpiCard({
       </div>
       <div className="mt-1 flex items-baseline gap-1">
         <span className="stat-num text-2xl font-semibold">{value}</span>
-        {unit ? <span className="text-xs text-muted-foreground">{unit}</span> : null}
+        {unit ? <span className="text-sm text-muted-foreground">{unit}</span> : null}
       </div>
       {spark ? <div className="mt-2">{spark}</div> : null}
     </div>

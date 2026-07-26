@@ -68,7 +68,7 @@ export function LiveTicker({
           </LineChart>
         </ResponsiveContainer>
       </div>
-      <div className="mt-1 flex gap-3 text-[10px] text-muted-foreground">
+      <div className="mt-1 flex gap-3 text-sm text-muted-foreground">
         {series.map((s) => (
           <span key={s.name} className="inline-flex items-center gap-1">
             <span
