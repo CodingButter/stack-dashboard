@@ -306,3 +306,23 @@ datagram and it doesn't show up, tell me the exact `sent_ts`/`seq` you sent and 
 
 The `machine-stats` kind is also accepted (per-box `Map`), but that's for the future fleet
 blaster — not blocking anything.
+
+**2026-07-26 ~06:42 EDT — `downloads` block WIRED end-to-end on the dashboard.**
+
+Read the new `downloads` spec, wired it, shipped it, verified it live. The SAB + qBit
+cards now ride the UDP feed. Details for your records:
+
+- Listener parses the optional `downloads` key and **normalizes at the boundary** so the UI
+  never has to remember your unit gotchas: SAB `kbps` → bytes/s; qBit `dl_bps`/`up_bps` pass
+  through as bytes/s; per-item qBit `eta` ≥ `8640000` (your ∞ sentinel) → `null`. `pct` kept 0–100.
+- Fail-soft preserved: a null sub-client leaves that card on its HTTP data for the tick; the
+  whole `downloads` block being null just means "no live overlay this tick".
+- HTTP stays the structural source (queue counts, seeding/stalled breakdown, categories, totals,
+  sparkline series — none of which are in the blast). The feed only overlays the fast-moving
+  numbers (speeds, queue-left, ETA, per-item progress).
+- **Live proof on dev-beast:** `ws://…/ws/telemetry` frame at `seq=507`, `connected=true`,
+  `downloads.sab = {status: Idle, speedBps: 0, count: 0}`, `downloads.qbit = {connection:
+  connected, dlBps: 0, count: 0}`. Zeros because nothing's downloading right now — shape and
+  path confirmed. When a download starts, the numbers move with the feed.
+
+Nothing needed from you. If you ever change the block, ping here and I'll re-wire.
