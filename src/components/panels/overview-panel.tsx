@@ -31,6 +31,21 @@ function values(points: Point[]): number[] {
   return points.map((p) => Math.round(p.v * 10) / 10);
 }
 
+/** A single vitals metric boxed on its own so the four graphs don't blur together. */
+function VitalTile({ children, warn }: { children: React.ReactNode; warn?: boolean }) {
+  return (
+    <div
+      className={
+        warn
+          ? "rounded-lg border border-status-down/40 bg-status-down/5 p-3"
+          : "rounded-lg border border-border bg-muted/20 p-3"
+      }
+    >
+      {children}
+    </div>
+  );
+}
+
 export function serviceToPill(s: ServiceHealth): "up" | "degraded" | "down" {
   if (!s.ok) return "down";
   if ((s.latencyMs ?? 0) > 2000) return "degraded";
@@ -129,14 +144,14 @@ export function OverviewPanel() {
           </p>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
+            <VitalTile>
               <div className="flex items-baseline justify-between">
                 <span className="flex items-center gap-1 text-sm text-muted-foreground">CPU<InfoDot term="cpu" /></span>
                 <span className="stat-num text-base">{v.cpuBusy.toFixed(1)}%</span>
               </div>
               <SparkLine data={values(v.cpuSeries)} height={64} color="var(--accent-machines)" />
-            </div>
-            <div data-warn={v.iowait > IOWAIT_WARN_PCT}>
+            </VitalTile>
+            <VitalTile warn={v.iowait > IOWAIT_WARN_PCT}>
               <div className="flex items-baseline justify-between">
                 <span className="flex items-center gap-1 text-sm text-muted-foreground">iowait<InfoDot term="iowait" /></span>
                 <span
@@ -154,8 +169,8 @@ export function OverviewPanel() {
                 height={64}
                 color={v.iowait > IOWAIT_WARN_PCT ? "var(--status-down)" : "var(--accent-storage)"}
               />
-            </div>
-            <div>
+            </VitalTile>
+            <VitalTile>
               <div className="flex items-baseline justify-between">
                 <span className="flex items-center gap-1 text-sm text-muted-foreground">Memory<InfoDot term="memory" /></span>
                 <span className="stat-num text-base">{v.memUsedPct.toFixed(1)}%</span>
@@ -170,8 +185,12 @@ export function OverviewPanel() {
                 swap {v.swapUsedPct.toFixed(1)}% · load {v.load1.toFixed(2)}
                 <InfoDot term="load" />
               </p>
-            </div>
-            <div>
+            </VitalTile>
+            <VitalTile>
+              <div className="flex items-baseline justify-between">
+                <span className="flex items-center gap-1 text-sm text-muted-foreground">Network<InfoDot term="throughput" /></span>
+                <span className="stat-num text-base">{v.netRxSeries.at(-1)?.v.toFixed(1) ?? "0.0"} / {v.netTxSeries.at(-1)?.v.toFixed(1) ?? "0.0"} MB/s</span>
+              </div>
               <LiveTicker
                 unit="MB/s"
                 height={64}
@@ -180,7 +199,7 @@ export function OverviewPanel() {
                   { name: "tx", color: "var(--accent-plex)", data: values(v.netTxSeries) },
                 ]}
               />
-            </div>
+            </VitalTile>
           </div>
         )}
         {v ? (
