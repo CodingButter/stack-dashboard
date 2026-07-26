@@ -54,7 +54,7 @@ export function serviceToPill(s: ServiceHealth): "up" | "degraded" | "down" {
 }
 
 export function OverviewPanel() {
-  const { data, error } = usePanelData<Overview>("/api/panels/overview");
+  const { data, error } = usePanelData<Overview>("/api/panels/overview", 5_000);
 
   if (!data) {
     return (

@@ -12,7 +12,7 @@ import { ProgressBar } from '@/components/widgets/progress-bar';
 const LABELS = { agent: "NAS agent" };
 
 export function StoragePanel() {
-  const { data, error } = usePanelData<Storage>("/api/panels/storage");
+  const { data, error } = usePanelData<Storage>("/api/panels/storage", 6_000);
 
   if (!data) {
     return (

@@ -12,13 +12,19 @@ import { InfoDot } from "@/components/widgets/info-dot";
 import { ActionButton } from '@/components/actions/action-button';
 import { workerStage } from "@/lib/panels/tdarr-stage";
 import { ProgressBar } from '@/components/widgets/progress-bar';
+import { useGovernorTelemetry } from "@/components/telemetry/telemetry-provider";
+import { LiveBadge } from "@/components/telemetry/live-badge";
+import { mergeGovernor } from "@/lib/panels/governor-merge";
 
 const LABELS = { tdarr: "Tdarr server" };
 
 export function TdarrPanel() {
   // Tdarr transcode progress moves fast — poll harder than the default 12 s so
   // the bars/percent tick smoothly (server poller writes fresh snapshots every 10 s).
-  const { data, error } = usePanelData<TdarrData>("/api/panels/tdarr", 6_000);
+  const { data, error } = usePanelData<TdarrData>("/api/panels/tdarr", 4_000);
+  // Live governor push (2 Hz over WebSocket). When the feed is up it overrides
+  // the HTTP-polled governor slice; otherwise we fall back to the HTTP snapshot.
+  const { live, governor: liveGovernor } = useGovernorTelemetry();
 
   if (!data) {
     return (
@@ -29,8 +35,12 @@ export function TdarrPanel() {
   }
 
   const s = data.stats;
+  // Prefer the pushed governor when the live feed is connected; fall back to the
+  // HTTP-polled snapshot otherwise. (mergeGovernor recomputes `ageSecs` for the
+  // push payload so the shapes match.)
+  const governor = mergeGovernor(live, liveGovernor, data.governor);
   const govNodes = new Map(
-    (data.governor?.running ? data.governor.nodes : []).map((n) => [n.name, n]),
+    (governor?.running ? governor.nodes : []).map((n) => [n.name, n]),
   );
 
   return (
@@ -62,7 +72,12 @@ export function TdarrPanel() {
         />
       </div>
 
-      <GovernorCard governor={data.governor} />
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-end">
+          <LiveBadge live={live} />
+        </div>
+        <GovernorCard governor={governor} />
+      </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {data.nodes.length === 0 ? (

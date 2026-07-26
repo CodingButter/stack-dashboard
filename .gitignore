@@ -29,3 +29,6 @@ yarn-error.log*
 # python
 __pycache__/
 *.pyc
+
+# custom server bundle (built at deploy time)
+/dist-server/

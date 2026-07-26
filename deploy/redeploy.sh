@@ -38,6 +38,13 @@ pnpm install --frozen-lockfile --prod=false
 echo ">> next build (standalone)"
 pnpm build
 
+# Bundle the custom server entry (owns the UDP socket + WebSocket fan-out) to a
+# single ESM file with `ws` + app code inlined. Only `next` stays external, and
+# it resolves from the traced standalone node_modules. This REPLACES the stock
+# server.js as the ExecStart target (see stackdash-web.service).
+echo ">> bundle custom server (server.mjs)"
+node scripts/build-server.mjs
+
 # The standalone server needs the static assets and public/ beside it.
 # IMPORTANT: replace (don't nest). `cp -r src dst` when dst exists copies INTO
 # dst, producing .next/standalone/.next/static/static/... — the standalone
@@ -50,6 +57,11 @@ rm -rf .next/standalone/.next/static
 mkdir -p .next/standalone/.next
 cp -r .next/static .next/standalone/.next/static
 if [ -d public ]; then rm -rf .next/standalone/public && cp -r public .next/standalone/public; fi
+
+# Drop the custom server into the standalone tree next to the stock server.js.
+# The unit's ExecStart runs server.mjs; server.js is left in place as a fallback.
+echo ">> install custom server.mjs into standalone"
+cp dist-server/server.mjs .next/standalone/server.mjs
 
 echo ">> drizzle migrate"
 pnpm exec drizzle-kit migrate

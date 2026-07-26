@@ -242,7 +242,7 @@ function MachineCard({ m }: { m: Machine }) {
 }
 
 export function MachinesPanel() {
-  const { data, error } = usePanelData<Machines>("/api/panels/machines");
+  const { data, error } = usePanelData<Machines>("/api/panels/machines", 5_000);
 
   if (!data) {
     return (

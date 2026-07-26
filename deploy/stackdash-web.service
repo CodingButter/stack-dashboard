@@ -1,8 +1,11 @@
-# stackdash web — Next.js standalone server (systemd USER service).
+# stackdash web — custom Next.js server (systemd USER service).
 # Install: deploy/install-devbeast.sh copies this to ~/.config/systemd/user/
 # and enables it under a lingering-enabled user so it survives reboot.
 #
-# Runtime: plain node on the traced standalone bundle — no pnpm at runtime.
+# Runtime: plain node on the bundled custom server (server.mjs) inside the
+# traced standalone bundle — no pnpm at runtime. This entrypoint replaces the
+# stock server.js: it serves Next AND owns the UDP telemetry socket + the
+# WebSocket fan-out on /ws/telemetry (redeploy.sh bundles + drops server.mjs in).
 # Binds 0.0.0.0 so it answers on the tailnet IP and localhost; keep the box
 # firewalled/tailnet-only (the app is tailnet-only by design, see README).
 [Unit]
@@ -23,7 +26,13 @@ Environment=HOSTNAME=0.0.0.0
 # browser drops it over http:// — every request would bounce to /login. Put the
 # app behind an HTTPS reverse proxy to remove this and restore Secure cookies.
 Environment=COOKIE_SECURE=false
-ExecStart=/usr/bin/env node %h/stack-dashboard/.next/standalone/server.js
+# Live telemetry UDP listener. Bind to the tailnet interface / :9102 — the
+# datagram path is unauthed (tailscale mesh is the trust boundary), so NEVER
+# bind this to a public interface. 0.0.0.0 here is bounded by the tailnet-only
+# firewall, same as the web bind. Overridable via .env.production.local.
+Environment=TELEMETRY_UDP_HOST=0.0.0.0
+Environment=TELEMETRY_UDP_PORT=9102
+ExecStart=/usr/bin/env node %h/stack-dashboard/.next/standalone/server.mjs
 Restart=on-failure
 RestartSec=3
 # dev-beast is also a Tdarr node — never let the dashboard fight transcodes.

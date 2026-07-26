@@ -16,7 +16,7 @@ import { ProgressBar } from '@/components/widgets/progress-bar';
 const LABELS = { sabnzbd: "SABnzbd", qbittorrent: "qBittorrent" };
 
 export function DownloadsPanel() {
-  const { data, error } = usePanelData<Downloads>("/api/panels/downloads");
+  const { data, error } = usePanelData<Downloads>("/api/panels/downloads", 4_000);
 
   if (!data) {
     return (
