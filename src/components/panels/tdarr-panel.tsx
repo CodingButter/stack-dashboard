@@ -164,11 +164,11 @@ export function TdarrPanel() {
                           {stage.isTranscoding ? (
                             <span className="stat-num shrink-0 text-muted-foreground">
                               {w.fps > 0 ? `${w.fps.toFixed(0)} fps · ` : ""}
-                              {w.percent.toFixed(0)}%{w.eta ? ` · ${w.eta}` : ""}
+                              {w.percent.toFixed(1)}%{w.eta ? ` · ${w.eta}` : ""}
                             </span>
                           ) : showReplace ? (
                             <span className="stat-num shrink-0 text-muted-foreground">
-                              {rp!.pct != null ? `${rp!.pct.toFixed(0)}%` : "starting…"}
+                              {rp!.pct != null ? `${rp!.pct.toFixed(1)}%` : "starting…"}
                               {rp!.mbps != null ? ` · ${rp!.mbps.toFixed(1)} MB/s` : ""}
                             </span>
                           ) : null}
