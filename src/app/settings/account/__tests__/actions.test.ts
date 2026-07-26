@@ -83,6 +83,14 @@ describe("changePassword action", () => {
     );
   });
 
+  it("does not prune sessions when the cookie token is missing (never deletes the current session)", async () => {
+    cookiesGet.mockReturnValue(undefined);
+    const res = await changePassword({}, fd({ currentPassword: "oldpass12", newPassword: "newpass123", confirmPassword: "newpass123" }));
+    expect(res).toEqual({ ok: true });
+    expect(dbUpdate).toHaveBeenCalledTimes(1); // password still updated
+    expect(dbDelete).not.toHaveBeenCalled(); // but no session prune
+  });
+
   it("accepts a valid change: hashes, updates, prunes other sessions, audits ok", async () => {
     const res = await changePassword({}, fd({ currentPassword: "oldpass12", newPassword: "newpass123", confirmPassword: "newpass123" }));
     expect(res).toEqual({ ok: true });

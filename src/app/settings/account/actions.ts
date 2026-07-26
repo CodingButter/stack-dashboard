@@ -50,14 +50,18 @@ export async function changePassword(
     .where(eq(users.id, session.user.id));
 
   // Invalidate every OTHER session for this user (keep the one making the change).
+  // requireSession() above guarantees a valid cookie; guard anyway so a missing
+  // token skips the prune rather than deleting the current session too.
   const jar = await cookies();
   const token = jar.get(SESSION_COOKIE)?.value;
-  const currentSessionId = token ? hashSessionToken(token) : "";
-  await db
-    .delete(sessions)
-    .where(
-      and(eq(sessions.userId, session.user.id), ne(sessions.id, currentSessionId)),
-    );
+  if (token) {
+    const currentSessionId = hashSessionToken(token);
+    await db
+      .delete(sessions)
+      .where(
+        and(eq(sessions.userId, session.user.id), ne(sessions.id, currentSessionId)),
+      );
+  }
 
   await writeAudit({
     userId: session.user.id,
