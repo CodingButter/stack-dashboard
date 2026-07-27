@@ -13,7 +13,7 @@ Phase status enum: `pending | running | blocked | passed | invalidated`
 | 3 — Skills + subagents + namespaced commands | passed | `pnpm exec vitest run scripts/workflow/tests/commands.test.ts` → 29 passed | 12 skills + 4 read-only agents + 4 namespaced commands + page-id guard |
 | 4 — Run apparatus on Tdarr → contracts → decision gate | passed | `pnpm exec vitest run scripts/workflow/tests/` → 85 passed (coverage/traceability/blocker gates 100%); independent review round 1 = 3 must-fix, all fixed; round 2 re-review = **0 must-fix, passes** | mid-run DECISION GATE PASSED — round-1 fixes verified against source by independent reviewer; 2 non-blocking risks carried to Phase 5 follow-up |
 | 5 — Implement + runtime-verify migrated page | running | full app suite **448 passed** + reproducible red/green (17%→100%) + 11/11 per-state render + live read-only parse | data layer (`959f20e`), layout (`1310bca`), states (`9b8a03e`), red/green (`03281bb`), runtime verify done; acceptance `fixture-verified-with-live-follow-up`. Gate/commit (p5g) next |
-| 5.5 — Apparatus portability regression | pending | `pnpm exec vitest run scripts/workflow/tests/portability.test.ts` | synthetic non-Tdarr fixtures only |
+| 5.5 — Apparatus portability regression | passed | `pnpm exec vitest run scripts/workflow/tests/portability.test.ts` → **7 passed** | synthetic `weather-station` page: schemas accept a non-Tdarr shape, all transport kinds classify, validators pass full coverage AND block the two omission fixtures by structure (not name), command accepts a configurable slug, leak check (comments stripped) finds zero Tdarr identifiers in apparatus logic |
 | 6 — Ship checks | pending | full suite + all validators + independent adversarial review | human approval gate |
 
 ## Reviewer log
@@ -133,6 +133,26 @@ _(records: which manifest input changed, which phases were marked `invalidated`,
 - **Acceptance status:** raised `contract-only` → **`fixture-verified-with-live-follow-up`**,
   provenance `static-analysis` → `mixed`. Live follow-up checklist extended with the poller-restart
   and downsampling-over-time items (both need live infra / >24h data). Full app suite **448 passed**.
+
+## Phase 5.5 detail — Apparatus portability regression (passed)
+
+- `scripts/workflow/tests/portability.test.ts` builds a **synthetic `weather-station`** page
+  entirely in-file — deliberately sharing NO vocabulary with Tdarr (no governor/node/worker/
+  transcode/write-back). No production page is migrated.
+- **Schemas accept the non-Tdarr shape:** all 7 artifacts parse; stable IDs are rooted at the
+  supplied slug (generated from page config, not hard-coded); transport classification exercises
+  `udp-push | http-poll | local-derived | database-query` generically.
+- **Validators pass full coverage** on the covered page with **no Tdarr config** (forbidden-producer
+  list empty — the Tdarr trap is not baked in), and **block both omission fixtures by structure**:
+  a required field with no data-contract mapping (critical) and a required component omitted from
+  the page-spec (`no-omitted-component`, matched by ref, not by name).
+- **Command portability:** `validatePageId` accepts a safe slug and rejects empty/multi/uppercase/
+  whitespace input — never defaults to a page.
+- **Leak check (teeth-verified):** walks `scripts/workflow/{schemas,validators,utilities}`, strips
+  line + block comments, and asserts zero Tdarr identifiers (`replaceProgress`, `governor`,
+  `transcode`, `writeback`, `"tdarr"`, `tdarrPanelSchema`) survive in executable code. Confirmed the
+  patterns do flag those identifiers when present, so the green is real — Tdarr knowledge lives only
+  in benchmark inputs/contracts/run-scoped adapters, never in reusable logic. **7 passed.**
 
 ## Phase 3 detail — Skills + subagents + commands (passed)
 
