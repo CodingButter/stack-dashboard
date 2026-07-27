@@ -4,7 +4,7 @@
     "contractVersion": "1.0.0",
     "pageId": "tdarr",
     "createdAt": "2026-07-27T03:48:53Z",
-    "updatedAt": "2026-07-27T09:40:00Z",
+    "updatedAt": "2026-07-27T10:50:00Z",
     "apparatusVersion": "164e0f0",
     "sourceDesignRef": ".mastracode/stackdash-workflow-builder/tdarr-redesign.png@05b7163a58cf1c920399156c6a9cb037ddf543f3",
     "provenance": "mixed",
@@ -18,7 +18,13 @@
     "action": 100,
     "traceability": 100
   },
-  "reviewer": "pending-phase-4-independent-review",
+  "reviewer": "independent adversarial review (anthropic/claude-opus-4-8) — Phase-4 rounds 1+2 + Phase-6 ship gate; all rounds via separate reviewer memory keyed on plan_path, not self-approved by the implementation agent",
+  "shipGate": {
+    "verdict": "pass",
+    "criticalHighFindings": 0,
+    "priorFixesReVerified": ["write-back trap uses governor replaceProgress not worker percent", "throughput producer->store->read path is real end-to-end", "provenance honesty (mixed / fixture-verified-with-live-follow-up)", "apparatus purity: no Tdarr identifiers in reusable logic"],
+    "nonBlockingRisks": ["gap-analysis prose said server-derived for writeback (fixed to udp-push at ship gate)", "metricSeries read query is resolution-blind — safe for 60-min window, documented constraint for any future >24h consumer", "hour->day averaging is mean-of-means — documented in retention.ts"]
+  },
   "liveFollowUp": [
     { "item": "Verify write-back progress (replaceProgress.pct/mbps) renders live during a real Replace/Copy phase on a NAS node", "ref": "tdarr.nodes.grid.worker.writeback-pct", "resolved": false },
     { "item": "Verify governor unavailable (null) vs stale (running:false) states against the live agent/governor snapshot", "ref": "tdarr.governor.status.panel.running", "resolved": false },

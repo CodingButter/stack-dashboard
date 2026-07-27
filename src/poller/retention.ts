@@ -36,6 +36,11 @@ type Database = typeof Db;
  * both the collapsed row and its sources. Idempotent: a second run finds no
  * source rows for an already-collapsed bucket (the coarser row is a different
  * resolution and is excluded by the `from` filter).
+ *
+ * NOTE: hour->day averages the hourly rows, so the daily value is a mean-of-means,
+ * not a sample-count-weighted mean. With uneven per-hour sample counts (e.g. poller
+ * downtime) the daily point is slightly biased. This is standard/acceptable for a
+ * monitoring throughput chart; read the daily series as indicative, not exact.
  */
 async function collapseTier(
   database: Database,

@@ -14,7 +14,7 @@ Phase status enum: `pending | running | blocked | passed | invalidated`
 | 4 — Run apparatus on Tdarr → contracts → decision gate | passed | `pnpm exec vitest run scripts/workflow/tests/` → 85 passed (coverage/traceability/blocker gates 100%); independent review round 1 = 3 must-fix, all fixed; round 2 re-review = **0 must-fix, passes** | mid-run DECISION GATE PASSED — round-1 fixes verified against source by independent reviewer; 2 non-blocking risks carried to Phase 5 follow-up |
 | 5 — Implement + runtime-verify migrated page | running | full app suite **448 passed** + reproducible red/green (17%→100%) + 11/11 per-state render + live read-only parse | data layer (`959f20e`), layout (`1310bca`), states (`9b8a03e`), red/green (`03281bb`), runtime verify done; acceptance `fixture-verified-with-live-follow-up`. Gate/commit (p5g) next |
 | 5.5 — Apparatus portability regression | passed | `pnpm exec vitest run scripts/workflow/tests/portability.test.ts` → **7 passed** | synthetic `weather-station` page: schemas accept a non-Tdarr shape, all transport kinds classify, validators pass full coverage AND block the two omission fixtures by structure (not name), command accepts a configurable slug, leak check (comments stripped) finds zero Tdarr identifiers in apparatus logic |
-| 6 — Ship checks | pending | full suite + all validators + independent adversarial review | human approval gate |
+| 6 — Ship checks | running (gate passed, awaiting human approval) | full suite **456 passed** / tsc clean; independent adversarial ship review → **PASS, 0 critical/high**; 3 non-blocking risks (2 fixed, 1 documented constraint) | human approval gate |
 
 ## Reviewer log
 _(records: adversarial_review tool attempt + outcome; fallback reviewer identity/type if the tool fails; per plan §2 independent-review principle)_
@@ -133,6 +133,38 @@ _(records: which manifest input changed, which phases were marked `invalidated`,
 - **Acceptance status:** raised `contract-only` → **`fixture-verified-with-live-follow-up`**,
   provenance `static-analysis` → `mixed`. Live follow-up checklist extended with the poller-restart
   and downsampling-over-time items (both need live infra / >24h data). Full app suite **448 passed**.
+
+## Phase 6 detail — Ship gate (gate passed, awaiting human approval)
+
+- **Ship checks:** full vitest suite **456 passed / 53 files**; `tsc --noEmit` clean (only
+  pre-existing `.next/types` generated noise, filtered). Diff vs `main`: 78 files, ~7800 insertions.
+- **Independent adversarial ship review** (anthropic/claude-opus-4-8, same reviewer memory keyed on
+  `plan_path` across Phase-4 rounds 1+2 and this ship gate — never self-approved by the implementation
+  agent). Given the full diff, contracts, rubric, redesign image, and a do-not list.
+- **Verdict: PASS — 0 unresolved critical/high findings.** Reviewer re-verified all prior fixes against
+  current source:
+  - write-back trap uses `govNodes.get(name).replaceProgress` gated by `isFinalizing`, not worker
+    `percent` (`tdarr-panel.tsx`);
+  - throughput producer→store→read path is real end-to-end (`agent.ts` emit → `persist.ts` → `metrics`
+    → `assemble.ts` read → route pair), not fabricated;
+  - provenance honest (`mixed` / `fixture-verified-with-live-follow-up`, poller-restart gap on the
+    follow-up list);
+  - apparatus purity: only Tdarr strings in `scripts/workflow/` are comments + test fixtures, no
+    identifier in reusable logic.
+- **3 non-blocking risks, triaged:**
+  1. gap-analysis §1 prose said `server-derived` for write-back → **fixed** to `udp-push` (matches the
+     authoritative data-contract);
+  2. `metricSeries` read query is resolution-blind → safe for the 60-min panel window (collapse only
+     touches >24h rows); **documented as a constraint** on the throughput contract for any future
+     >24h consumer;
+  3. hour→day downsampling is a mean-of-means → **documented** in `retention.ts` (indicative, not exact).
+- Apparatus improvement: added an optional `shipGate` block to `acceptanceReportSchema` (verdict +
+  critical/high count + re-verified-fixes + non-blocking risks), with a refine that a `pass` cannot
+  carry critical/high findings. Ship-gate outcome is now durable, machine-checkable contract metadata
+  for every future page — recorded in `acceptance-report.json.shipGate`.
+- **Remaining:** human approval gate (open PR on request). Live follow-up checklist (poller restart →
+  throughput series accumulates; >24h data → downsampling collapse verification; live mutating actions
+  in an approved safe environment) stays visible and unresolved by design.
 
 ## Phase 5.5 detail — Apparatus portability regression (passed)
 

@@ -100,3 +100,21 @@ Would have caught AW-2 automatically. Logged for a later apparatus iteration.
   `verified: true` link names a producer that does not exist. Logged for the next apparatus
   iteration; tracked alongside AW-4 (both are "the string is plausible but reality
   disagrees" guardrails).
+
+### AW-6 (apparatus) — no durable, machine-checkable record of the ship-gate outcome
+- **Weakness:** the acceptance report captured coverage, reviewer identity, and the live
+  follow-up checklist, but the **outcome of the Phase-6 independent adversarial ship review**
+  (pass/blocked, count of unresolved critical/high, which prior fixes were re-verified, which
+  risks were accepted non-blocking) lived only in prose (PROGRESS.md) — not in a strict,
+  machine-checkable artifact. A future run could claim "ship gate passed" without any schema
+  forcing that claim to be honest.
+- **Fix (apparatus — built):** added an optional `shipGate` block to `acceptanceReportSchema`
+  (`scripts/workflow/schemas/artifacts.ts`): `{ verdict: pass|blocked, criticalHighFindings,
+  priorFixesReVerified[], nonBlockingRisks[] }`, with a `.refine` that a `pass` verdict **cannot**
+  carry `criticalHighFindings > 0`. It is optional so pre-ship-gate contracts (e.g. the Phase-4
+  decision-gate state) validly omit it. Covered by a schema test asserting a dishonest
+  `pass`-with-findings is rejected. The Tdarr acceptance report now records its ship-gate outcome
+  in `acceptance-report.json.shipGate`.
+- **Why this matters beyond Tdarr:** every future page's ship verdict is now durable contract
+  metadata with the same anti-overstatement refine, so "we shipped it clean" is a claim the
+  schema can enforce, not just prose.

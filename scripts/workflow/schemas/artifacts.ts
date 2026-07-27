@@ -236,6 +236,24 @@ const followUpItemSchema = z
   })
   .strict();
 
+/**
+ * Outcome of the Phase-6 independent adversarial ship-gate review (plan §2, Phase 6).
+ * Optional: contracts approved before a ship gate (e.g. Phase-4 decision-gate state)
+ * simply omit it. A "pass" verdict must record zero unresolved critical/high findings.
+ */
+const shipGateSchema = z
+  .object({
+    verdict: z.enum(["pass", "blocked"]),
+    criticalHighFindings: z.number().int().min(0),
+    priorFixesReVerified: z.array(z.string().min(1)),
+    nonBlockingRisks: z.array(z.string().min(1)),
+  })
+  .strict()
+  .refine((g) => g.verdict !== "pass" || g.criticalHighFindings === 0, {
+    message: "a passing ship gate cannot carry unresolved critical/high findings",
+    path: ["criticalHighFindings"],
+  });
+
 export const acceptanceReportSchema = z
   .object({
     meta: metaSchema,
@@ -245,6 +263,8 @@ export const acceptanceReportSchema = z
     reviewer: z.string().min(1),
     /** Preserved live follow-up checklist (plan §4). */
     liveFollowUp: z.array(followUpItemSchema),
+    /** Phase-6 independent ship-gate outcome (optional; absent pre-ship-gate). */
+    shipGate: shipGateSchema.optional(),
   })
   .strict()
   .refine(

@@ -12,8 +12,11 @@ Tdarr's `percentage` is per-stage and sits at `0` throughout a Replace/Copy
 network write (`src/lib/panels/tdarr-stage.ts` header comment).
 
 **Resolution:** `tdarr.nodes.grid.worker.writeback-pct` and `…writeback-mbps`
-are mapped to `governor.nodes[].replaceProgress.{pct,mbps}` (`server-derived`,
-consumed when `workerStage().isFinalizing`). The apparatus enforces this with a
+are mapped to `governor.nodes[].replaceProgress.{pct,mbps}` (`udp-push` — the
+authoritative transport per the data-contract; the source is the NAS agent's 2 Hz
+governor telemetry blaster, with the HTTP governor snapshot as fallback — round-2
+reclassified these from `server-derived`; consumed when `workerStage().isFinalizing`).
+The apparatus enforces this with a
 config-driven forbidden-producer blocker: any write-back field produced by
 `worker.percentage` is a critical finding. Verified green in
 `scripts/workflow/tests/tdarr-contracts.test.ts`.

@@ -230,6 +230,34 @@ describe("canonical artifact schemas — valid fixtures parse", () => {
     expect(acceptanceReportSchema.safeParse(noChecklist).success).toBe(false);
   });
 
+  it("acceptance-report — optional shipGate: a passing gate cannot carry critical/high findings", () => {
+    const base = {
+      meta: validMeta,
+      acceptanceStatus: "fixture-verified-with-live-follow-up",
+      coverage: { field: 100, component: 100, state: 100, action: 100, traceability: 100 },
+      reviewer: "independent adversarial review",
+      liveFollowUp: [
+        { item: "restart poller and confirm live series", ref: "tdarr.main.chart", resolved: false },
+      ],
+    };
+    // Absent shipGate is valid (pre-ship-gate contract).
+    expect(acceptanceReportSchema.safeParse(base).success).toBe(true);
+
+    // A clean pass parses.
+    const pass = {
+      ...base,
+      shipGate: { verdict: "pass", criticalHighFindings: 0, priorFixesReVerified: ["x"], nonBlockingRisks: [] },
+    };
+    expect(acceptanceReportSchema.safeParse(pass).success).toBe(true);
+
+    // A "pass" with unresolved critical/high findings is a hard failure — no overstated ship.
+    const dishonest = {
+      ...base,
+      shipGate: { verdict: "pass", criticalHighFindings: 2, priorFixesReVerified: [], nonBlockingRisks: [] },
+    };
+    expect(acceptanceReportSchema.safeParse(dishonest).success).toBe(false);
+  });
+
   it("acceptance-report — live-verified cannot be claimed on fixture provenance", () => {
     const bad = {
       meta: { ...validMeta, provenance: "fixture" },
