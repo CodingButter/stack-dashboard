@@ -1,0 +1,44 @@
+{
+  "meta": {
+    "schemaVersion": "1.0.0",
+    "contractVersion": "1.0.0",
+    "pageId": "tdarr",
+    "createdAt": "2026-07-27T03:48:53Z",
+    "updatedAt": "2026-07-27T05:40:00Z",
+    "apparatusVersion": "164e0f0",
+    "sourceDesignRef": ".mastracode/stackdash-workflow-builder/tdarr-redesign.png@05b7163a58cf1c920399156c6a9cb037ddf543f3",
+    "provenance": "static-analysis",
+    "supersedes": null
+  },
+  "fields": [
+    { "id": "tdarr.kpi.summary.library-files.count", "label": "Library files", "componentId": "tdarr.kpi.summary.library-files", "required": true, "designRef": "tdarr-redesign.png#kpi" },
+    { "id": "tdarr.kpi.summary.transcodes.count", "label": "Transcodes", "componentId": "tdarr.kpi.summary.transcodes", "required": true, "designRef": "tdarr-redesign.png#kpi" },
+    { "id": "tdarr.kpi.summary.health-checks.count", "label": "Health checks", "componentId": "tdarr.kpi.summary.health-checks", "required": true, "designRef": "tdarr-redesign.png#kpi" },
+    { "id": "tdarr.kpi.summary.space-saved.gb", "label": "Space saved (GB)", "componentId": "tdarr.kpi.summary.space-saved", "required": true, "designRef": "tdarr-redesign.png#kpi" },
+    { "id": "tdarr.kpi.summary.queue-depth.count", "label": "Queue depth", "componentId": "tdarr.kpi.summary.queue-depth", "required": true, "designRef": "tdarr-redesign.png#kpi" },
+    { "id": "tdarr.kpi.summary.active-workers.ratio", "label": "Active workers", "componentId": "tdarr.kpi.summary.active-workers", "required": true, "designRef": "tdarr-redesign.png#kpi" },
+
+    { "id": "tdarr.governor.status.panel.running", "label": "Governor state", "componentId": "tdarr.governor.status.panel", "required": true, "designRef": "tdarr-redesign.png#governor" },
+    { "id": "tdarr.governor.status.panel.active-streams", "label": "Active streams", "componentId": "tdarr.governor.status.panel", "required": true, "designRef": "tdarr-redesign.png#governor" },
+    { "id": "tdarr.governor.status.panel.stream-kbps", "label": "Stream bandwidth", "componentId": "tdarr.governor.status.panel", "required": true, "designRef": "tdarr-redesign.png#governor" },
+    { "id": "tdarr.governor.status.panel.sab-limit", "label": "SAB cap", "componentId": "tdarr.governor.status.panel", "required": true, "designRef": "tdarr-redesign.png#governor" },
+    { "id": "tdarr.governor.status.panel.lane-holder", "label": "Lane holder", "componentId": "tdarr.governor.status.panel", "required": true, "designRef": "tdarr-redesign.png#governor" },
+    { "id": "tdarr.governor.status.panel.lane-timeout", "label": "Lane timeout", "componentId": "tdarr.governor.status.panel", "required": true, "designRef": "tdarr-redesign.png#governor" },
+    { "id": "tdarr.governor.status.panel.age-secs", "label": "Governor freshness", "componentId": "tdarr.governor.status.panel", "required": true, "designRef": "tdarr-redesign.png#governor" },
+    { "id": "tdarr.governor.status.panel.paused-nodes", "label": "Governor-paused nodes", "componentId": "tdarr.governor.status.panel", "required": true, "designRef": "tdarr-redesign.png#governor" },
+
+    { "id": "tdarr.nodes.grid.card.name", "label": "Node name", "componentId": "tdarr.nodes.grid.card", "required": true, "designRef": "tdarr-redesign.png#node-card" },
+    { "id": "tdarr.nodes.grid.card.status", "label": "Node status badge", "componentId": "tdarr.nodes.grid.card", "required": true, "designRef": "tdarr-redesign.png#node-card" },
+    { "id": "tdarr.nodes.grid.card.limits", "label": "Worker limits", "componentId": "tdarr.nodes.grid.card", "required": true, "designRef": "tdarr-redesign.png#node-card" },
+    { "id": "tdarr.nodes.grid.card.queue", "label": "Node queue", "componentId": "tdarr.nodes.grid.card", "required": true, "designRef": "tdarr-redesign.png#node-card" },
+    { "id": "tdarr.nodes.grid.worker.file", "label": "Current file", "componentId": "tdarr.nodes.grid.worker", "required": true, "designRef": "tdarr-redesign.png#node-worker" },
+    { "id": "tdarr.nodes.grid.worker.stage", "label": "Worker stage label", "componentId": "tdarr.nodes.grid.worker", "required": true, "designRef": "tdarr-redesign.png#node-worker" },
+    { "id": "tdarr.nodes.grid.worker.transcode-pct", "label": "Transcode progress", "componentId": "tdarr.nodes.grid.worker", "required": true, "designRef": "tdarr-redesign.png#node-worker" },
+    { "id": "tdarr.nodes.grid.worker.writeback-pct", "label": "Write-back progress", "componentId": "tdarr.nodes.grid.worker", "required": true, "designRef": "tdarr-redesign.png#node-worker" },
+    { "id": "tdarr.nodes.grid.worker.writeback-mbps", "label": "Write-back throughput", "componentId": "tdarr.nodes.grid.worker", "required": true, "designRef": "tdarr-redesign.png#node-worker" },
+
+    { "id": "tdarr.analytics.charts.queue-depth.series", "label": "Queue depth over time", "componentId": "tdarr.analytics.charts.queue-depth", "required": true, "designRef": "tdarr-redesign.png#analytics" },
+    { "id": "tdarr.analytics.charts.throughput.series", "label": "Aggregate write-back throughput over time (total MB/s across nodes; per-node breakdown deferred)", "componentId": "tdarr.analytics.charts.throughput", "required": true, "designRef": "tdarr-redesign.png#analytics" },
+    { "id": "tdarr.analytics.charts.service-health.uptime", "label": "Service uptime", "componentId": "tdarr.analytics.charts.service-health", "required": true, "designRef": "tdarr-redesign.png#analytics" }
+  ]
+}

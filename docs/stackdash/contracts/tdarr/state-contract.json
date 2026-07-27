@@ -1,0 +1,63 @@
+{
+  "meta": {
+    "schemaVersion": "1.0.0",
+    "contractVersion": "1.0.0",
+    "pageId": "tdarr",
+    "createdAt": "2026-07-27T03:48:53Z",
+    "updatedAt": "2026-07-27T03:48:53Z",
+    "apparatusVersion": "164e0f0",
+    "sourceDesignRef": ".mastracode/stackdash-workflow-builder/tdarr-redesign.png@05b7163a58cf1c920399156c6a9cb037ddf543f3",
+    "provenance": "static-analysis",
+    "supersedes": null
+  },
+  "states": [
+    { "componentId": "tdarr.kpi.summary.library-files", "state": "loading", "trigger": "panel fetch in flight, no snapshot yet", "presentation": "skeleton card" },
+    { "componentId": "tdarr.kpi.summary.library-files", "state": "empty", "trigger": "stats === null", "presentation": "value shows 0 / dash" },
+    { "componentId": "tdarr.kpi.summary.library-files", "state": "ready", "trigger": "stats present", "presentation": "numeric value with label" },
+
+    { "componentId": "tdarr.kpi.summary.transcodes", "state": "loading", "trigger": "panel fetch in flight, no snapshot yet", "presentation": "skeleton card" },
+    { "componentId": "tdarr.kpi.summary.transcodes", "state": "empty", "trigger": "stats === null", "presentation": "value shows 0 / dash" },
+    { "componentId": "tdarr.kpi.summary.transcodes", "state": "ready", "trigger": "stats present", "presentation": "numeric value with label" },
+
+    { "componentId": "tdarr.kpi.summary.health-checks", "state": "loading", "trigger": "panel fetch in flight, no snapshot yet", "presentation": "skeleton card" },
+    { "componentId": "tdarr.kpi.summary.health-checks", "state": "empty", "trigger": "stats === null", "presentation": "value shows 0 / dash" },
+    { "componentId": "tdarr.kpi.summary.health-checks", "state": "ready", "trigger": "stats present", "presentation": "numeric value with label" },
+
+    { "componentId": "tdarr.kpi.summary.space-saved", "state": "loading", "trigger": "panel fetch in flight, no snapshot yet", "presentation": "skeleton card" },
+    { "componentId": "tdarr.kpi.summary.space-saved", "state": "empty", "trigger": "stats === null", "presentation": "value shows 0 / dash" },
+    { "componentId": "tdarr.kpi.summary.space-saved", "state": "ready", "trigger": "stats present", "presentation": "numeric value with delta" },
+
+    { "componentId": "tdarr.kpi.summary.queue-depth", "state": "loading", "trigger": "panel fetch in flight, no snapshot yet", "presentation": "skeleton card" },
+    { "componentId": "tdarr.kpi.summary.queue-depth", "state": "empty", "trigger": "stats === null", "presentation": "value shows 0 / dash" },
+    { "componentId": "tdarr.kpi.summary.queue-depth", "state": "ready", "trigger": "stats present", "presentation": "numeric value with label" },
+
+    { "componentId": "tdarr.kpi.summary.active-workers", "state": "loading", "trigger": "panel fetch in flight, no snapshot yet", "presentation": "skeleton card" },
+    { "componentId": "tdarr.kpi.summary.active-workers", "state": "empty", "trigger": "no nodes / capacity zero", "presentation": "value shows 0/0" },
+    { "componentId": "tdarr.kpi.summary.active-workers", "state": "ready", "trigger": "nodes present", "presentation": "active/total ratio" },
+
+    { "componentId": "tdarr.governor.status.panel", "state": "loading", "trigger": "panel fetch in flight", "presentation": "skeleton panel" },
+    { "componentId": "tdarr.governor.status.panel", "state": "unavailable", "trigger": "governor === null (never received a snapshot / endpoint not deployed)", "presentation": "\"Governor unavailable\" placeholder, no live metrics" },
+    { "componentId": "tdarr.governor.status.panel", "state": "stale", "trigger": "governor.running === false (gate dead/stale, or snapshot row older than AGENT_STALE_MS)", "presentation": "\"Governor stale\" badge; last-known values dimmed; ageSecs shown" },
+    { "componentId": "tdarr.governor.status.panel", "state": "ready", "trigger": "governor.running === true", "presentation": "live Governing panel with streams, bandwidth, SAB cap, lane holder" },
+
+    { "componentId": "tdarr.nodes.grid.card", "state": "loading", "trigger": "panel fetch in flight", "presentation": "skeleton node cards" },
+    { "componentId": "tdarr.nodes.grid.card", "state": "empty", "trigger": "nodes array empty", "presentation": "\"No nodes registered\" message" },
+    { "componentId": "tdarr.nodes.grid.card", "state": "partial", "trigger": "node present but governor missing (write-back progress unavailable)", "presentation": "card renders; finalizing workers show indeterminate bar without write-back %/mbps" },
+    { "componentId": "tdarr.nodes.grid.card", "state": "ready", "trigger": "node + governor present", "presentation": "full node card with worker rows and write-back progress" },
+
+    { "componentId": "tdarr.nodes.grid.worker", "state": "empty", "trigger": "node has no active workers", "presentation": "\"Idle\" row, no bar" },
+    { "componentId": "tdarr.nodes.grid.worker", "state": "ready", "trigger": "worker active", "presentation": "stage label + appropriate determinate/indeterminate bar" },
+
+    { "componentId": "tdarr.analytics.charts.queue-depth", "state": "loading", "trigger": "series query in flight", "presentation": "chart skeleton" },
+    { "componentId": "tdarr.analytics.charts.queue-depth", "state": "empty", "trigger": "series has no points", "presentation": "\"No data yet\" empty chart" },
+    { "componentId": "tdarr.analytics.charts.queue-depth", "state": "ready", "trigger": "series has points", "presentation": "rendered trend line" },
+
+    { "componentId": "tdarr.analytics.charts.throughput", "state": "loading", "trigger": "series query in flight", "presentation": "chart skeleton" },
+    { "componentId": "tdarr.analytics.charts.throughput", "state": "empty", "trigger": "series has no points", "presentation": "\"No data yet\" empty chart" },
+    { "componentId": "tdarr.analytics.charts.throughput", "state": "ready", "trigger": "series has points", "presentation": "rendered throughput line" },
+
+    { "componentId": "tdarr.analytics.charts.service-health", "state": "loading", "trigger": "uptime query in flight", "presentation": "health skeleton" },
+    { "componentId": "tdarr.analytics.charts.service-health", "state": "unavailable", "trigger": "uptime tracker has no cells", "presentation": "\"Health unknown\" placeholder" },
+    { "componentId": "tdarr.analytics.charts.service-health", "state": "ready", "trigger": "uptime cells present", "presentation": "uptime bar / service health readout" }
+  ]
+}

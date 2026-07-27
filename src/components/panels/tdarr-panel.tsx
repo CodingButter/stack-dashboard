@@ -3,6 +3,7 @@
 import { KpiCard } from "@/components/widgets/kpi-card";
 import { PanelCard } from "@/components/widgets/panel-card";
 import { SparkLine } from "@/components/widgets/spark-line";
+import { DonutGauge } from "@/components/widgets/donut-gauge";
 import { StatusPill } from "@/components/widgets/status-pill";
 import type { TdarrPanel as TdarrData } from "@/lib/panels/schemas";
 import { usePanelData } from "./use-panel-data";
@@ -43,9 +44,16 @@ export function TdarrPanel() {
     (governor?.running ? governor.nodes : []).map((n) => [n.name, n]),
   );
 
+  const onlineNodes = data.nodes.filter((n) => !n.paused).length;
+  const activeWorkers = data.nodes.reduce((sum, n) => sum + n.workers.length, 0);
+  const totalWorkers = data.nodes.reduce(
+    (sum, n) => sum + Math.max(n.workerCount, n.workers.length),
+    0,
+  );
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
         <KpiCard label="Library files" value={s?.totalFiles ?? 0} info="library-files" />
         <KpiCard label="Transcodes" value={s?.totalTranscodes ?? 0} info="transcodes" />
         <KpiCard label="Health checks" value={s?.totalHealthChecks ?? 0} info="health-checks" />
@@ -61,14 +69,21 @@ export function TdarrPanel() {
           label="Queue depth"
           info="queue-depth"
           value={data.series.queueDepth.at(-1)?.v ?? 0}
-          spark={
-            <SparkLine
-              data={data.series.queueDepth.map((x) => x.v)}
-              color="var(--accent-tdarr)"
-              height={32}
-            />
+        />
+        <KpiCard
+          label="Active workers"
+          info="active-workers"
+          value={`${activeWorkers} / ${totalWorkers}`}
+          delta={
+            data.nodes.length > 0 && onlineNodes === data.nodes.length
+              ? "all online"
+              : undefined
           }
-          className="col-span-2 sm:col-span-1"
+          deltaDirection={
+            data.nodes.length > 0 && onlineNodes === data.nodes.length
+              ? "up"
+              : undefined
+          }
         />
       </div>
 
@@ -79,7 +94,7 @@ export function TdarrPanel() {
         <GovernorCard governor={governor} />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         {data.nodes.length === 0 ? (
           <PanelCard title="Nodes" subsystem="tdarr">
             <p className="py-6 text-center text-base text-muted-foreground">
@@ -224,25 +239,91 @@ export function TdarrPanel() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <PanelCard title="Queue depth" subsystem="tdarr" info="queue-depth">
-          <SparkLine
-            data={data.series.queueDepth.map((x) => x.v)}
-            color="var(--accent-tdarr)"
-            height={80}
-          />
+          {data.series.queueDepth.length === 0 ? (
+            <p className="flex h-[104px] items-center justify-center text-center text-sm text-muted-foreground">
+              No data yet
+            </p>
+          ) : (
+            <>
+              <div className="flex items-baseline gap-2">
+                <span className="stat-num text-2xl font-semibold">
+                  {data.series.queueDepth.at(-1)?.v ?? 0}
+                </span>
+                <span className="text-sm text-muted-foreground">items</span>
+              </div>
+              <SparkLine
+                data={data.series.queueDepth.map((x) => x.v)}
+                color="var(--accent-tdarr)"
+                height={72}
+                className="mt-2"
+              />
+            </>
+          )}
         </PanelCard>
-        <PanelCard title="Active workers" subsystem="tdarr" info="active-workers">
-          <SparkLine
-            data={data.series.workersActive.map((x) => x.v)}
-            color="var(--accent-machines)"
-            height={80}
-          />
+
+        <PanelCard title="Active workers / load" subsystem="tdarr" info="active-workers">
+          <div className="mb-3 flex items-baseline gap-2">
+            <span className="stat-num text-2xl font-semibold">
+              {activeWorkers} / {totalWorkers}
+            </span>
+            <span className="text-sm text-muted-foreground">online</span>
+          </div>
+          {data.nodes.length === 0 ? (
+            <p className="py-4 text-center text-sm text-muted-foreground">No nodes connected</p>
+          ) : (
+            <div className="flex flex-wrap justify-around gap-3">
+              {data.nodes.map((n) => {
+                const busy = n.workers.length;
+                const cap = Math.max(n.workerCount, n.workers.length, 1);
+                const loadPct = Math.min(100, Math.round((busy / cap) * 100));
+                return (
+                  <DonutGauge
+                    key={n.nodeName}
+                    value={n.paused ? 0 : loadPct}
+                    label={n.nodeName}
+                    size={92}
+                    thresholds={[{ at: 80 }, { at: 95 }]}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </PanelCard>
+
+        <PanelCard title="Write-back throughput (total)" subsystem="tdarr" info="writeback-throughput">
+          {data.series.writebackMbps.length === 0 ? (
+            <p className="flex h-[104px] items-center justify-center text-center text-sm text-muted-foreground">
+              No throughput history yet
+            </p>
+          ) : (
+            <>
+              <div className="flex items-baseline gap-2">
+                <span className="stat-num text-2xl font-semibold">
+                  {(data.series.writebackMbps.at(-1)?.v ?? 0).toFixed(1)}
+                </span>
+                <span className="text-sm text-muted-foreground">MB/s · all nodes</span>
+              </div>
+              <SparkLine
+                data={data.series.writebackMbps.map((x) => x.v)}
+                color="var(--accent-machines)"
+                height={72}
+                className="mt-2"
+              />
+            </>
+          )}
         </PanelCard>
       </div>
 
-      <PanelCard title="Uptime" subsystem="alerts" info="uptime">
-        <UptimeRow uptime={data.uptime} labels={LABELS} />
+      <PanelCard title="Service health" subsystem="alerts" info="uptime">
+        {Object.keys(data.uptime).length === 0 ? (
+          <p className="py-4 text-center text-sm text-muted-foreground">
+            Health unknown — no uptime samples yet
+          </p>
+        ) : (
+          <UptimeRow uptime={data.uptime} labels={LABELS} />
+        )}
       </PanelCard>
     </div>
   );

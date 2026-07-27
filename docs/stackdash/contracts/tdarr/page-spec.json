@@ -1,0 +1,77 @@
+{
+  "meta": {
+    "schemaVersion": "1.0.0",
+    "contractVersion": "1.0.0",
+    "pageId": "tdarr",
+    "createdAt": "2026-07-27T03:48:53Z",
+    "updatedAt": "2026-07-27T03:48:53Z",
+    "apparatusVersion": "164e0f0",
+    "sourceDesignRef": ".mastracode/stackdash-workflow-builder/tdarr-redesign.png@05b7163a58cf1c920399156c6a9cb037ddf543f3",
+    "provenance": "static-analysis",
+    "supersedes": null
+  },
+  "pageId": "tdarr",
+  "title": "Tdarr — Transcode Fleet",
+  "regions": [
+    {
+      "id": "tdarr.kpi",
+      "name": "KPI strip",
+      "sections": [
+        {
+          "id": "tdarr.kpi.summary",
+          "name": "Fleet summary cards",
+          "components": [
+            { "id": "tdarr.kpi.summary.library-files", "name": "Library files card", "designRef": "tdarr-redesign.png#kpi" },
+            { "id": "tdarr.kpi.summary.transcodes", "name": "Transcodes card", "designRef": "tdarr-redesign.png#kpi" },
+            { "id": "tdarr.kpi.summary.health-checks", "name": "Health checks card", "designRef": "tdarr-redesign.png#kpi" },
+            { "id": "tdarr.kpi.summary.space-saved", "name": "Space saved card", "designRef": "tdarr-redesign.png#kpi" },
+            { "id": "tdarr.kpi.summary.queue-depth", "name": "Queue depth card", "designRef": "tdarr-redesign.png#kpi" },
+            { "id": "tdarr.kpi.summary.active-workers", "name": "Active workers card", "designRef": "tdarr-redesign.png#kpi" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tdarr.governor",
+      "name": "I/O Governor panel",
+      "sections": [
+        {
+          "id": "tdarr.governor.status",
+          "name": "Governor status",
+          "components": [
+            { "id": "tdarr.governor.status.panel", "name": "Governor status panel", "designRef": "tdarr-redesign.png#governor" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tdarr.nodes",
+      "name": "Node cards",
+      "sections": [
+        {
+          "id": "tdarr.nodes.grid",
+          "name": "Node card grid",
+          "components": [
+            { "id": "tdarr.nodes.grid.card", "name": "Node card", "designRef": "tdarr-redesign.png#node-card" },
+            { "id": "tdarr.nodes.grid.worker", "name": "Worker row", "designRef": "tdarr-redesign.png#node-worker" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tdarr.analytics",
+      "name": "Bottom analytics row",
+      "sections": [
+        {
+          "id": "tdarr.analytics.charts",
+          "name": "Trend charts and health",
+          "components": [
+            { "id": "tdarr.analytics.charts.queue-depth", "name": "Queue depth chart", "designRef": "tdarr-redesign.png#analytics" },
+            { "id": "tdarr.analytics.charts.throughput", "name": "Worker throughput chart", "designRef": "tdarr-redesign.png#analytics" },
+            { "id": "tdarr.analytics.charts.service-health", "name": "Uptime / service health", "designRef": "tdarr-redesign.png#analytics" }
+          ]
+        }
+      ]
+    }
+  ]
+}

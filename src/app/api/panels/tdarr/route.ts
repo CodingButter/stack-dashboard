@@ -21,6 +21,7 @@ export async function GET() {
     metricSeries([
       { box: "tdarr", metric: "tdarr.queue.depth" },
       { box: "tdarr", metric: "tdarr.workers.active" },
+      { box: "tdarr", metric: "tdarr.writeback.mbps" },
     ]),
   ]);
 

@@ -388,6 +388,7 @@ export function buildTdarrPanel(
     series: {
       queueDepth: series["tdarr.queue.depth"] ?? [],
       workersActive: series["tdarr.workers.active"] ?? [],
+      writebackMbps: series["tdarr.writeback.mbps"] ?? [],
     },
     governor: buildGovernor(snaps, now),
   };

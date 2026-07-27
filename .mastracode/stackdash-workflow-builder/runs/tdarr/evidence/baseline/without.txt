@@ -1,0 +1,12 @@
+# RED — pre-migration baseline @ f8c137f961fcfee6214845eef53b068d03138860
+# validator: checkImplementation  markers: analysis/impl-markers.json
+ok: false
+coveragePct: 17
+blocking: true
+
+[high] impl-conformance tdarr.kpi.summary.active-workers: Component tdarr.kpi.summary.active-workers (Active workers KPI card) not rendered in implementation — missing marker(s): label="Active workers", activeWorkers\s*}\s*/\s*\$\{totalWorkers|\$\{activeWorkers\} / \$\{totalWorkers\}
+[high] impl-conformance tdarr.analytics.charts.queue-depth: Component tdarr.analytics.charts.queue-depth (Queue depth analytics chart) not rendered in implementation — missing marker(s): queueDepth\.length === 0, No data yet
+[high] impl-conformance tdarr.analytics.charts.throughput: Component tdarr.analytics.charts.throughput (Worker throughput analytics chart) not rendered in implementation — missing marker(s): writebackMbps, No throughput history yet
+[high] impl-conformance tdarr.analytics.charts.load: Component tdarr.analytics.charts.load (Per-node load radial gauges) not rendered in implementation — missing marker(s): DonutGauge
+[high] impl-conformance tdarr.analytics.charts.service-health: Component tdarr.analytics.charts.service-health (Service health / uptime) not rendered in implementation — missing marker(s): Health unknown
+

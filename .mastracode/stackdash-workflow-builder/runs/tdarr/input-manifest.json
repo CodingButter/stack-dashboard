@@ -1,0 +1,40 @@
+{
+  "meta": {
+    "schemaVersion": "1.0.0",
+    "pageId": "tdarr",
+    "createdAt": "2026-07-27T03:29:47Z",
+    "updatedAt": "2026-07-27T03:29:47Z",
+    "baseRevision": "f8c137f961fcfee6214845eef53b068d03138860",
+    "baseBranch": "main",
+    "apparatusBranch": "feat/stackdash-migration-apparatus",
+    "note": "Per-run manifest of every input the Tdarr migration consumes. hashKind=git-blob values are reproducible via `git hash-object <path>`; hashKind=sha256 values via `sha256sum <path>`. A changed hash invalidates the consuming phase and all downstream phases (plan 5b)."
+  },
+  "inputs": {
+    "tdarrSlice": [
+      { "path": "src/poller/clients/tdarr.ts", "hashKind": "git-blob", "hash": "e22dc733d43f2becea18fbda1e4dea389b23c41c", "role": "poller-client" },
+      { "path": "src/lib/panels/tdarr-stage.ts", "hashKind": "git-blob", "hash": "50c3561ec2a0ee28c6ceb6c4081326bf61409c39", "role": "assembler-stage (replaceProgress/WorkerStage derivations)" },
+      { "path": "src/lib/panels/assemble.ts", "hashKind": "git-blob", "hash": "6beecbf469e9d68fc524f50a4724336116580879", "role": "assembler-root (snapshot-keyed producer truth)" },
+      { "path": "src/lib/panels/schemas.ts", "hashKind": "git-blob", "hash": "0430ce26541e704253c038b4a0778954a0dab811", "role": "tdarrPanelSchema" },
+      { "path": "src/app/api/panels/tdarr/route.ts", "hashKind": "git-blob", "hash": "f2aa39a4500e6f671c2946bc3fb1e38e4e119acf", "role": "api-route" },
+      { "path": "src/components/panels/tdarr-panel.tsx", "hashKind": "git-blob", "hash": "1bdb3bfc361d45b449422da15c5c53ca252964d3", "role": "current-component" },
+      { "path": "src/app/tdarr/page.tsx", "hashKind": "git-blob", "hash": "c55c985e6d4fc87266b6a02b164c09b2561e6073", "role": "current-page" },
+      { "path": "src/actions/services/tdarr.ts", "hashKind": "git-blob", "hash": "9ad715bc7dfaf9eacb5800e96c3f2200fbe2de99", "role": "rbac-actions" }
+    ],
+    "designEvidence": [
+      { "path": ".mastracode/stackdash-workflow-builder/tdarr-current.png", "hashKind": "sha256", "hash": "33f33bd982c58f26adb3aab6ee3669b39d7b22d38e6bdd7316a02b03dad8bb8c", "role": "current-screenshot" },
+      { "path": ".mastracode/stackdash-workflow-builder/tdarr-redesign.png", "hashKind": "sha256", "hash": "dbe5a12003159aa218edbe20f5db9e25ad34352114c9e22c1017388ba9be0bf3", "role": "redesign-screenshot (sourceDesignRef)" }
+    ],
+    "fixtures": [
+      { "path": "src/poller/clients/__fixtures__/tdarr_nodes.json", "hashKind": "sha256", "hash": "30c11fc2ff10ced581367766ca7403dec911f220371f6145321152c345bcf959", "role": "real-captured-nodes-fixture" },
+      { "path": "src/poller/clients/__fixtures__/tdarr_stats.json", "hashKind": "sha256", "hash": "03c4d5756c56a3818cdb535dedfcfe0f5efceb714de8387c1c189dcd2b89969c", "role": "real-captured-stats-fixture" }
+    ],
+    "priorArt": [
+      { "path": ".mastracode/plans/dashboard-data-classification.md", "hashKind": "sha256", "hash": "5838c34b0dc49b8274d3c3d9ca3cd705c3c2a99eb66069fef542dcea70fc4aa4", "role": "prior-art-classification (reconciler input, non-authoritative)" },
+      { "path": ".mastracode/plans/dashboard-data-classification-OUTLINE.md", "hashKind": "sha256", "hash": "89538c6cd81a33019ad75f26c0ec525fe0d433723e0759acf63b55ed7c12e5cb", "role": "prior-art-outline (reconciler input, non-authoritative)" }
+    ]
+  },
+  "phaseConsumption": {
+    "note": "Each phase records the manifest slice it consumed as it runs; populated by the apparatus during Phase 4+.",
+    "phase-0": ["tdarrSlice", "designEvidence", "fixtures", "priorArt"]
+  }
+}

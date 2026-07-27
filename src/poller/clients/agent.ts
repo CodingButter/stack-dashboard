@@ -355,6 +355,21 @@ export function makeAgentPoller(service: string, box: string): Poller {
         const governor = parseAgentGovernor(governorRes.data);
         if (governor) {
           snapshotRows.push({ kind: "governor", payload: governor });
+          if (governor.running) {
+            // Fleet write-back throughput: sum of live per-node Replace/Copy
+            // MB/s to the NAS. The instantaneous value only exists here (the
+            // tdarr-gate snapshot); persist it under box "tdarr" so the panel
+            // series shares the tdarr namespace and gains a real history.
+            const writebackMbps = governor.nodes.reduce(
+              (sum, n) => sum + (n.replaceProgress?.mbps ?? 0),
+              0,
+            );
+            metrics.push({
+              box: "tdarr",
+              metric: "tdarr.writeback.mbps",
+              value: writebackMbps,
+            });
+          }
         }
       }
       return { ok: true, snapshots: snapshotRows, metrics };

@@ -1,0 +1,7 @@
+# GREEN — migrated implementation (working tree)
+# validator: checkImplementation  markers: analysis/impl-markers.json
+ok: true
+coveragePct: 100
+blocking: false
+
+(no findings — all contracted components rendered)

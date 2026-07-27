@@ -3,7 +3,25 @@
 .DS_Store
 .env*
 *.local
-.mastracode/
+# .mastracode is local-only by default (plans, plugin config, connection strings),
+# EXCEPT the reusable stackdash migration apparatus, which must be tracked + reviewable.
+.mastracode/*
+!.mastracode/skills/
+.mastracode/skills/*
+!.mastracode/skills/stackdash-*/
+!.mastracode/agents/
+.mastracode/agents/*
+!.mastracode/agents/stackdash-*/
+!.mastracode/commands/
+.mastracode/commands/*
+!.mastracode/commands/stackdash-migrate.md
+!.mastracode/commands/stackdash-migrate/
+!.mastracode/stackdash-workflow-builder/
+# out-of-scope design assets (other pages / full gallery) stay local-only; the Tdarr run
+# only needs the tdarr screenshots + the requirements doc tracked.
+.mastracode/stackdash-workflow-builder/Dashboard Design/
+.mastracode/stackdash-workflow-builder/downloads-*.png
+.mastracode/stackdash-workflow-builder/overview-*.png
 .next/
 /.next/
 next-env.d.ts

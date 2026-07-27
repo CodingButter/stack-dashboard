@@ -1,0 +1,44 @@
+{
+  "meta": {
+    "schemaVersion": "1.0.0",
+    "contractVersion": "1.0.0",
+    "pageId": "tdarr",
+    "createdAt": "2026-07-27T03:48:53Z",
+    "updatedAt": "2026-07-27T05:40:00Z",
+    "apparatusVersion": "164e0f0",
+    "sourceDesignRef": ".mastracode/stackdash-workflow-builder/tdarr-redesign.png@05b7163a58cf1c920399156c6a9cb037ddf543f3",
+    "provenance": "static-analysis",
+    "supersedes": null
+  },
+  "links": [
+    { "fieldId": "tdarr.kpi.summary.library-files.count", "producerRef": "src/lib/panels/tdarr-stage.ts::stats + src/poller/clients/tdarr.ts (/api/v2/cruddb)", "consumerRef": "src/components/panels/tdarr-panel.tsx KpiCard label=Library files (s?.totalFiles)", "verified": true },
+    { "fieldId": "tdarr.kpi.summary.transcodes.count", "producerRef": "src/poller/clients/tdarr.ts (/api/v2/cruddb)", "consumerRef": "src/components/panels/tdarr-panel.tsx KpiCard label=Transcodes (s?.totalTranscodes)", "verified": true },
+    { "fieldId": "tdarr.kpi.summary.health-checks.count", "producerRef": "src/poller/clients/tdarr.ts (/api/v2/cruddb)", "consumerRef": "src/components/panels/tdarr-panel.tsx KpiCard Health checks", "verified": true },
+    { "fieldId": "tdarr.kpi.summary.space-saved.gb", "producerRef": "src/poller/clients/tdarr.ts (/api/v2/cruddb)", "consumerRef": "src/components/panels/tdarr-panel.tsx KpiCard Space saved (s?.sizeDiffGb.toFixed)", "verified": true },
+    { "fieldId": "tdarr.kpi.summary.queue-depth.count", "producerRef": "src/poller/clients/tdarr.ts (tdarr.queue.depth metric)", "consumerRef": "src/components/panels/tdarr-panel.tsx KpiCard Queue depth", "verified": true },
+    { "fieldId": "tdarr.kpi.summary.active-workers.ratio", "producerRef": "src/poller/clients/tdarr.ts (tdarr.workers.active) + assemble.ts node limits", "consumerRef": "src/components/panels/tdarr-panel.tsx KpiCard Active workers", "verified": true },
+
+    { "fieldId": "tdarr.governor.status.panel.running", "producerRef": "src/lib/panels/governor-merge.ts::mergeGovernor <= src/components/telemetry/telemetry-provider.tsx::useGovernorTelemetry (2Hz WS push); fallback src/lib/panels/assemble.ts::buildGovernor", "consumerRef": "src/components/panels/tdarr-panel.tsx (mergeGovernor, governor?.running gate, govNodes map)", "verified": true },
+    { "fieldId": "tdarr.governor.status.panel.active-streams", "producerRef": "src/components/telemetry/telemetry-provider.tsx::useGovernorTelemetry (2Hz WS push) merged via src/lib/panels/governor-merge.ts; fallback src/lib/panels/assemble.ts::buildGovernor", "consumerRef": "src/components/panels/tdarr-panel.tsx governor panel", "verified": true },
+    { "fieldId": "tdarr.governor.status.panel.stream-kbps", "producerRef": "src/components/telemetry/telemetry-provider.tsx::useGovernorTelemetry (2Hz WS push) merged via src/lib/panels/governor-merge.ts; fallback src/lib/panels/assemble.ts::buildGovernor", "consumerRef": "src/components/panels/tdarr-panel.tsx governor panel", "verified": true },
+    { "fieldId": "tdarr.governor.status.panel.sab-limit", "producerRef": "src/components/telemetry/telemetry-provider.tsx::useGovernorTelemetry (2Hz WS push) merged via src/lib/panels/governor-merge.ts; fallback src/lib/panels/assemble.ts::buildGovernor", "consumerRef": "src/components/panels/tdarr-panel.tsx governor panel", "verified": true },
+    { "fieldId": "tdarr.governor.status.panel.lane-holder", "producerRef": "src/components/telemetry/telemetry-provider.tsx::useGovernorTelemetry (2Hz WS push) merged via src/lib/panels/governor-merge.ts; fallback src/lib/panels/assemble.ts::buildGovernor", "consumerRef": "src/components/panels/tdarr-panel.tsx governor panel", "verified": true },
+    { "fieldId": "tdarr.governor.status.panel.lane-timeout", "producerRef": "src/components/telemetry/telemetry-provider.tsx::useGovernorTelemetry (2Hz WS push) merged via src/lib/panels/governor-merge.ts; fallback src/lib/panels/assemble.ts::buildGovernor", "consumerRef": "src/components/panels/tdarr-panel.tsx governor panel", "verified": true },
+    { "fieldId": "tdarr.governor.status.panel.age-secs", "producerRef": "src/lib/panels/governor-merge.ts::mergeGovernor (recomputes ageSecs) <= useGovernorTelemetry; fallback src/lib/panels/assemble.ts::buildGovernor (now - g.ts)", "consumerRef": "src/components/panels/tdarr-panel.tsx staleness readout", "verified": true },
+    { "fieldId": "tdarr.governor.status.panel.paused-nodes", "producerRef": "src/components/telemetry/telemetry-provider.tsx::useGovernorTelemetry (2Hz WS push) merged via src/lib/panels/governor-merge.ts; fallback src/lib/panels/assemble.ts::buildGovernor", "consumerRef": "src/components/panels/tdarr-panel.tsx governor panel", "verified": true },
+
+    { "fieldId": "tdarr.nodes.grid.card.name", "producerRef": "src/poller/clients/tdarr.ts (/api/v2/get-nodes)", "consumerRef": "src/components/panels/tdarr-panel.tsx node card header (n.nodeName)", "verified": true },
+    { "fieldId": "tdarr.nodes.grid.card.status", "producerRef": "src/lib/panels/assemble.ts (nodes) + tdarrPanelSchema.nodes", "consumerRef": "src/components/panels/tdarr-panel.tsx status badges", "verified": true },
+    { "fieldId": "tdarr.nodes.grid.card.limits", "producerRef": "src/poller/clients/tdarr.ts (/api/v2/get-nodes)", "consumerRef": "src/components/panels/tdarr-panel.tsx limits row", "verified": true },
+    { "fieldId": "tdarr.nodes.grid.card.queue", "producerRef": "src/poller/clients/tdarr.ts (/api/v2/get-nodes)", "consumerRef": "src/components/panels/tdarr-panel.tsx queue readout", "verified": true },
+    { "fieldId": "tdarr.nodes.grid.worker.file", "producerRef": "src/poller/clients/tdarr.ts (/api/v2/get-nodes workers[])", "consumerRef": "src/components/panels/tdarr-panel.tsx worker row current file", "verified": true },
+    { "fieldId": "tdarr.nodes.grid.worker.stage", "producerRef": "src/lib/panels/tdarr-stage.ts::workerStage", "consumerRef": "src/components/panels/tdarr-panel.tsx (const stage = workerStage(w.status))", "verified": true },
+    { "fieldId": "tdarr.nodes.grid.worker.transcode-pct", "producerRef": "src/poller/clients/tdarr.ts (/api/v2/get-nodes) gated by tdarr-stage.ts", "consumerRef": "src/components/panels/tdarr-panel.tsx transcode bar (stage.isTranscoding)", "verified": true },
+    { "fieldId": "tdarr.nodes.grid.worker.writeback-pct", "producerRef": "src/components/telemetry/telemetry-provider.tsx::useGovernorTelemetry (2Hz WS push) merged via src/lib/panels/governor-merge.ts; fallback src/lib/panels/assemble.ts::buildGovernor; gated by src/lib/panels/tdarr-stage.ts (isFinalizing)", "consumerRef": "src/components/panels/tdarr-panel.tsx (rp = govNodes.get(n.nodeName)?.replaceProgress; showReplace = stage.isFinalizing && rp != null)", "verified": true },
+    { "fieldId": "tdarr.nodes.grid.worker.writeback-mbps", "producerRef": "src/components/telemetry/telemetry-provider.tsx::useGovernorTelemetry (2Hz WS push) merged via src/lib/panels/governor-merge.ts; fallback src/lib/panels/assemble.ts::buildGovernor; gated by src/lib/panels/tdarr-stage.ts (isFinalizing)", "consumerRef": "src/components/panels/tdarr-panel.tsx write-back throughput (rp.mbps)", "verified": true },
+
+    { "fieldId": "tdarr.analytics.charts.queue-depth.series", "producerRef": "src/lib/panels/assemble.ts (SeriesMap) from persisted metric rows", "consumerRef": "src/components/panels/tdarr-panel.tsx queue depth chart", "verified": true },
+    { "fieldId": "tdarr.analytics.charts.throughput.series", "producerRef": "src/poller/clients/agent.ts (emits tdarr.writeback.mbps = sum of governor.nodes[].replaceProgress.mbps per poll, box='tdarr') -> persisted to metrics table -> read via src/lib/panels/assemble.ts::buildTdarrPanel (series['tdarr.writeback.mbps']) -> src/app/api/panels/tdarr/route.ts metricSeries pair", "consumerRef": "src/components/panels/tdarr-panel.tsx throughput chart (renders empty state until series accumulates history)", "verified": true },
+    { "fieldId": "tdarr.analytics.charts.service-health.uptime", "producerRef": "src/lib/panels/assemble.ts (uptime Record) ", "consumerRef": "src/components/panels/tdarr-panel.tsx service health", "verified": true }
+  ]
+}
