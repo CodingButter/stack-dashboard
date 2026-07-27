@@ -4,13 +4,13 @@
     "contractVersion": "1.0.0",
     "pageId": "tdarr",
     "createdAt": "2026-07-27T03:48:53Z",
-    "updatedAt": "2026-07-27T04:10:00Z",
+    "updatedAt": "2026-07-27T09:40:00Z",
     "apparatusVersion": "164e0f0",
     "sourceDesignRef": ".mastracode/stackdash-workflow-builder/tdarr-redesign.png@05b7163a58cf1c920399156c6a9cb037ddf543f3",
-    "provenance": "static-analysis",
+    "provenance": "mixed",
     "supersedes": null
   },
-  "acceptanceStatus": "contract-only",
+  "acceptanceStatus": "fixture-verified-with-live-follow-up",
   "coverage": {
     "field": 100,
     "component": 100,
@@ -25,6 +25,8 @@
     { "item": "Confirm poller ActiveEnterTimestamp is post-change before trusting any http-poll field live", "ref": "stackdash-poller.service", "resolved": false },
     { "item": "Verify disruptive/destructive actions (pause-node, cancel-transcode) in an approved safe environment with confirmation flow", "ref": "tdarr.nodes.grid.worker.cancel-transcode", "resolved": false },
     { "item": "Confirm scan-library viewer-role side-effect is intended, or tighten RBAC; the action enqueues a scanFindNew mutation under requiredRole viewer (round-2 review risk)", "ref": "tdarr.kpi.summary.scan-library", "resolved": false },
-    { "item": "Confirm scan-library belongs in the redesign / that the UI supplies a libraryId; no such control is visible in tdarr-redesign.png (round-2 review risk)", "ref": "tdarr.kpi.summary.scan-library", "resolved": false }
+    { "item": "Confirm scan-library belongs in the redesign / that the UI supplies a libraryId; no such control is visible in tdarr-redesign.png (round-2 review risk)", "ref": "tdarr.kpi.summary.scan-library", "resolved": false },
+    { "item": "Restart stackdash-poller.service (explicit approval) so tdarr.writeback.mbps accumulates; confirm throughput chart transitions from empty state to a real aggregate line", "ref": "tdarr.analytics.charts.throughput.series", "resolved": false },
+    { "item": "Verify tiered metric downsampling collapses raw->hour after 24h and hour->day after 7d against real accumulated rows (needs >24h of live data)", "ref": "metrics.resolution", "resolved": false }
   ]
 }

@@ -56,7 +56,7 @@ describe("Tdarr contracts — schema validity", () => {
     expect(states.states.length).toBeGreaterThan(0);
     expect(actions.actions.length).toBeGreaterThan(0);
     expect(matrix.links.length).toBeGreaterThan(0);
-    expect(acceptance.acceptanceStatus).toBe("contract-only");
+    expect(acceptance.acceptanceStatus).toBe("fixture-verified-with-live-follow-up");
   });
 });
 

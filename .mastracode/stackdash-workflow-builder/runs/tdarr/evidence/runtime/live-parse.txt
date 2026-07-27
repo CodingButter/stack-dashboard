@@ -1,0 +1,37 @@
+Live read-only parse — production DB through the branch code path
+==================================================================
+
+Command (read-only; queries are all SELECTs — latestSnapshots, statusHistory,
+metricSeries — replicating src/app/api/panels/tdarr/route.ts exactly):
+
+  set -a; . ./.env.local; set +a
+  pnpm exec tsx /tmp/tdarr-live-parse.ts
+
+Result (captured 2026-07-27, branch feat/stackdash-migration-apparatus):
+
+{
+  "parsedOk": true,
+  "nodes": 4,
+  "totalFiles": 3365,
+  "totalTranscodes": 915,
+  "governorRunning": true,
+  "queueDepthPts": 180,
+  "workersActivePts": 180,
+  "writebackMbpsPts": 0
+}
+
+Interpretation
+--------------
+- Real production data assembles through the branch's buildTdarrPanel and
+  validates against tdarrPanelSchema (including the newly added
+  series.writebackMbps field) — no parse error.
+- 4 nodes, real stats (totalFiles 3365, totalTranscodes 915), governor running.
+- queueDepth / workersActive series populated (180 points each — the 60-min
+  windowed read).
+- writebackMbps has 0 points. EXPECTED: the metric emission was added to the
+  poller on this branch and the production poller
+  (stackdash-poller.service, a separate systemd user unit) has not been
+  restarted, so no rows exist yet. The UI correctly renders the empty state
+  ("No throughput history yet") in this condition — proven by the render probe.
+
+This is a read-only probe. No writes, no session mutation, no service restart.

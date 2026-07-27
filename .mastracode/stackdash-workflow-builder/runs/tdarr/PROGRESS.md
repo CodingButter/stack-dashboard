@@ -12,7 +12,7 @@ Phase status enum: `pending | running | blocked | passed | invalidated`
 | 2 — Validators + reconciler + stale-input guard | passed | `pnpm exec vitest run scripts/workflow/tests/validators.test.ts` → 25 passed | coverage/traceability/3 blockers + reconciler + stale guard, each red+green |
 | 3 — Skills + subagents + namespaced commands | passed | `pnpm exec vitest run scripts/workflow/tests/commands.test.ts` → 29 passed | 12 skills + 4 read-only agents + 4 namespaced commands + page-id guard |
 | 4 — Run apparatus on Tdarr → contracts → decision gate | passed | `pnpm exec vitest run scripts/workflow/tests/` → 85 passed (coverage/traceability/blocker gates 100%); independent review round 1 = 3 must-fix, all fixed; round 2 re-review = **0 must-fix, passes** | mid-run DECISION GATE PASSED — round-1 fixes verified against source by independent reviewer; 2 non-blocking risks carried to Phase 5 follow-up |
-| 5 — Implement + runtime-verify migrated page | running | full suite + runtime validator + reproducible red/green | data layer done (`959f20e`): throughput series producer + tiered downsampling; contracts flipped to real verified producer. UI reorg + states + runtime verify next |
+| 5 — Implement + runtime-verify migrated page | running | full app suite **448 passed** + reproducible red/green (17%→100%) + 11/11 per-state render + live read-only parse | data layer (`959f20e`), layout (`1310bca`), states (`9b8a03e`), red/green (`03281bb`), runtime verify done; acceptance `fixture-verified-with-live-follow-up`. Gate/commit (p5g) next |
 | 5.5 — Apparatus portability regression | pending | `pnpm exec vitest run scripts/workflow/tests/portability.test.ts` | synthetic non-Tdarr fixtures only |
 | 6 — Ship checks | pending | full suite + all validators + independent adversarial review | human approval gate |
 
@@ -109,6 +109,30 @@ _(records: which manifest input changed, which phases were marked `invalidated`,
   and `with.txt` (green). Baseline = **17% coverage, 5 redesign components missing, blocking**;
   migrated = **100%, no findings**. Differing outcome from identical validator/config proves the
   *implementation* changed, not the test. +4 validator unit tests. Workflow suite **92 passed**.
+
+### 5f — Runtime verification (fixture-verified-with-live-follow-up)
+- No Playwright/browser harness in-repo; established render harness is
+  `@testing-library/react` + jsdom. Two complementary probes (evidence under
+  `evidence/runtime/`):
+  1. **Per-state render** (`src/components/panels/__tests__/tdarr-panel.states.test.tsx`):
+     drives the real `<TdarrPanel/>` through every `state-contract.json` state by mocking
+     `fetch` (feeds `usePanelData`) and `useGovernorTelemetry`. **11/11** assertions pass —
+     loading, error, ready (KPI strip + throughput value), empty (throughput / queue / nodes),
+     unavailable (governor null + service-health), stale (governor running:false), partial.
+     Confirms no contracted component silently disappears.
+  2. **Live read-only parse** (`evidence/runtime/live-parse.txt`): replicates the Tdarr API
+     route's read path (all SELECTs) against the **production DB** — 4 nodes, real stats
+     (totalFiles 3365, totalTranscodes 915), governor running, queue/workers series 180 pts.
+     Real data assembles through the branch `buildTdarrPanel` and validates against
+     `tdarrPanelSchema` incl. new `series.writebackMbps`. `writebackMbps` = 0 pts (expected).
+- **Poller-staleness check (honest):** `tdarr.writeback.mbps` emission was added to the poller
+  on this branch. The prod poller (`stackdash-poller.service`) is a **separate systemd user unit**
+  not restarted by a web deploy, so the metric has no rows yet and the throughput chart correctly
+  renders its empty state in prod. Restarting a prod service needs explicit human approval per the
+  safe-action policy — **not** done automatically; recorded as a live follow-up, not a failure.
+- **Acceptance status:** raised `contract-only` → **`fixture-verified-with-live-follow-up`**,
+  provenance `static-analysis` → `mixed`. Live follow-up checklist extended with the poller-restart
+  and downsampling-over-time items (both need live infra / >24h data). Full app suite **448 passed**.
 
 ## Phase 3 detail — Skills + subagents + commands (passed)
 
