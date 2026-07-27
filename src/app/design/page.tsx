@@ -6,6 +6,9 @@ import { KpiCard } from "@/components/widgets/kpi-card";
 import { LiveTicker } from "@/components/widgets/live-ticker";
 import { PanelCard } from "@/components/widgets/panel-card";
 import { PosterCarousel } from "@/components/widgets/poster-carousel";
+import { IngestionDonut } from "@/components/rail/ingestion-donut";
+import { StreamsOverview } from "@/components/rail/streams-overview";
+import { StatCards } from "@/components/recently-added/stat-cards";
 import { SparkLine } from "@/components/widgets/spark-line";
 import { StatusPill } from "@/components/widgets/status-pill";
 import { TrackerStrip, type TrackerCell } from "@/components/widgets/tracker-strip";
@@ -152,6 +155,32 @@ export default async function DesignPage() {
             ]}
           />
         </PanelCard>
+
+        {/* Recently Added stat cards */}
+        <StatCards
+          stats={{
+            newMovies: { count: 24, trendPct: 12 },
+            newShows: { count: 16, trendPct: -8 },
+            animeAdded: { count: 8, trendPct: null },
+            recentItems: { count: 48, trendPct: null },
+          }}
+        />
+
+        {/* Dashboard rail widgets */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <PanelCard title="Ingestion" subsystem="tdarr">
+            <IngestionDonut
+              segments={[
+                { key: "processing", label: "Processing", value: 2, strokeClass: "stroke-accent-tdarr", dotClass: "bg-accent-tdarr" },
+                { key: "queued", label: "Queued", value: 5, strokeClass: "stroke-status-degraded", dotClass: "bg-status-degraded" },
+                { key: "idle", label: "Idle capacity", value: 3, strokeClass: "stroke-muted-foreground/40", dotClass: "bg-muted-foreground/40" },
+              ]}
+            />
+          </PanelCard>
+          <PanelCard title="Streams" subsystem="plex">
+            <StreamsOverview live={3} transcodes={1} bandwidthMbps={42.6} />
+          </PanelCard>
+        </div>
 
         {/* Accent swatches */}
         <PanelCard title="Subsystem accents">

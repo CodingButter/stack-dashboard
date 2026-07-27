@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 
 import { getSession } from "@/lib/session";
-import { buildRecentlyAdded, buildRecentStats } from "@/lib/panels/assemble";
+import { buildRail } from "@/lib/panels/assemble";
 import { latestSnapshots } from "@/lib/panels/queries";
-import { recentlyAddedSchema } from "@/lib/panels/schemas";
+import { railSchema } from "@/lib/panels/schemas";
 
 export const dynamic = "force-dynamic";
 
@@ -14,9 +14,6 @@ export async function GET() {
   }
 
   const snaps = await latestSnapshots();
-  const payload = recentlyAddedSchema.parse({
-    ...buildRecentlyAdded(snaps),
-    stats: buildRecentStats(snaps),
-  });
+  const payload = railSchema.parse(buildRail(snaps));
   return NextResponse.json(payload);
 }

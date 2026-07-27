@@ -3,13 +3,14 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Menu, PanelLeftClose, PanelLeftOpen, Search, TerminalSquare } from "lucide-react";
+import { Bell, Menu, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, Search, TerminalSquare } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { CommandPalette } from "@/components/shell/command-palette";
 import { AccountMenu, AccountAvatarMenu } from "@/components/shell/account-menu";
+import { DashboardRail } from "@/components/rail/dashboard-rail";
 import { navItems } from "@/components/shell/nav";
 import { cn } from "@/lib/utils";
 import { ToastProvider } from '@/components/actions/toaster';
@@ -99,7 +100,18 @@ export function AppShell({
   const [collapsed, setCollapsed] = React.useState(false);
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [paletteOpen, setPaletteOpen] = React.useState(false);
+  const [railOpen, setRailOpen] = React.useState(true);
   const liveCount = useLiveAlertCount(alertCount === undefined);
+
+  // Escape closes the fly-out rail (standard overlay dismiss affordance).
+  React.useEffect(() => {
+    if (!railOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setRailOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [railOpen]);
   const badgeCount = alertCount ?? liveCount;
 
   return (
@@ -220,11 +232,47 @@ export function AppShell({
                   )}
                 </Link>
               </Button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="hidden size-7 xl:inline-flex"
+                aria-label={railOpen ? "Hide dashboard rail" : "Show dashboard rail"}
+                aria-expanded={railOpen}
+                aria-controls="dashboard-rail"
+                onClick={() => setRailOpen((o) => !o)}
+              >
+                {railOpen ? (
+                  <PanelRightClose className="size-4" />
+                ) : (
+                  <PanelRightOpen className="size-4" />
+                )}
+              </Button>
               <AccountAvatarMenu />
             </div>
           </header>
 
-          <main className="flex-1 p-4 md:p-6">{children}</main>
+          <div className="relative flex-1">
+            <main className="flex-1 p-4 md:p-6">{children}</main>
+
+            {/* Persistent desktop right rail — fly-out overlay above xl,
+                never rendered below xl (no gutter, no layout shift). Slides
+                over the content rather than reflowing it. */}
+            <aside
+              id="dashboard-rail"
+              data-open={railOpen}
+              aria-hidden={!railOpen}
+              className={cn(
+                "pointer-events-none absolute inset-y-0 right-0 z-20 hidden w-80 max-w-[85%] overflow-y-auto border-l border-border bg-background/95 p-4 shadow-xl backdrop-blur transition-transform xl:block",
+                railOpen ? "translate-x-0" : "translate-x-full",
+              )}
+            >
+              {railOpen ? (
+                <div className="pointer-events-auto">
+                  <DashboardRail />
+                </div>
+              ) : null}
+            </aside>
+          </div>
         </div>
       </div>
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />

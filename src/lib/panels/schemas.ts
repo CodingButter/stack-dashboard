@@ -417,8 +417,45 @@ export const recentSectionSchema = z.object({
 });
 export type RecentSection = z.infer<typeof recentSectionSchema>;
 
+/** One stat card: a count plus an optional trend %. `trendPct` is null when
+ * the trend is not meaningful (prior window empty, recent window saturated at
+ * the poller's item cap, or counts too small) — the card then shows count only. */
+export const statCardSchema = z.object({
+  count: z.number(),
+  trendPct: z.number().nullable(),
+});
+export type StatCard = z.infer<typeof statCardSchema>;
+
+export const recentStatsSchema = z.object({
+  newMovies: statCardSchema,
+  newShows: statCardSchema,
+  animeAdded: statCardSchema,
+  recentItems: statCardSchema,
+});
+export type RecentStats = z.infer<typeof recentStatsSchema>;
+
 export const recentlyAddedSchema = z.object({
   generatedAt: z.string(),
   sections: z.array(recentSectionSchema),
+  // Optional so existing consumers / the existing route test keep passing.
+  stats: recentStatsSchema.optional(),
 });
 export type RecentlyAdded = z.infer<typeof recentlyAddedSchema>;
+
+/** Rail data — Ingestion (Tdarr) + Streams (Plex sessions). Truthful 3-part
+ * ingestion: Processing / Queued / Idle-capacity, non-paused nodes only. */
+export const railSchema = z.object({
+  generatedAt: z.string(),
+  ingestion: z.object({
+    processing: z.number(),
+    queued: z.number(),
+    idleCapacity: z.number(),
+    totalCapacity: z.number(),
+  }),
+  streams: z.object({
+    live: z.number(),
+    transcodes: z.number(),
+    bandwidthMbps: z.number(),
+  }),
+});
+export type Rail = z.infer<typeof railSchema>;

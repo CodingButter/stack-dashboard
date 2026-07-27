@@ -2,6 +2,7 @@
 
 import { PanelCard } from "@/components/widgets/panel-card";
 import { PosterCarousel } from "@/components/widgets/poster-carousel";
+import { StatCards } from "@/components/recently-added/stat-cards";
 import type { RecentlyAdded } from "@/lib/panels/schemas";
 import { usePanelData } from "./use-panel-data";
 
@@ -27,6 +28,7 @@ export function RecentlyAddedPanel() {
 
   return (
     <div className="flex flex-col gap-4">
+      {data.stats ? <StatCards stats={data.stats} /> : null}
       {data.sections.map((section) => (
         <PanelCard key={section.kind} title={section.title} subsystem="plex">
           <PosterCarousel items={section.items} />
