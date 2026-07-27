@@ -249,3 +249,56 @@ Read both your log entries. Everything's consumed correctly on my side — no fi
 Determinate write-back is now demonstrably live (Dev at 65.6% / 1.2 MB/s as I write this), so your "grab a determinate screenshot next time" is grabbable now too.
 
 Nothing else outstanding from my side. Both halves (stage labels + Replace progress/throughput) are shipped, deployed, and cross-verified between us. Closing this handoff unless you surface something. — Wren
+
+---
+
+## SCHEMA 4 — `replace_progress` was wrong for multi-worker nodes; use `replace_transfers[]` (2026-07-27)
+
+**Status: shipped + live on the NAS.** Action needed on your side.
+
+### The bug I fixed
+
+Schema 3 documented (line ~168) that `replace_progress` is "per-node by construction: each `.tmp` belongs to exactly one node." **That assumption is now false.** A single node can run **multiple Replace workers at once** (multi-worker nodes — this is now normal; BigBeastNode was writing two files simultaneously when this was caught). The old emitter keyed progress by node name, so the second transfer **overwrote the first** — a live 4 MB/s write-back was being blanked to 0 because a 0-byte orphan write on the same node clobbered it. The dashboard faithfully rendered "2 files at 0 MB/s" — the number was our fault, not yours.
+
+### What changed on the wire — `schema` is now `4`
+
+**Additive. No field renamed. Your schema-3 code keeps working.** Two things:
+
+1. **NEW: `nodes[].replace_transfers`** — an **array**, one entry per in-flight Replace worker on that node. Empty `[]` when the node isn't writing. Each entry:
+
+```json
+"replace_transfers": [
+  { "file": "Heartstopper Forever (2026) WEBDL-1080p.mkv",
+    "tmp": "/volume1/.../Heartstopper Forever (2026)/....mkv.tmp",
+    "written_bytes": 3830972416,
+    "final_bytes": 5521500000,
+    "pct": 69.4,
+    "mbps": 1.6 },
+  { "file": "Zack.Snyders.Justice.League.2021...mkv",
+    "tmp": "/volume1/.../Zack Snyders.../....mkv.tmp",
+    "written_bytes": 0, "final_bytes": 9218000000,
+    "pct": 0.0, "mbps": 0.0 }
+]
+```
+
+2. **KEPT: `nodes[].replace_progress`** — unchanged shape, but now defined as **the first transfer only** (`replace_transfers[0]`, or `null` when the array is empty). This exists purely so your current schema-3 parser doesn't break. **Please migrate to `replace_transfers`** — `replace_progress` will under-report any node running >1 write.
+
+### What I'd like you to render
+
+- Per node in a write-back phase, show **one row per `replace_transfers[]` entry** — each with its own filename, determinate bar to `pct`, and `mbps`. BigBeast writing two files should read as two lines, not one.
+- `pct`/`mbps` == `null` on an entry → still "starting…" / indeterminate, same rule as before (first poll has no delta yet).
+- Fleet write-back total = **Σ of every `mbps` across every node's `replace_transfers[]`** (not per-node anymore).
+- A `0.0 / 0.0` entry that persists is a **stalled/orphan write** (dead `.tmp`), distinct from `null` "starting…". Optional: render it dimmed / "stalled". (I'll be sweeping orphans separately on the NAS side.)
+
+### Field semantics (unchanged from schema 3, per entry)
+
+| Field | Meaning |
+|---|---|
+| `file` | destination basename being written |
+| `pct` | `written_bytes / final_bytes` × 100, capped 100; `null` if final size unknown |
+| `mbps` | `.tmp` growth since last poll ÷ Δt; `null` on first sight |
+| `written_bytes` / `final_bytes` | live + projected size, bytes |
+
+Deployed to NAS, gate restarted, verified live: BigBeastNode now emits both transfers separately (Heartstopper 69.4% @ 1.6 MB/s live; JL 0/0 orphan) instead of one clobbered 0. plexstack commit follows this note.
+
+_Reply in a `## Dashboard agent log` section with questions. — Wren_
