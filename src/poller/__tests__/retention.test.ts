@@ -1,3 +1,5 @@
+import { sql } from "drizzle-orm";
+import { PgDialect } from "drizzle-orm/pg-core";
 import { describe, expect, it } from "vitest";
 
 import { metrics, serviceStatus, snapshots } from "@/db/schema";
@@ -7,6 +9,7 @@ import {
   RAW_TO_HOUR_MS,
   SERVICE_STATUS_TTL_MS,
   SNAPSHOTS_KEEP_PER_KIND,
+  bucketTruncExpr,
   runRetention,
 } from "../retention";
 
@@ -207,4 +210,35 @@ describe("metric downsampling", () => {
     expect(counts.metricsCollapsedHourToDay).toBe(0);
     expect(collapse.inserted).toHaveLength(0);
   });
+});
+
+describe("collapse bucket SQL generation", () => {
+  const dialect = new PgDialect();
+  const render = (fragment: ReturnType<typeof sql>) => dialect.sqlToQuery(fragment);
+
+  // Regression: the collapse tier once passed the bucket unit ("hour"/"day") as a
+  // bind parameter, so the SELECT and GROUP BY date_trunc() expressions rendered
+  // as $1 vs $N. Postgres does not treat two distinct placeholders as the same
+  // expression and rejected "metrics.at" as ungrouped (SQLSTATE 42803), crash-
+  // looping the poller in production. The in-memory shim can't catch this — it
+  // never evaluates SQL — so we assert the emitted SQL text directly.
+  for (const bucket of ["hour", "day"] as const) {
+    it(`inlines the ${bucket} bucket unit as a literal, not a bind param`, () => {
+      const { sql: text, params } = render(bucketTruncExpr(bucket));
+      // The truncation unit must be a literal in the SQL, not a placeholder.
+      expect(text).toContain(`date_trunc('${bucket}',`);
+      expect(params).not.toContain(bucket);
+    });
+
+    it(`renders identical ${bucket} date_trunc text in SELECT and GROUP BY`, () => {
+      const expr = bucketTruncExpr(bucket);
+      // Build a query that references the SAME expression in both clauses, the
+      // way collapseTier does, and confirm both occurrences are byte-identical.
+      const query = sql`select ${expr} as "bucket" from ${metrics} group by ${expr}`;
+      const { sql: text } = render(query);
+      const occurrences = text.match(/date_trunc\('[a-z]+',[^)]*\)/g) ?? [];
+      expect(occurrences).toHaveLength(2);
+      expect(occurrences[0]).toBe(occurrences[1]);
+    });
+  }
 });

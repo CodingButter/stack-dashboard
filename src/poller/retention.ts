@@ -42,6 +42,22 @@ type Database = typeof Db;
  * downtime) the daily point is slightly biased. This is standard/acceptable for a
  * monitoring throughput chart; read the daily series as indicative, not exact.
  */
+/**
+ * Bucket truncation expression shared by a collapse tier's SELECT and GROUP BY.
+ *
+ * `bucket` is a fixed internal literal ("hour" | "day"), never user input, so it
+ * is inlined as raw SQL rather than a bind parameter. This is load-bearing:
+ * Postgres compares the SELECT and GROUP BY date_trunc() expressions textually,
+ * and two separate parameter placeholders ($1 vs $4) are NOT recognized as the
+ * same expression — which makes it reject "at" as an ungrouped column
+ * (SQLSTATE 42803). Emitting the identical literal on both sides avoids that.
+ * Exported so a test can assert the emitted SQL groups correctly against real
+ * Postgres semantics (the in-memory shim can't catch grouping errors).
+ */
+export function bucketTruncExpr(bucket: "hour" | "day") {
+  return sql<string>`date_trunc(${sql.raw(`'${bucket}'`)}, ${metrics.at})`;
+}
+
 async function collapseTier(
   database: Database,
   from: "raw" | "hour",
@@ -49,17 +65,18 @@ async function collapseTier(
   bucket: "hour" | "day",
   cutoff: Date,
 ): Promise<number> {
+  const truncExpr = bucketTruncExpr(bucket);
   return database.transaction(async (tx) => {
     const buckets = await tx
       .select({
         box: metrics.box,
         metric: metrics.metric,
-        bucket: sql<string>`date_trunc(${bucket}, ${metrics.at})`.as("bucket"),
+        bucket: truncExpr.as("bucket"),
         avg: sql<number>`avg(${metrics.value})`.as("avg"),
       })
       .from(metrics)
       .where(and(eq(metrics.resolution, from), lt(metrics.at, cutoff)))
-      .groupBy(metrics.box, metrics.metric, sql`date_trunc(${bucket}, ${metrics.at})`);
+      .groupBy(metrics.box, metrics.metric, truncExpr);
 
     if (buckets.length === 0) return 0;
 
