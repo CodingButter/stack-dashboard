@@ -114,12 +114,22 @@ failure and the identity/type of the fallback reviewer.
 Recorded in `acceptance-report.md` `meta` and in `PROGRESS.md`:
 
 - `live-verified` — proven against live NAS/Tdarr, including transport/runtime behaviors.
+  Requires `provenance: live|mixed` (schema-enforced).
 - `fixture-verified-with-live-follow-up` — contract, rendering, mapping, state, and
   apparatus gates proven on **real captured fixtures**; live-only behaviors remain on a
-  follow-up checklist.
+  follow-up checklist. Requires `provenance: fixture|mixed` (schema-enforced) — a run that
+  exercised **no** fixtures may NOT claim this status.
+- `contract-only` — contracts drafted + validated by static analysis alone; **nothing**
+  executed against live infra or captured fixtures yet. The honest status for a Phase-4
+  contract stage. Requires `provenance: static-analysis` and a non-empty live follow-up
+  checklist (schema-enforced). Must never be described as verified.
 - `blocked` — a hard gate cannot be cleared (e.g. no independent reviewer); stop at human
   approval.
 - `failed` — a gate produced a genuine failure.
+
+> **Honesty rule (round-1 review lesson):** the acceptance status must match `provenance`.
+> A static-analysis contract stage is `contract-only`, never `fixture-verified-*`. The
+> schema now enforces this pairing so the two can never drift.
 
 **Fixture-backed labeling rules:** when live data is unavailable, set `provenance:
 "fixture"`, record why, enumerate exactly which fields/states/actions/runtime behaviors

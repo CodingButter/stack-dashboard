@@ -1,7 +1,7 @@
 # Tdarr migration run — PROGRESS
 
 **Run:** `tdarr` &nbsp;|&nbsp; **Branch:** `feat/stackdash-migration-apparatus` &nbsp;|&nbsp; **Base revision:** `f8c137f` (`main`)
-**Acceptance status:** _not yet determined_ (`live-verified | fixture-verified-with-live-follow-up | blocked | failed`)
+**Acceptance status (Phase 4 contract stage):** `contract-only` (provenance `static-analysis`; nothing executed against live infra or fixtures yet) — full enum: `live-verified | fixture-verified-with-live-follow-up | contract-only | blocked | failed`
 
 Phase status enum: `pending | running | blocked | passed | invalidated`
 
@@ -11,7 +11,7 @@ Phase status enum: `pending | running | blocked | passed | invalidated`
 | 1 — Canonical schemas + meta-versioning + CONSTITUTION | passed | `pnpm exec vitest run scripts/workflow/tests/schemas.test.ts` → 17 passed | 8 canonical zod schemas + meta block + CONSTITUTION written |
 | 2 — Validators + reconciler + stale-input guard | passed | `pnpm exec vitest run scripts/workflow/tests/validators.test.ts` → 25 passed | coverage/traceability/3 blockers + reconciler + stale guard, each red+green |
 | 3 — Skills + subagents + namespaced commands | passed | `pnpm exec vitest run scripts/workflow/tests/commands.test.ts` → 29 passed | 12 skills + 4 read-only agents + 4 namespaced commands + page-id guard |
-| 4 — Run apparatus on Tdarr → contracts → decision gate | pending | coverage+traceability validators + independent contract review | mid-run DECISION GATE |
+| 4 — Run apparatus on Tdarr → contracts → decision gate | running | `pnpm exec vitest run scripts/workflow/tests/` → 85 passed (coverage/traceability/blocker gates 100%); independent review round 1 = 3 must-fix, all fixed; round 2 re-review pending | mid-run DECISION GATE — round-1 fixes: acceptance-status enum hardened (AW-1), governor/write-back reclassified udp-push (AW-2), scan-library → reversible-write (AW-3) |
 | 5 — Implement + runtime-verify migrated page | pending | full suite + runtime validator + reproducible red/green | |
 | 5.5 — Apparatus portability regression | pending | `pnpm exec vitest run scripts/workflow/tests/portability.test.ts` | synthetic non-Tdarr fixtures only |
 | 6 — Ship checks | pending | full suite + all validators + independent adversarial review | human approval gate |
@@ -19,7 +19,7 @@ Phase status enum: `pending | running | blocked | passed | invalidated`
 ## Reviewer log
 _(records: adversarial_review tool attempt + outcome; fallback reviewer identity/type if the tool fails; per plan §2 independent-review principle)_
 
-- _none yet_
+- **Phase 4 contract review — round 1** (`adversarial_review` tool, model `anthropic/claude-opus-4-8`, independent of the implementation agent). Tool succeeded. Outcome: **3 must-fix (critical/high)** — (1) acceptance status `fixture-verified-with-live-follow-up` contradicts `provenance: static-analysis` (nothing fixture-verified); (2) governor fields incl. write-back family misclassified `server-derived` — real primary transport is a **2Hz WebSocket live push** (`useGovernorTelemetry` → `mergeGovernor`, HTTP snapshot is fallback) = udp-push axis; (3) `scan-library` mislabeled `read-only` (it enqueues a `scan-files` mutation) letting it escape the confirmation refine. Plus risks (scan-library libraryId/reachability, registry-id only in handlerRef prose, cross-source join undocumented) and naming drift (`percentage` vs `percent`). All 3 must-fix verified against real code and accepted. **Fixes applied (this commit):** AW-1 → added `contract-only` acceptance status + provenance-pairing refines in `scripts/workflow/schemas/artifacts.ts` (apparatus-level fix, regression tests added), report corrected to `contract-only`; AW-2 → 10 governor/write-back fields reclassified `udp-push` (2Hz WS push primary, HTTP fallback) in data-contract + traceability-matrix; AW-3 → `scan-library` → `reversible-write` + `requiresConfirmation: true`. Suggestions applied: gap-analysis §4 reworded (static-analysis not runtime guarantee), `percentage`→`percent` naming, cross-source join documented. Apparatus weakness AW-1 recorded in `WORKFLOW_IMPROVEMENTS.md`. Full suite green (50 files / 427 tests). **Round 2 re-review pending** before the decision gate can pass.
 
 ## Invalidation log
 _(records: which manifest input changed, which phases were marked `invalidated`, and when; per plan §5b)_
@@ -35,6 +35,28 @@ _(records: which manifest input changed, which phases were marked `invalidated`,
   `src/components/panels/__tests__/pipeline.test.ts` (12) → **31 passed / 0 failed**. No pre-existing failures; nothing classified out-of-scope.
 - **Red/green baseline:** base revision recorded; red input = worktree pinned to `f8c137f` (see `evidence/baseline/README.md`). `tdarrSlice` git-blob hashes pin the exact pre-migration bytes.
 - **Input manifest:** `input-manifest.json` written (tdarr slice, design evidence, fixtures, prior-art) with per-input hashes + hashKind.
+## Phase 4 detail — Tdarr contracts + decision gate (running)
+
+- **Generated artifacts** under `docs/stackdash/contracts/tdarr/` (contract v1.0.0,
+  apparatus `164e0f0`, provenance `static-analysis`): `page-spec.{json,md}`,
+  `component-inventory.json`, `field-inventory.json` (26 fields), `data-contract.json`,
+  `state-contract.json`, `action-contract.json` (6 real RBAC actions),
+  `traceability-matrix.json`, `acceptance-report.json`, `gap-analysis.md`.
+- **Producers verified against real code:** KPI + node fields `http-poll` medium
+  (`src/poller/clients/tdarr.ts`); governor `server-derived` from `buildGovernor`
+  (`src/lib/panels/assemble.ts`) with `null`=unavailable / `running:false`=stale;
+  worker stage `local-derived` via `workerStage` (`src/lib/panels/tdarr-stage.ts`).
+- **Write-back trap resolved:** `writeback-pct`/`writeback-mbps` → `replaceProgress.{pct,mbps}`
+  from the governor node, NOT `worker.percentage`. Enforced by config-driven
+  `no-forbidden-producer` blocker + an explicit producer assertion.
+- **Gate:** `pnpm exec vitest run scripts/workflow/tests/tdarr-contracts.test.ts` → **12 passed**.
+  Schema validity (8 artifacts) + field/component/state/action coverage all 100% +
+  producer→consumer traceability fully verified + all 3 hard blockers clean + prior-art
+  reconciliation (no contradictory/duplicate/ambiguous drift; 26 fields recorded as
+  expected `missing` supersession). Full suite green (50 files / 425 tests).
+- **Decision gate — remaining:** independent contract adversarial review (tool-first;
+  fallback per §2). Row stays `running` until that clears.
+
 ## Phase 3 detail — Skills + subagents + commands (passed)
 
 - **12 skills** under `.mastracode/skills/stackdash-*/SKILL.md`: design-inventory,

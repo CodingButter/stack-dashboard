@@ -207,6 +207,10 @@ export type TraceabilityMatrix = z.infer<typeof traceabilityMatrixSchema>;
 export const acceptanceStatusSchema = z.enum([
   "live-verified",
   "fixture-verified-with-live-follow-up",
+  // Contracts drafted + validated by static analysis only; nothing executed
+  // against live infra OR captured fixtures yet. The honest status for a
+  // contract stage (plan §4 acceptance-status honesty).
+  "contract-only",
   "blocked",
   "failed",
 ]);
@@ -262,6 +266,27 @@ export const acceptanceReportSchema = z
       message:
         "fixture-verified-with-live-follow-up must preserve a non-empty follow-up checklist",
       path: ["liveFollowUp"],
+    },
+  )
+  .refine(
+    (r) =>
+      r.acceptanceStatus !== "fixture-verified-with-live-follow-up" ||
+      r.meta.provenance === "fixture" ||
+      r.meta.provenance === "mixed",
+    {
+      message:
+        "fixture-verified-with-live-follow-up requires provenance fixture|mixed; static-analysis runs that exercised no fixtures must use contract-only",
+      path: ["acceptanceStatus"],
+    },
+  )
+  .refine(
+    (r) =>
+      r.acceptanceStatus !== "contract-only" ||
+      (r.meta.provenance === "static-analysis" && r.liveFollowUp.length > 0),
+    {
+      message:
+        "contract-only requires provenance static-analysis and a preserved non-empty follow-up checklist",
+      path: ["acceptanceStatus"],
     },
   );
 export type AcceptanceReport = z.infer<typeof acceptanceReportSchema>;

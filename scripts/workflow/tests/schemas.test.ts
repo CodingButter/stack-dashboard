@@ -240,6 +240,43 @@ describe("canonical artifact schemas — valid fixtures parse", () => {
     };
     expect(acceptanceReportSchema.safeParse(bad).success).toBe(false);
   });
+
+  it("acceptance-report — fixture status cannot be claimed on static-analysis provenance", () => {
+    // Reviewer round-1 finding: nothing was fixture-verified, yet the report
+    // claimed the fixture status. The fixture status now requires fixture|mixed
+    // provenance; a static-analysis run must use contract-only instead.
+    const bad = {
+      meta: { ...validMeta, provenance: "static-analysis" },
+      acceptanceStatus: "fixture-verified-with-live-follow-up",
+      coverage: { field: 100, component: 100, state: 100, action: 100, traceability: 100 },
+      reviewer: "adversarial_review tool",
+      liveFollowUp: [
+        { item: "confirm live governor push", ref: "tdarr.governor.status.panel.running", resolved: false },
+      ],
+    };
+    expect(acceptanceReportSchema.safeParse(bad).success).toBe(false);
+  });
+
+  it("acceptance-report — contract-only is the honest status for a static-analysis contract stage", () => {
+    const base = {
+      meta: { ...validMeta, provenance: "static-analysis" },
+      acceptanceStatus: "contract-only",
+      coverage: { field: 100, component: 100, state: 100, action: 100, traceability: 100 },
+      reviewer: "pending-phase-4-independent-review",
+      liveFollowUp: [
+        { item: "verify write-back live during a real Replace phase", ref: "tdarr.nodes.grid.worker.writeback-pct", resolved: false },
+      ],
+    };
+    expect(acceptanceReportSchema.safeParse(base).success).toBe(true);
+
+    // contract-only demands static-analysis provenance...
+    const wrongProvenance = { ...base, meta: { ...validMeta, provenance: "fixture" } };
+    expect(acceptanceReportSchema.safeParse(wrongProvenance).success).toBe(false);
+
+    // ...and a preserved non-empty follow-up checklist.
+    const noChecklist = { ...base, liveFollowUp: [] };
+    expect(acceptanceReportSchema.safeParse(noChecklist).success).toBe(false);
+  });
 });
 
 describe("canonical schema registry", () => {

@@ -1,0 +1,28 @@
+{
+  "meta": {
+    "schemaVersion": "1.0.0",
+    "contractVersion": "1.0.0",
+    "pageId": "tdarr",
+    "createdAt": "2026-07-27T03:48:53Z",
+    "updatedAt": "2026-07-27T04:10:00Z",
+    "apparatusVersion": "164e0f0",
+    "sourceDesignRef": ".mastracode/stackdash-workflow-builder/tdarr-redesign.png@05b7163a58cf1c920399156c6a9cb037ddf543f3",
+    "provenance": "static-analysis",
+    "supersedes": null
+  },
+  "acceptanceStatus": "contract-only",
+  "coverage": {
+    "field": 100,
+    "component": 100,
+    "state": 100,
+    "action": 100,
+    "traceability": 100
+  },
+  "reviewer": "pending-phase-4-independent-review",
+  "liveFollowUp": [
+    { "item": "Verify write-back progress (replaceProgress.pct/mbps) renders live during a real Replace/Copy phase on a NAS node", "ref": "tdarr.nodes.grid.worker.writeback-pct", "resolved": false },
+    { "item": "Verify governor unavailable (null) vs stale (running:false) states against the live agent/governor snapshot", "ref": "tdarr.governor.status.panel.running", "resolved": false },
+    { "item": "Confirm poller ActiveEnterTimestamp is post-change before trusting any http-poll field live", "ref": "stackdash-poller.service", "resolved": false },
+    { "item": "Verify disruptive/destructive actions (pause-node, cancel-transcode) in an approved safe environment with confirmation flow", "ref": "tdarr.nodes.grid.worker.cancel-transcode", "resolved": false }
+  ]
+}

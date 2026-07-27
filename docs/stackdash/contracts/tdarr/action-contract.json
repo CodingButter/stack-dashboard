@@ -1,0 +1,75 @@
+{
+  "meta": {
+    "schemaVersion": "1.0.0",
+    "contractVersion": "1.0.0",
+    "pageId": "tdarr",
+    "createdAt": "2026-07-27T03:48:53Z",
+    "updatedAt": "2026-07-27T04:10:00Z",
+    "apparatusVersion": "164e0f0",
+    "sourceDesignRef": ".mastracode/stackdash-workflow-builder/tdarr-redesign.png@05b7163a58cf1c920399156c6a9cb037ddf543f3",
+    "provenance": "static-analysis",
+    "supersedes": null
+  },
+  "actions": [
+    {
+      "id": "tdarr.nodes.grid.card.pause-node",
+      "name": "Pause Tdarr node",
+      "safety": "disruptive",
+      "handlerRef": "src/actions/services/tdarr.ts::tdarr.pause-node (relay update-node nodePaused:true)",
+      "requiredRoles": ["admin"],
+      "requiresConfirmation": true,
+      "expectedEffect": "Sets nodePaused:true on the target node; workers stop picking up new jobs.",
+      "rollback": "tdarr.resume-node on the same nodeName"
+    },
+    {
+      "id": "tdarr.nodes.grid.card.resume-node",
+      "name": "Resume Tdarr node",
+      "safety": "disruptive",
+      "handlerRef": "src/actions/services/tdarr.ts::tdarr.resume-node (relay update-node nodePaused:false)",
+      "requiredRoles": ["admin"],
+      "requiresConfirmation": true,
+      "expectedEffect": "Sets nodePaused:false on the target node; node resumes accepting jobs.",
+      "rollback": "tdarr.pause-node on the same nodeName"
+    },
+    {
+      "id": "tdarr.governor.status.panel.pause-all-nodes",
+      "name": "Pause all Tdarr nodes",
+      "safety": "disruptive",
+      "handlerRef": "src/actions/services/tdarr.ts::tdarr.pause-all-nodes",
+      "requiredRoles": ["admin"],
+      "requiresConfirmation": true,
+      "expectedEffect": "Iterates all nodes and sets nodePaused:true; whole fleet stops accepting jobs.",
+      "rollback": "Resume each node individually via tdarr.resume-node"
+    },
+    {
+      "id": "tdarr.nodes.grid.card.set-worker-limit",
+      "name": "Set node worker limit",
+      "safety": "disruptive",
+      "handlerRef": "src/actions/services/tdarr.ts::tdarr.set-worker-limit (relay alter-worker-limit, stepwise)",
+      "requiredRoles": ["admin"],
+      "requiresConfirmation": true,
+      "expectedEffect": "Walks the node's worker limit for a worker type from current to requested. Warning: keep NasTNode GPU transcode at 1.",
+      "rollback": "Re-issue tdarr.set-worker-limit with the prior limit value"
+    },
+    {
+      "id": "tdarr.nodes.grid.worker.cancel-transcode",
+      "name": "Cancel running transcode",
+      "safety": "destructive",
+      "handlerRef": "src/actions/services/tdarr.ts::tdarr.cancel-transcode (relay kill-worker)",
+      "requiredRoles": ["admin"],
+      "requiresConfirmation": true,
+      "expectedEffect": "Kills the worker mid-transcode; progress on the current file is discarded.",
+      "rollback": null
+    },
+    {
+      "id": "tdarr.kpi.summary.scan-library",
+      "name": "Re-scan Tdarr library",
+      "safety": "reversible-write",
+      "handlerRef": "src/actions/services/tdarr.ts::tdarr.scan-library (relay scan-files scanFindNew, param libraryId)",
+      "requiredRoles": ["viewer"],
+      "requiresConfirmation": true,
+      "expectedEffect": "Enqueues a scanFindNew library scan for the given libraryId; discovers/queues new files. Side-effecting enqueue, not a read. Registry blastRadius is 'safe' but the executor relays a scan-files mutation, so it is classified reversible-write here and gated by confirmation.",
+      "rollback": "No direct undo; a queued scan can be left to complete or new queue entries cleared via node/queue controls. requiresConfirmation guards accidental fire. NOTE: needs a libraryId param — unreachable in the redesign unless the UI supplies one."
+    }
+  ]
+}
