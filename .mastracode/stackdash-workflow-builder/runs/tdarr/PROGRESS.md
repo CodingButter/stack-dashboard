@@ -86,6 +86,30 @@ _(records: which manifest input changed, which phases were marked `invalidated`,
 - **Gate:** retention collapse + idempotency tests added (5 retention tests); `tdarr-contracts.test.ts`
   12 passed; workflow + poller + panels + app suites **259 passed**. Typecheck clean (app).
 
+### 5b — Redesigned layout (`1310bca`)
+- `tdarr-panel.tsx` reorganized to the redesign: 6-KPI strip in one row (adds Active Workers card,
+  Queue Depth as a plain number), governor reused via `GovernorCard`, node grid 2-col → 4-across,
+  analytics row (Queue Depth sparkline, per-node load radial `DonutGauge`, aggregate Write-back
+  throughput chart wired to the real `writebackMbps` series). Per-node throughput deferred as a
+  deliberate scope decision (recorded in `gap-analysis.md`). Typecheck + 68 panel/widget tests green.
+
+### 5d — All required states (`9b8a03e`)
+- Closed the two state-contract gaps the layout left implicit: Queue Depth chart renders
+  "No data yet" on empty series (was a blank sparkline); Service Health renders "Health unknown"
+  when no uptime samples exist (`UptimeRow` was silently collapsing the card body — a redesign
+  component must never disappear). Governor unavailable/stale and node partial/empty were already
+  handled. Every `componentId` in `state-contract.json` now has a rendered presentation path.
+
+### 5e — Reproducible red/green (amendment 6)
+- New page-agnostic validator `checkImplementation` (`scripts/workflow/validators/implementation.ts`):
+  asserts each required component's proof markers appear in the implementation source. Tdarr-specific
+  marker map is run-scoped (`analysis/impl-markers.json`), not apparatus logic.
+- `tdarr-redgreen.test.ts` runs the **identical** validator + marker map against the base revision
+  (`git show f8c137f:<path>`) and the working tree, writing `evidence/baseline/without.txt` (red)
+  and `with.txt` (green). Baseline = **17% coverage, 5 redesign components missing, blocking**;
+  migrated = **100%, no findings**. Differing outcome from identical validator/config proves the
+  *implementation* changed, not the test. +4 validator unit tests. Workflow suite **92 passed**.
+
 ## Phase 3 detail — Skills + subagents + commands (passed)
 
 - **12 skills** under `.mastracode/skills/stackdash-*/SKILL.md`: design-inventory,

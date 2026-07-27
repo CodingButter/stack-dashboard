@@ -19,6 +19,7 @@ import {
   checkNoForbiddenProducer,
   reconcilePriorArt,
   checkStaleInputs,
+  checkImplementation,
   hasBlocking,
 } from "../validators";
 import { validMeta } from "./fixtures/valid-meta";
@@ -340,5 +341,49 @@ describe("stale-input guard", () => {
     });
     expect(r.ok).toBe(false);
     expect(r.invalidatedPhases).toEqual(["contract", "implement"]);
+  });
+});
+
+// ─── Implementation-conformance validator (page-agnostic logic) ─────────────
+describe("checkImplementation", () => {
+  const source = `
+    <DonutGauge value={50} />
+    <KpiCard label="Active workers" info="active-workers" />
+    No throughput history yet
+  `;
+
+  it("passes when every required component's markers are all present", () => {
+    const r = checkImplementation({
+      source,
+      markers: [
+        { componentId: "load", patterns: ["DonutGauge"] },
+        { componentId: "workers", patterns: ['label="Active workers"', 'info="active-workers"'] },
+      ],
+    });
+    expect(r.ok).toBe(true);
+    expect(r.coveragePct).toBe(100);
+  });
+
+  it("fails (high) when a required component's marker is absent from the source", () => {
+    const r = checkImplementation({
+      source,
+      markers: [{ componentId: "throughput", patterns: ["No throughput history yet", "writebackMbps"] }],
+    });
+    expect(r.ok).toBe(false);
+    expect(hasBlocking(r)).toBe(true);
+    expect(r.findings[0].ref).toBe("throughput");
+    expect(r.findings[0].message).toContain("writebackMbps");
+  });
+
+  it("treats a component with no proof markers as an authoring failure", () => {
+    const r = checkImplementation({ source, markers: [{ componentId: "ghost", patterns: [] }] });
+    expect(r.ok).toBe(false);
+    expect(r.findings[0].message).toContain("no proof markers");
+  });
+
+  it("reports 100% coverage vacuously when there are no required components", () => {
+    const r = checkImplementation({ source, markers: [] });
+    expect(r.ok).toBe(true);
+    expect(r.coveragePct).toBe(100);
   });
 });

@@ -1,0 +1,16 @@
+{
+  "_comment": "Run-scoped implementation-conformance marker map for the Tdarr page. Each required component from component-inventory.json is paired with regex markers that MUST appear in the migrated component source to prove that component is rendered. This file carries the Tdarr-specific knowledge; scripts/workflow/validators/implementation.ts stays page-agnostic. Markers target redesign deltas so the pre-migration baseline (f8c137f) fails red and the migrated implementation passes green.",
+  "sourceFiles": [
+    "src/components/panels/tdarr-panel.tsx",
+    "src/components/panels/governor-card.tsx",
+    "src/components/panels/uptime-row.tsx"
+  ],
+  "markers": [
+    { "componentId": "tdarr.kpi.summary.active-workers", "label": "Active workers KPI card", "patterns": ["label=\"Active workers\"", "info=\"active-workers\"", "activeWorkers\\s*}\\s*/\\s*\\$\\{totalWorkers|\\$\\{activeWorkers\\} / \\$\\{totalWorkers\\}"] },
+    { "componentId": "tdarr.kpi.summary.queue-depth", "label": "Queue depth KPI card", "patterns": ["label=\"Queue depth\"", "info=\"queue-depth\""] },
+    { "componentId": "tdarr.analytics.charts.queue-depth", "label": "Queue depth analytics chart", "patterns": ["queueDepth\\.length === 0", "No data yet"] },
+    { "componentId": "tdarr.analytics.charts.throughput", "label": "Worker throughput analytics chart", "patterns": ["writebackMbps", "No throughput history yet"] },
+    { "componentId": "tdarr.analytics.charts.load", "label": "Per-node load radial gauges", "patterns": ["DonutGauge"] },
+    { "componentId": "tdarr.analytics.charts.service-health", "label": "Service health / uptime", "patterns": ["Health unknown", "UptimeRow"] }
+  ]
+}

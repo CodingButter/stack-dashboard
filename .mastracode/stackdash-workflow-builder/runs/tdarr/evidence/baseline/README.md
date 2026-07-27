@@ -23,6 +23,25 @@ migrated implementation (`with.txt`).
   `inputs.tdarrSlice`) is the fixed red input. Its `git-blob` hashes pin the exact bytes; any
   change to those files invalidates this baseline (plan §5b).
 
+## The validator: implementation conformance
+
+The contract validators (coverage/traceability/blockers) read the JSON artifacts and pass
+on both trees — they cannot detect an implementation that omits a contracted component. The
+red/green proof instead uses `checkImplementation` (`scripts/workflow/validators/implementation.ts`),
+which asserts that, for every required component, the implementation *source* contains the
+markers proving it is rendered. The validator logic is page-agnostic; the Tdarr-specific
+marker map lives in `../../analysis/impl-markers.json` (run-scoped, not apparatus logic).
+
+Test: `scripts/workflow/tests/tdarr-redgreen.test.ts`. It runs the identical validator +
+marker map against the base revision (`git show f8c137f:<path>`) and the working tree,
+writes `without.txt` (red) and `with.txt` (green), and asserts the outcomes differ — which
+can only be true because the implementation changed, not the test.
+
+## Result
+
+- `without.txt` — baseline @ `f8c137f`: **17% coverage, 5 redesign components missing, blocking.**
+- `with.txt` — migrated working tree: **100% coverage, no findings.**
+
 ## Why not snapshot the files here
 
 Copying `src/app/tdarr/page.tsx` + the slice into this dir would create a second source of
