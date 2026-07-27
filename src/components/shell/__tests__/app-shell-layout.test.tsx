@@ -43,5 +43,8 @@ describe("AppShell layout contract", () => {
     expect(rail?.className).toContain("xl:block");
     // Overlay, not a flex sibling that reflows content.
     expect(rail?.className).toContain("absolute");
+    // The base carries pointer-events-none so a closed rail never steals
+    // clicks from the main content; the inner content re-enables when open.
+    expect(rail?.className).toContain("pointer-events-none");
   });
 });

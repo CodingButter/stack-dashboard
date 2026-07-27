@@ -15,6 +15,10 @@ export interface DonutSegment {
  * is a proportional arc of the ring; the center shows the busy share of
  * capacity. Segments with value 0 render no arc but still appear in the legend.
  * When every segment is 0 the ring shows an empty track and "Idle".
+ *
+ * Contract: the LAST segment is treated as the idle/headroom slice — the centre
+ * "busy" percentage is the non-idle share (everything except the last segment).
+ * Callers must order segments with the idle slice last.
  */
 export function IngestionDonut({
   segments,

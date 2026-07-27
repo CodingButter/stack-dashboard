@@ -102,6 +102,16 @@ export function AppShell({
   const [paletteOpen, setPaletteOpen] = React.useState(false);
   const [railOpen, setRailOpen] = React.useState(true);
   const liveCount = useLiveAlertCount(alertCount === undefined);
+
+  // Escape closes the fly-out rail (standard overlay dismiss affordance).
+  React.useEffect(() => {
+    if (!railOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setRailOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [railOpen]);
   const badgeCount = alertCount ?? liveCount;
 
   return (
@@ -253,7 +263,7 @@ export function AppShell({
               aria-hidden={!railOpen}
               className={cn(
                 "pointer-events-none absolute inset-y-0 right-0 z-20 hidden w-80 max-w-[85%] overflow-y-auto border-l border-border bg-background/95 p-4 shadow-xl backdrop-blur transition-transform xl:block",
-                railOpen ? "translate-x-0" : "pointer-events-none translate-x-full",
+                railOpen ? "translate-x-0" : "translate-x-full",
               )}
             >
               {railOpen ? (
