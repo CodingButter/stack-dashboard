@@ -12,7 +12,7 @@ Phase status enum: `pending | running | blocked | passed | invalidated`
 | 2 — Validators + reconciler + stale-input guard | passed | `pnpm exec vitest run scripts/workflow/tests/validators.test.ts` → 25 passed | coverage/traceability/3 blockers + reconciler + stale guard, each red+green |
 | 3 — Skills + subagents + namespaced commands | passed | `pnpm exec vitest run scripts/workflow/tests/commands.test.ts` → 29 passed | 12 skills + 4 read-only agents + 4 namespaced commands + page-id guard |
 | 4 — Run apparatus on Tdarr → contracts → decision gate | passed | `pnpm exec vitest run scripts/workflow/tests/` → 85 passed (coverage/traceability/blocker gates 100%); independent review round 1 = 3 must-fix, all fixed; round 2 re-review = **0 must-fix, passes** | mid-run DECISION GATE PASSED — round-1 fixes verified against source by independent reviewer; 2 non-blocking risks carried to Phase 5 follow-up |
-| 5 — Implement + runtime-verify migrated page | pending | full suite + runtime validator + reproducible red/green | |
+| 5 — Implement + runtime-verify migrated page | running | full suite + runtime validator + reproducible red/green | data layer done (`959f20e`): throughput series producer + tiered downsampling; contracts flipped to real verified producer. UI reorg + states + runtime verify next |
 | 5.5 — Apparatus portability regression | pending | `pnpm exec vitest run scripts/workflow/tests/portability.test.ts` | synthetic non-Tdarr fixtures only |
 | 6 — Ship checks | pending | full suite + all validators + independent adversarial review | human approval gate |
 
@@ -59,6 +59,32 @@ _(records: which manifest input changed, which phases were marked `invalidated`,
   expected `missing` supersession). Full suite green (50 files / 425 tests).
 - **Decision gate — remaining:** independent contract adversarial review (tool-first;
   fallback per §2). Row stays `running` until that clears.
+
+## Phase 5 detail — Implement + runtime-verify (running)
+
+### 5a–5a5 — Data layer: write-back throughput series + tiered downsampling (`959f20e`)
+- **Drift found (AW-5):** implementation exposed a contract↔code drift the Phase-4 gate and
+  two review rounds missed — `tdarr.analytics.charts.throughput.series` was `verified: true`
+  against `assemble.ts (SeriesMap)`, but no MB/s series producer existed (`series` carried
+  only `queueDepth` + `workersActive`; per-node write-back MB/s was an instantaneous scalar).
+  The traceability validator matches producerRef strings but never confirms the producer
+  exists in source. Recorded in `WORKFLOW_IMPROVEMENTS.md` with a proposed producer-existence
+  guardrail.
+- **Resolution — built the real producer** (per user direction, in-scope): `src/poller/clients/agent.ts`
+  emits `tdarr.writeback.mbps` (sum of governor per-node `replaceProgress.mbps`) each poll,
+  box `tdarr`; only the `nas` agent serves the governor endpoint so no double-count.
+- **Tiered downsampling** (`src/poller/retention.ts`): global collapse of every metric — raw→hour
+  at 24h, hour→day at 7d, averaged per (box, metric, bucket) via `date_trunc`, each tier a single
+  transaction (insert coarse row + delete sources), idempotent. New `metric_resolution` enum +
+  `resolution` column (default `raw`) + index (migration `0005_nervous_the_spike.sql`). 60-min
+  panel reads are unaffected (rows younger than 24h are all `raw`).
+- **Read path:** `series.writebackMbps` added to `tdarrPanelSchema`, read in `buildTdarrPanel`,
+  requested by the Tdarr API route `metricSeries` pairs.
+- **Contracts flipped back:** throughput.series → `transportKind: database-query`, `required: true`,
+  `verified: true` against the now-real producer; chart still renders an explicit empty state
+  until history accumulates. `gap-analysis.md §3b` documents the found-and-closed gap.
+- **Gate:** retention collapse + idempotency tests added (5 retention tests); `tdarr-contracts.test.ts`
+  12 passed; workflow + poller + panels + app suites **259 passed**. Typecheck clean (app).
 
 ## Phase 3 detail — Skills + subagents + commands (passed)
 
