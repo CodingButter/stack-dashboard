@@ -23,6 +23,8 @@
     { "item": "Verify write-back progress (replaceProgress.pct/mbps) renders live during a real Replace/Copy phase on a NAS node", "ref": "tdarr.nodes.grid.worker.writeback-pct", "resolved": false },
     { "item": "Verify governor unavailable (null) vs stale (running:false) states against the live agent/governor snapshot", "ref": "tdarr.governor.status.panel.running", "resolved": false },
     { "item": "Confirm poller ActiveEnterTimestamp is post-change before trusting any http-poll field live", "ref": "stackdash-poller.service", "resolved": false },
-    { "item": "Verify disruptive/destructive actions (pause-node, cancel-transcode) in an approved safe environment with confirmation flow", "ref": "tdarr.nodes.grid.worker.cancel-transcode", "resolved": false }
+    { "item": "Verify disruptive/destructive actions (pause-node, cancel-transcode) in an approved safe environment with confirmation flow", "ref": "tdarr.nodes.grid.worker.cancel-transcode", "resolved": false },
+    { "item": "Confirm scan-library viewer-role side-effect is intended, or tighten RBAC; the action enqueues a scanFindNew mutation under requiredRole viewer (round-2 review risk)", "ref": "tdarr.kpi.summary.scan-library", "resolved": false },
+    { "item": "Confirm scan-library belongs in the redesign / that the UI supplies a libraryId; no such control is visible in tdarr-redesign.png (round-2 review risk)", "ref": "tdarr.kpi.summary.scan-library", "resolved": false }
   ]
 }
