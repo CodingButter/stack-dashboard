@@ -73,3 +73,30 @@ apparatus gap.
 A transport-classification cross-check that flags any field whose consumer imports a live
 telemetry hook (`useGovernorTelemetry` / `mergeGovernor`) but is classified non-`udp-push`.
 Would have caught AW-2 automatically. Logged for a later apparatus iteration.
+
+---
+
+## 2026-07-27 — Phase 5, Tdarr, implementation (contract↔code drift the gate missed)
+
+### AW-5 (apparatus) — a fabricated `verified: true` traceability link passed every gate
+- **Weakness:** the Phase-4 contracts declared `tdarr.analytics.charts.throughput.series`
+  as produced by `assemble.ts (SeriesMap)` with `verified: true`, and both the coverage /
+  traceability validators **and** two rounds of independent adversarial review accepted it.
+  No such producer existed: `tdarrPanelSchema.series` carried only `queueDepth` +
+  `workersActive`, and per-node write-back MB/s was an instantaneous scalar
+  (`governor.nodes[].replaceProgress.mbps`), never persisted as a series. The traceability
+  validator only checks that a matrix row exists with `verified: true` and a matching
+  `producerRef` string — it never confirms the named producer **exists in source**. A
+  plausible-sounding but fabricated `producerRef` therefore sails through.
+- **Immediate resolution (this page):** rather than defer, the real producer was built —
+  `tdarr.writeback.mbps` metric emitted in `agent.ts`, persisted, read back as
+  `series.writebackMbps`, requested by the tdarr route; tiered downsampling added to
+  retention. Contracts flipped back to `transportKind: database-query`, `required: true`,
+  `verified: true` against the now-real producer. The chart still renders an explicit empty
+  state until history accumulates. See `gap-analysis.md §3b`.
+- **Fix (apparatus — candidate, not yet built):** a producer-existence check that resolves
+  each `producerRef`'s named file/symbol against the repo and fails the traceability gate
+  when the referenced producer cannot be located. This closes the class of bug where a
+  `verified: true` link names a producer that does not exist. Logged for the next apparatus
+  iteration; tracked alongside AW-4 (both are "the string is plausible but reality
+  disagrees" guardrails).

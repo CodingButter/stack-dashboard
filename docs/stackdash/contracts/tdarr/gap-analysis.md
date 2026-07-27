@@ -49,6 +49,28 @@ the prior-art census. This is expected: the census never decomposed Tdarr to the
 field level. The generated inventory supersedes it for the migrated page. No
 `contradictory`, `duplicate`, or `ambiguous-owner` drift was found for Tdarr.
 
+## 3b. Worker Throughput series (gap found in Phase 5, closed)
+
+The redesign's "Worker Throughput" chart plots aggregate write-back MB/s over
+"Last hour". Phase 5 implementation exposed a **contract↔code drift the Phase-4
+gate missed**: the contract claimed `tdarr.analytics.charts.throughput.series`
+was produced by `assemble.ts (SeriesMap)` with `verified: true`, but no such
+producer existed — `tdarrPanelSchema.series` carried only `queueDepth` +
+`workersActive` (worker *counts*, not MB/s), and per-node write-back MB/s existed
+only as an instantaneous scalar (`governor.nodes[].replaceProgress.mbps`), never
+persisted.
+
+**Resolution:** built a real producer. `src/poller/clients/agent.ts` now emits
+`tdarr.writeback.mbps` (summed per-node `replaceProgress.mbps`) each poll; the
+metric persists to the `metrics` table; `buildTdarrPanel` reads it back as
+`series.writebackMbps`; the tdarr API route requests it as a `metricSeries` pair.
+A global tiered downsampling pass (raw→hourly at 24h, hourly→daily at 7d, averaged
+per bucket, transaction-safe, idempotent) keeps the series dependable without
+hoarding per-tick rows. The chart still renders an explicit **empty** state until
+history accumulates — never a fabricated line. The apparatus weakness (validators
++ review missed the fabricated `verified: true` link) is recorded in
+`WORKFLOW_IMPROVEMENTS.md`.
+
 ## 4. Open gaps (none blocking for contract stage)
 
 No required field, component, state, or action is left without a producer

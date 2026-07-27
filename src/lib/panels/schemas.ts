@@ -320,6 +320,12 @@ export const tdarrPanelSchema = z.object({
   series: z.object({
     queueDepth: z.array(pointSchema),
     workersActive: z.array(pointSchema),
+    /**
+     * Aggregate write-back throughput (summed per-node replaceProgress.mbps),
+     * emitted as the `tdarr.writeback.mbps` metric each poll and downsampled by
+     * the retention pass. Empty until the metric has accumulated history.
+     */
+    writebackMbps: z.array(pointSchema),
   }),
   /**
    * Tdarr I/O governor state (from the NAS tdarr-gate service via the agent).

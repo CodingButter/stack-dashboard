@@ -4,7 +4,7 @@
     "contractVersion": "1.0.0",
     "pageId": "tdarr",
     "createdAt": "2026-07-27T03:48:53Z",
-    "updatedAt": "2026-07-27T04:10:00Z",
+    "updatedAt": "2026-07-27T05:40:00Z",
     "apparatusVersion": "164e0f0",
     "sourceDesignRef": ".mastracode/stackdash-workflow-builder/tdarr-redesign.png@05b7163a58cf1c920399156c6a9cb037ddf543f3",
     "provenance": "static-analysis",
@@ -38,7 +38,7 @@
     { "fieldId": "tdarr.nodes.grid.worker.writeback-mbps", "transportKind": "udp-push", "cadenceTier": null, "producer": "governor.nodes[].replaceProgress.mbps (via mergeGovernor)", "producerRef": "src/components/telemetry/telemetry-provider.tsx::useGovernorTelemetry (2Hz WS push) merged via src/lib/panels/governor-merge.ts; fallback src/lib/panels/assemble.ts::buildGovernor; gated by src/lib/panels/tdarr-stage.ts (isFinalizing)", "updateMechanism": "primary: 2Hz WebSocket live push; fallback: HTTP snapshot; consumed when workerStage().isFinalizing", "notes": "write-back throughput derived from replaceProgress.mbps on the governor node; same cross-source join as writeback-pct" },
 
     { "fieldId": "tdarr.analytics.charts.queue-depth.series", "transportKind": "database-query", "cadenceTier": null, "producer": "tdarr.queue.depth series", "producerRef": "src/lib/panels/assemble.ts (SeriesMap) from persisted metric rows", "updateMechanism": "queried from metrics store at assembly time", "notes": null },
-    { "fieldId": "tdarr.analytics.charts.throughput.series", "transportKind": "database-query", "cadenceTier": null, "producer": "tdarr.workers.active / throughput series", "producerRef": "src/lib/panels/assemble.ts (SeriesMap)", "updateMechanism": "queried from metrics store at assembly time", "notes": null },
+    { "fieldId": "tdarr.analytics.charts.throughput.series", "transportKind": "database-query", "cadenceTier": null, "producer": "tdarr.writeback.mbps series", "producerRef": "src/poller/clients/agent.ts (emits tdarr.writeback.mbps = sum of governor.nodes[].replaceProgress.mbps per poll, box='tdarr') -> persisted to metrics table -> read via src/lib/panels/assemble.ts::buildTdarrPanel (series['tdarr.writeback.mbps']) -> src/app/api/panels/tdarr/route.ts metricSeries pair", "updateMechanism": "queried from metrics store at assembly time; retention downsamples raw->hour (24h) ->day (7d)", "notes": "GAP CLOSED. Instantaneous per-node write-back MB/s (governor.nodes[].replaceProgress.mbps) is now summed and persisted each poll as the tdarr.writeback.mbps metric, giving a real time-series. Empty state remains valid until history accumulates; must still render an explicit empty state (no fabricated line) when the series is empty." },
     { "fieldId": "tdarr.analytics.charts.service-health.uptime", "transportKind": "server-derived", "cadenceTier": null, "producer": "uptime tracker cells", "producerRef": "src/lib/panels/assemble.ts (uptime Record) ", "updateMechanism": "derived from tracker cells during assembly", "notes": null }
   ]
 }

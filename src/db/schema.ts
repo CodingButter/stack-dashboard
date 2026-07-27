@@ -14,6 +14,17 @@ import {
 
 export const userRole = pgEnum("user_role", ["admin", "viewer"]);
 
+/**
+ * Downsampling tier of a metrics row. `raw` = as-polled; `hour`/`day` = a
+ * collapsed average of finer rows over that bucket (see runRetention). Lets the
+ * retention pass age raw → hour → day without ever re-collapsing a row.
+ */
+export const metricResolution = pgEnum("metric_resolution", [
+  "raw",
+  "hour",
+  "day",
+]);
+
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
   username: text("username").notNull().unique(),
@@ -90,8 +101,12 @@ export const metrics = pgTable(
     metric: text("metric").notNull(),
     value: doublePrecision("value").notNull(),
     at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+    resolution: metricResolution("resolution").notNull().default("raw"),
   },
-  (t) => [index("metrics_box_metric_at_idx").on(t.box, t.metric, t.at)],
+  (t) => [
+    index("metrics_box_metric_at_idx").on(t.box, t.metric, t.at),
+    index("metrics_resolution_at_idx").on(t.resolution, t.at),
+  ],
 );
 
 /**

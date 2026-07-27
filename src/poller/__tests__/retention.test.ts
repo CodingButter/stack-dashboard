@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import { metrics, serviceStatus, snapshots } from "@/db/schema";
 import {
+  HOUR_TO_DAY_MS,
   METRICS_TTL_MS,
+  RAW_TO_HOUR_MS,
   SERVICE_STATUS_TTL_MS,
   SNAPSHOTS_KEEP_PER_KIND,
   runRetention,
@@ -28,7 +30,60 @@ function makeShim() {
   ];
 
   let groupCursor = 0;
+
+  // Metric collapse runs inside a transaction and selects/groups from `metrics`.
+  // By default there are no metric rows, so both tiers collapse nothing and the
+  // snapshot/status assertions below are undisturbed. Collapse-specific tests
+  // pass a `metricRows` set to exercise the averaging path.
+  const collapse = {
+    // buckets returned by the grouped select, per tier call in order
+    tierBuckets: [] as Array<Array<{ box: string; metric: string; bucket: string; avg: number }>>,
+    inserted: [] as Array<{ resolution: string; value: number; count: number }>,
+  };
+  let tierCursor = 0;
+
+  function metricsTx() {
+    return {
+      select() {
+        return {
+          from(table: unknown) {
+            if (table !== metrics) throw new Error("unexpected tx select");
+            return {
+              where() {
+                return {
+                  async groupBy() {
+                    return collapse.tierBuckets[tierCursor++] ?? [];
+                  },
+                };
+              },
+            };
+          },
+        };
+      },
+      insert(table: unknown) {
+        if (table !== metrics) throw new Error("unexpected tx insert");
+        return {
+          async values(rows: Array<{ resolution: string; value: number }>) {
+            for (const r of rows)
+              collapse.inserted.push({
+                resolution: r.resolution,
+                value: r.value,
+                count: rows.length,
+              });
+          },
+        };
+      },
+      delete(table: unknown) {
+        if (table !== metrics) throw new Error("unexpected tx delete");
+        return { async where() {} };
+      },
+    };
+  }
+
   const database = {
+    async transaction(fn: (tx: unknown) => Promise<number>) {
+      return fn(metricsTx());
+    },
     delete(table: unknown) {
       return {
         where() {
@@ -78,7 +133,7 @@ function makeShim() {
     },
   };
 
-  return { database, deletes };
+  return { database, deletes, collapse };
 }
 
 describe("retention windows", () => {
@@ -86,6 +141,14 @@ describe("retention windows", () => {
     expect(SERVICE_STATUS_TTL_MS).toBe(3 * 24 * 60 * 60 * 1000);
     expect(METRICS_TTL_MS).toBe(30 * 24 * 60 * 60 * 1000);
     expect(SNAPSHOTS_KEEP_PER_KIND).toBeGreaterThan(0);
+  });
+
+  it("uses 1-day raw→hour and 7-day hour→day collapse thresholds", () => {
+    expect(RAW_TO_HOUR_MS).toBe(24 * 60 * 60 * 1000);
+    expect(HOUR_TO_DAY_MS).toBe(7 * 24 * 60 * 60 * 1000);
+    // collapse must precede the flat TTL so aging rows survive as averages
+    expect(RAW_TO_HOUR_MS).toBeLessThan(METRICS_TTL_MS);
+    expect(HOUR_TO_DAY_MS).toBeLessThan(METRICS_TTL_MS);
   });
 
   it("deletes status + metrics by window and prunes snapshots to keep-N", async () => {
@@ -97,10 +160,51 @@ describe("retention windows", () => {
     expect(counts.metricsDeleted).toBe(7);
     // only the over-limit group triggers a snapshot delete
     expect(counts.snapshotsDeleted).toBe(10);
+    // no metric rows in the default shim → nothing to collapse
+    expect(counts.metricsCollapsedRawToHour).toBe(0);
+    expect(counts.metricsCollapsedHourToDay).toBe(0);
 
     const tables = deletes.map((d) => d.table);
     expect(tables).toContain(serviceStatus);
     expect(tables).toContain(metrics);
     expect(tables).toContain(snapshots);
+  });
+});
+
+describe("metric downsampling", () => {
+  it("collapses raw and hourly buckets into coarser averaged rows", async () => {
+    const { database, collapse } = makeShim();
+    // Tier order in runRetention: [0] raw→hour, [1] hour→day.
+    collapse.tierBuckets = [
+      [
+        { box: "tdarr", metric: "tdarr.writeback.mbps", bucket: "2026-07-25T10:00:00Z", avg: 4.5 },
+        { box: "tdarr", metric: "tdarr.writeback.mbps", bucket: "2026-07-25T11:00:00Z", avg: 6.0 },
+      ],
+      [{ box: "tdarr", metric: "tdarr.queue.depth", bucket: "2026-07-18T00:00:00Z", avg: 120 }],
+    ];
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const counts = await runRetention(database as any, new Date());
+
+    expect(counts.metricsCollapsedRawToHour).toBe(2);
+    expect(counts.metricsCollapsedHourToDay).toBe(1);
+
+    // inserted rows carry the coarser resolution and the bucket average
+    const hourRows = collapse.inserted.filter((r) => r.resolution === "hour");
+    const dayRows = collapse.inserted.filter((r) => r.resolution === "day");
+    expect(hourRows.map((r) => r.value)).toEqual([4.5, 6.0]);
+    expect(dayRows.map((r) => r.value)).toEqual([120]);
+  });
+
+  it("is idempotent: a tier with no aged source rows collapses nothing", async () => {
+    const { database, collapse } = makeShim();
+    collapse.tierBuckets = [[], []]; // nothing old enough on either tier
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const counts = await runRetention(database as any, new Date());
+
+    expect(counts.metricsCollapsedRawToHour).toBe(0);
+    expect(counts.metricsCollapsedHourToDay).toBe(0);
+    expect(collapse.inserted).toHaveLength(0);
   });
 });
