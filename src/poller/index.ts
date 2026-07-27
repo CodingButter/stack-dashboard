@@ -29,6 +29,8 @@ import {
   type AgentFetcher,
 } from "./logs";
 import { runAlertCycle } from "@/alerts";
+import { sendPush } from "@/lib/notifications/send";
+import { NewMediaDetector, dispatchNewMedia } from "./new-media";
 
 // Register all service pollers (side-effect imports populate the registry).
 import "./register-all";
@@ -36,6 +38,22 @@ import "./register-all";
 const RETENTION_INTERVAL_MS = 60 * 60 * 1000; // hourly
 const ALERT_INTERVAL_MS = 15_000; // evaluate rules every 15 s
 const TICK_MS = 1_000;
+
+// One detector for the process lifetime — holds the per-section seen-set so a
+// new title only notifies once. First poll after startup seeds silently.
+const newMediaDetector = new NewMediaDetector();
+
+/** Fire new-media push for a plex-recent outcome. Never throws. */
+async function dispatchNewMediaSafe(outcome: PollOutcome): Promise<void> {
+  if (outcome.service !== "plex-recent" || !outcome.ok || !outcome.snapshots) {
+    return;
+  }
+  try {
+    await dispatchNewMedia(newMediaDetector, outcome.snapshots, sendPush);
+  } catch (err) {
+    console.warn(`[poller] new-media dispatch failed:`, err);
+  }
+}
 
 async function runAlertsSafe(): Promise<void> {
   try {
@@ -121,6 +139,7 @@ async function runOnce(): Promise<void> {
   for (const poller of pollers) {
     const outcome = await pollOnce(poller);
     await persistOutcome(db, outcome);
+    await dispatchNewMediaSafe(outcome);
     console.log(
       `[poller] ${outcome.service.padEnd(18)} ok=${outcome.ok} ` +
         `${outcome.latencyMs}ms${outcome.error ? ` err=${outcome.error}` : ""}`,
@@ -154,6 +173,7 @@ async function runLoop(): Promise<void> {
 
       const outcome = await pollOnce(poller);
       await persistOutcome(db, outcome);
+      await dispatchNewMediaSafe(outcome);
       const next = recordResult(state, outcome.ok, Date.now());
       breakers.set(poller.service, next);
       if (!outcome.ok && next.consecutiveFailures === BREAKER_THRESHOLD) {

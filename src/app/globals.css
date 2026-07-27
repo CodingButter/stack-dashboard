@@ -133,3 +133,34 @@
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
 }
+
+/*
+ * Thin, arrow-less horizontal scrollbar — matches the clean mobile overlay look
+ * on desktop too. Firefox uses scrollbar-width/color; WebKit/Chromium gets a
+ * slim track with rounded thumb and no stepper arrows (::-webkit-scrollbar-button
+ * is collapsed to remove the left/right arrows).
+ */
+@utility thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+
+  &::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 9999px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--muted-foreground);
+  }
+  &::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+}

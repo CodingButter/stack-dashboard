@@ -4,7 +4,9 @@
  * `runAlertCycle` the worker calls each poll tick.
  */
 import type { db as DbType } from "@/db";
+import { sendPush } from "@/lib/notifications/send";
 import { AlertEngine } from "./engine";
+import { makeNotifyingStore } from "./notifying-store";
 import { RULES } from "./rules";
 import { assembleRuleInput, makeAlertStore } from "./store";
 
@@ -23,6 +25,6 @@ export async function runAlertCycle(
   opts: { now?: Date; certExpiresInMs?: number | null } = {},
 ): Promise<{ opened: number; refreshed: number; resolved: number; pending: number }> {
   const input = await assembleRuleInput(database, opts);
-  const store = makeAlertStore(database);
+  const store = makeNotifyingStore(makeAlertStore(database), sendPush);
   return getEngine().tick(input, store);
 }
