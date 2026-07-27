@@ -241,18 +241,26 @@ export function TdarrPanel() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <PanelCard title="Queue depth" subsystem="tdarr" info="queue-depth">
-          <div className="flex items-baseline gap-2">
-            <span className="stat-num text-2xl font-semibold">
-              {data.series.queueDepth.at(-1)?.v ?? 0}
-            </span>
-            <span className="text-sm text-muted-foreground">items</span>
-          </div>
-          <SparkLine
-            data={data.series.queueDepth.map((x) => x.v)}
-            color="var(--accent-tdarr)"
-            height={72}
-            className="mt-2"
-          />
+          {data.series.queueDepth.length === 0 ? (
+            <p className="flex h-[104px] items-center justify-center text-center text-sm text-muted-foreground">
+              No data yet
+            </p>
+          ) : (
+            <>
+              <div className="flex items-baseline gap-2">
+                <span className="stat-num text-2xl font-semibold">
+                  {data.series.queueDepth.at(-1)?.v ?? 0}
+                </span>
+                <span className="text-sm text-muted-foreground">items</span>
+              </div>
+              <SparkLine
+                data={data.series.queueDepth.map((x) => x.v)}
+                color="var(--accent-tdarr)"
+                height={72}
+                className="mt-2"
+              />
+            </>
+          )}
         </PanelCard>
 
         <PanelCard title="Active workers / load" subsystem="tdarr" info="active-workers">
@@ -308,8 +316,14 @@ export function TdarrPanel() {
         </PanelCard>
       </div>
 
-      <PanelCard title="Uptime" subsystem="alerts" info="uptime">
-        <UptimeRow uptime={data.uptime} labels={LABELS} />
+      <PanelCard title="Service health" subsystem="alerts" info="uptime">
+        {Object.keys(data.uptime).length === 0 ? (
+          <p className="py-4 text-center text-sm text-muted-foreground">
+            Health unknown — no uptime samples yet
+          </p>
+        ) : (
+          <UptimeRow uptime={data.uptime} labels={LABELS} />
+        )}
       </PanelCard>
     </div>
   );
