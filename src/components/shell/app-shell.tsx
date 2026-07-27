@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { CommandPalette } from "@/components/shell/command-palette";
+import { AccountMenu } from "@/components/shell/account-menu";
 import { navItems } from "@/components/shell/nav";
 import { cn } from "@/lib/utils";
 import { ToastProvider } from '@/components/actions/toaster';
@@ -119,30 +120,14 @@ export function AppShell({
         >
           <div
             className={cn(
-              "flex h-14 items-center gap-2 border-b border-sidebar-border px-4",
-              collapsed && "justify-center px-0",
-            )}
-          >
-            <TerminalSquare className="size-5 text-sidebar-primary" />
-            {!collapsed && (
-              <span className="text-base font-semibold tracking-tight">
-                stack<span className="text-sidebar-primary">dash</span>
-              </span>
-            )}
-          </div>
-          <div className="flex-1 overflow-y-auto py-2">
-            <NavLinks collapsed={collapsed} />
-          </div>
-          <div
-            className={cn(
-              "flex items-center gap-1 border-t border-sidebar-border p-2",
-              collapsed && "flex-col",
+              "flex h-14 items-center gap-2 border-b border-sidebar-border px-2",
+              collapsed ? "flex-col justify-center gap-1 py-2" : "px-4",
             )}
           >
             <Button
               variant="ghost"
               size="icon-sm"
-              className="flex-1"
+              className="shrink-0"
               onClick={() => setCollapsed((c) => !c)}
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
@@ -152,17 +137,20 @@ export function AppShell({
                 <PanelLeftClose className="size-4" />
               )}
             </Button>
-            <form action={logout} className={cn(collapsed ? "w-full" : "flex-1")}>
-              <Button
-                type="submit"
-                variant="ghost"
-                size="icon-sm"
-                className="w-full text-muted-foreground"
-                aria-label="Sign out"
-              >
-                <LogOut className="size-4" />
-              </Button>
-            </form>
+            {!collapsed && (
+              <div className="flex items-center gap-2">
+                <TerminalSquare className="size-5 text-sidebar-primary" />
+                <span className="text-base font-semibold tracking-tight">
+                  stack<span className="text-sidebar-primary">dash</span>
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="flex-1 overflow-y-auto py-2">
+            <NavLinks collapsed={collapsed} />
+          </div>
+          <div className="border-t border-sidebar-border p-2">
+            <AccountMenu collapsed={collapsed} />
           </div>
         </aside>
 
