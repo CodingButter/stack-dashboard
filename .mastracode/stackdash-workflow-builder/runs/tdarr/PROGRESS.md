@@ -9,7 +9,7 @@ Phase status enum: `pending | running | blocked | passed | invalidated`
 |---|---|---|---|
 | 0 — Baseline + red/green capture | passed | 3 Tdarr test files / 31 tests green; branch from `main`; base rev + baseline input recorded | worktree-pinned baseline; input-manifest written |
 | 1 — Canonical schemas + meta-versioning + CONSTITUTION | passed | `pnpm exec vitest run scripts/workflow/tests/schemas.test.ts` → 17 passed | 8 canonical zod schemas + meta block + CONSTITUTION written |
-| 2 — Validators + reconciler + stale-input guard | pending | `pnpm exec vitest run scripts/workflow/tests/validators.test.ts` | |
+| 2 — Validators + reconciler + stale-input guard | passed | `pnpm exec vitest run scripts/workflow/tests/validators.test.ts` → 25 passed | coverage/traceability/3 blockers + reconciler + stale guard, each red+green |
 | 3 — Skills + subagents + namespaced commands | pending | `pnpm exec vitest run scripts/workflow/tests/commands.test.ts` | |
 | 4 — Run apparatus on Tdarr → contracts → decision gate | pending | coverage+traceability validators + independent contract review | mid-run DECISION GATE |
 | 5 — Implement + runtime-verify migrated page | pending | full suite + runtime validator + reproducible red/green | |
@@ -35,6 +35,25 @@ _(records: which manifest input changed, which phases were marked `invalidated`,
   `src/components/panels/__tests__/pipeline.test.ts` (12) → **31 passed / 0 failed**. No pre-existing failures; nothing classified out-of-scope.
 - **Red/green baseline:** base revision recorded; red input = worktree pinned to `f8c137f` (see `evidence/baseline/README.md`). `tdarrSlice` git-blob hashes pin the exact pre-migration bytes.
 - **Input manifest:** `input-manifest.json` written (tdarr slice, design evidence, fixtures, prior-art) with per-input hashes + hashKind.
+## Phase 2 detail — Validators + reconciler + stale guard (passed)
+
+- **Validators:** `scripts/workflow/validators/{types,coverage,traceability,blockers,reconciler,stale-input,index}.ts`.
+  - Coverage: field, component, state, action (each returns a 0–100 `coveragePct`).
+  - Traceability: required field → verified producer→consumer link; producerRef
+    mismatch + orphan-producer checks.
+  - Hard blockers: `no-unknown-producer` (unknown transport kind / placeholder producer
+    text), `no-omitted-component`, `no-forbidden-producer` (config-driven — the Tdarr
+    `percentage` trap is supplied as a regex pattern, NOT baked into apparatus logic).
+  - Prior-art reconciler: emits `missing | stale | contradictory | duplicate |
+    ambiguous-owner` drift; generated contracts authoritative, drift recorded not merged.
+  - Stale-input guard: pure function; a changed/missing manifest input invalidates its
+    consuming phase + all downstream phases and blocks stale feed-forward.
+- **Gate:** `pnpm exec vitest run scripts/workflow/tests/validators.test.ts` → **25 passed**.
+  Every blocker proven with a red (must-fail) AND green (must-pass) fixture; reconciler
+  proven on a known-drift fixture hitting all 5 drift kinds; stale-input invalidation
+  proven for earliest-input, later-input, and missing-input cascades.
+- `tsc --noEmit` clean for `scripts/workflow`.
+
 ## Phase 1 detail — Schemas + CONSTITUTION (passed)
 
 - **Schemas:** `scripts/workflow/schemas/{meta,primitives,artifacts,index}.ts` — 8 canonical
