@@ -39,6 +39,10 @@ export const GLOSSARY = {
     title: "Active workers",
     body: "How many transcode jobs are running right now across all your Tdarr nodes. Each worker handles one file at a time.",
   },
+  "writeback-throughput": {
+    title: "Write-back throughput",
+    body: "The combined speed, in megabytes per second, at which finished transcodes are being written back to storage across all nodes. This is the total across every node, not a per-node breakdown.",
+  },
   "tdarr-node": {
     title: "Tdarr node",
     body: "A machine that does the actual video processing for Tdarr. You can run several nodes so files get processed in parallel.",

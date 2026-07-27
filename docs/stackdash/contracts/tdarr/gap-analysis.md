@@ -71,6 +71,14 @@ history accumulates — never a fabricated line. The apparatus weakness (validat
 + review missed the fabricated `verified: true` link) is recorded in
 `WORKFLOW_IMPROVEMENTS.md`.
 
+**Deferred (non-blocking):** the redesign mock draws one throughput line *per
+node* (BigBeastNode, DevBeastNode, …). This pass ships the **aggregate total**
+line only (the single `tdarr.writeback.mbps` sum). Per-node throughput series
+(`tdarr.writeback.mbps.<node>`) is deferred as follow-on data-infrastructure work
+and tracked on the acceptance-report live/follow-up checklist. The chart is
+labeled "Write-back throughput (total)" so the UI never implies four independent
+producers exist when only the aggregate does.
+
 ## 4. Open gaps (none blocking for contract stage)
 
 No required field, component, state, or action is left without a producer

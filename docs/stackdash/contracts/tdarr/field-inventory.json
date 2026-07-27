@@ -38,7 +38,7 @@
     { "id": "tdarr.nodes.grid.worker.writeback-mbps", "label": "Write-back throughput", "componentId": "tdarr.nodes.grid.worker", "required": true, "designRef": "tdarr-redesign.png#node-worker" },
 
     { "id": "tdarr.analytics.charts.queue-depth.series", "label": "Queue depth over time", "componentId": "tdarr.analytics.charts.queue-depth", "required": true, "designRef": "tdarr-redesign.png#analytics" },
-    { "id": "tdarr.analytics.charts.throughput.series", "label": "Worker throughput over time", "componentId": "tdarr.analytics.charts.throughput", "required": true, "designRef": "tdarr-redesign.png#analytics" },
+    { "id": "tdarr.analytics.charts.throughput.series", "label": "Aggregate write-back throughput over time (total MB/s across nodes; per-node breakdown deferred)", "componentId": "tdarr.analytics.charts.throughput", "required": true, "designRef": "tdarr-redesign.png#analytics" },
     { "id": "tdarr.analytics.charts.service-health.uptime", "label": "Service uptime", "componentId": "tdarr.analytics.charts.service-health", "required": true, "designRef": "tdarr-redesign.png#analytics" }
   ]
 }
