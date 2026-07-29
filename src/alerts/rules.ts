@@ -11,8 +11,10 @@ export const ALERT_THRESHOLDS = {
   tierWarnPct: { "/volume2": 80, "/volume1": 90 } as Record<string, number>,
   /** array/disk util % sustained */
   arrayUtilPct: 90,
-  /** D-state process count that counts as "sustained hang" (two-strike = ~2 polls) */
-  dstateCount: 1,
+  /** D-state process count that counts as a hang. 1-2 procs in D is normal
+   * during heavy write-back (smbd/kworker flushing a transcode); a real wedge
+   * piles up several stuck procs. */
+  dstateCount: 3,
   /** ssh failed-auth lines per minute */
   sshBurstPerMin: 20,
   /** SMART temperature ceiling (°C) */
@@ -86,7 +88,11 @@ const dstateHang: Rule = {
   id: "host.dstate",
   severity: "critical",
   description: "Uninterruptible-sleep processes on the NAS (I/O wedge).",
-  strikes: 2,
+  // 8 strikes × 15 s alert ticks ≈ 2 min sustained. Normal transcode
+  // write-back flaps D-state on and off; a genuine wedge holds it for minutes
+  // (the hardware watchdog doesn't reboot until ~15 min), so 2 min is still
+  // plenty of lead time without paging on every file move.
+  strikes: 8,
   evaluate({ agent }) {
     if (!agent || agent.dstate < ALERT_THRESHOLDS.dstateCount) return [];
     return [

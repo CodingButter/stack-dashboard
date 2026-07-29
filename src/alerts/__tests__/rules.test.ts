@@ -94,9 +94,11 @@ describe("alert rules — breach / non-breach pairs", () => {
     expect(r.evaluate(input({ statuses: [status({ breakerOpenMs: 1000 })] }))).toHaveLength(0);
   });
 
-  it("host.dstate: fires when dstate >= threshold, silent at 0", () => {
+  it("host.dstate: fires when dstate >= threshold, silent below", () => {
     const r = ruleById("host.dstate");
     expect(r.evaluate(input({ agent: agent({ dstate: 3 }) }))).toHaveLength(1);
+    // 1-2 D-state procs is normal write-back, not a wedge.
+    expect(r.evaluate(input({ agent: agent({ dstate: 2 }) }))).toHaveLength(0);
     expect(r.evaluate(input({ agent: agent({ dstate: 0 }) }))).toHaveLength(0);
   });
 
