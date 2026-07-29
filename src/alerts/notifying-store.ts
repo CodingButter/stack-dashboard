@@ -27,7 +27,6 @@ export function eventTypeForBreach(b: Breach): string | null {
     case "smart.health":
       return "smart_health";
     case "storage.tier-fill":
-    case "storage.array-util":
       return "storage";
     case "host.dstate":
     case "poller.breaker-open":
@@ -35,7 +34,8 @@ export function eventTypeForBreach(b: Breach): string | null {
     case "auth.ssh-burst":
       return "ssh_burst";
     default:
-      // host.failed-units, tls.cert-expiry, and any future rule: no push.
+      // host.failed-units, tls.cert-expiry, storage.array-util (scheduled bulk
+      // I/O pins disks nightly — dashboard-only), and any future rule: no push.
       return null;
   }
 }

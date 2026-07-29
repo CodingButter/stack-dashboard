@@ -122,6 +122,12 @@ describe("alert rules — breach / non-breach pairs", () => {
     expect(r.evaluate(input({ agent: agent({ disks: [{ device: "sda", utilPct: 20, awaitMs: 5 }] }) }))).toHaveLength(0);
   });
 
+  it("storage.array-util: requires ~5 min sustained (20 strikes)", () => {
+    // Scheduled bulk I/O (tier-mover, backups) pins disks for a couple of
+    // minutes — only saturation that persists past that should open.
+    expect(ruleById("storage.array-util").strikes).toBe(20);
+  });
+
   it("smart.health: fires on unhealthy/media-errors/over-temp, silent when clean", () => {
     const r = ruleById("smart.health");
     expect(r.evaluate(input({ smart: [smart({ healthy: false })] }))).toHaveLength(1);

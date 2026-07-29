@@ -36,7 +36,6 @@ describe("eventTypeForBreach", () => {
     expect(eventTypeForBreach(breach({ ruleId: "tdarr.node" }))).toBe("tdarr_node_failure");
     expect(eventTypeForBreach(breach({ ruleId: "smart.health" }))).toBe("smart_health");
     expect(eventTypeForBreach(breach({ ruleId: "storage.tier-fill" }))).toBe("storage");
-    expect(eventTypeForBreach(breach({ ruleId: "storage.array-util" }))).toBe("storage");
     expect(eventTypeForBreach(breach({ ruleId: "host.dstate" }))).toBe("io_overload");
     expect(eventTypeForBreach(breach({ ruleId: "poller.breaker-open" }))).toBe("io_overload");
     expect(eventTypeForBreach(breach({ ruleId: "auth.ssh-burst" }))).toBe("ssh_burst");
@@ -45,6 +44,8 @@ describe("eventTypeForBreach", () => {
   it("returns null for rules with no push mapping", () => {
     expect(eventTypeForBreach(breach({ ruleId: "host.failed-units" }))).toBeNull();
     expect(eventTypeForBreach(breach({ ruleId: "tls.cert-expiry" }))).toBeNull();
+    // Dashboard-only: nightly bulk I/O pins disks; never worth a phone push.
+    expect(eventTypeForBreach(breach({ ruleId: "storage.array-util" }))).toBeNull();
   });
 });
 

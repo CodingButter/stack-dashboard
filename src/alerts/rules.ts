@@ -135,7 +135,12 @@ const arrayUtil: Rule = {
   id: "storage.array-util",
   severity: "warning",
   description: "A disk device is saturated.",
-  strikes: 2,
+  // 20 strikes × 15 s ticks ≈ 5 min sustained. Scheduled bulk I/O (nightly
+  // tier-mover, config backup, transcode moves) legitimately pins devices at
+  // 90-100 % for a couple of minutes; only saturation that *stays* pinned is
+  // worth surfacing. This rule is dashboard-only — it never pushes (see
+  // eventTypeForBreach) because a saturated disk during a transfer is normal.
+  strikes: 20,
   evaluate({ agent }) {
     if (!agent) return [];
     return agent.disks
